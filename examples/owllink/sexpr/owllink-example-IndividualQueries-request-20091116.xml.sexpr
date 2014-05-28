@@ -1,0 +1,140 @@
+
+
+(NamespacePrefix () 
+  NIL 
+  |http://www.owllink.org/owllink#| )
+
+(NamespacePrefix () 
+  owl 
+  |http://www.w3.org/2002/07/owl#| )
+
+(NamespacePrefix () 
+  xsi 
+  |http://www.w3.org/2001/XMLSchema-instance| )
+
+(RequestMessage () 
+  
+  (CreateKB (:kb |http://www.owllink.org/ont/families| ) 
+    (Prefix (:name "families" :fullIRI |http://example.com/owl/families/| ) )
+    (Prefix (:name "otherOnt" :fullIRI |http://example.org/otherOntologies/families/| ) ))
+  
+  (LoadOntologies (:kb |http://www.owllink.org/ont/families| ) 
+    (OntologyIRI (:IRI |http://www.owllink.org/ontologies/primer.owl| ) ))
+  
+  (GetTypes (:kb |http://www.owllink.org/ont/families| :direct "true" ) 
+    |families:John| )
+  
+  (GetFlattenedTypes (:kb |http://www.owllink.org/ont/families| ) 
+    |families:John| )
+  
+  (GetDifferentIndividuals (:kb |http://www.owllink.org/ont/families| ) 
+    |families:John| )
+  
+  (GetFlattenedDifferentIndividuals (:kb |http://www.owllink.org/ont/families| ) 
+    |families:John| )
+  
+  (GetSameIndividuals (:kb |http://www.owllink.org/ont/families| ) 
+    |families:John| )
+  
+  (GetObjectPropertiesOfSource (:kb |http://www.owllink.org/ont/families| ) 
+    |families:John| )
+  
+  (GetObjectPropertiesOfSource (:kb |http://www.owllink.org/ont/families| :negative "true" ) 
+    |families:John| )
+  
+  (GetObjectPropertiesBetween (:kb |http://www.owllink.org/ont/families| :negative "false" ) 
+    |families:John| 
+    |families:Mary| )
+  
+  (GetObjectPropertiesBetween (:kb |http://www.owllink.org/ont/families| :negative "true" ) 
+    |families:John| 
+    |families:Mary| )
+  
+  (GetObjectPropertiesOfTarget (:kb |http://www.owllink.org/ont/families| :negative "false" ) 
+    |families:Mary| )
+  
+  (GetObjectPropertiesOfTarget (:kb |http://www.owllink.org/ont/families| :negative "true" ) 
+    |families:Mary| )
+  
+  (GetDataPropertiesOfSource (:kb |http://www.owllink.org/ont/families| :negative "false" ) 
+    |families:John| )
+  
+  (GetDataPropertiesOfSource (:kb |http://www.owllink.org/ont/families| :negative "true" ) 
+    |families:John| )
+  
+  (GetDataPropertiesBetween (:kb |http://www.owllink.org/ont/families| ) 
+    |families:John| 
+    (OWLLiteral "51" "http://www.w3.org/2001/XMLSchema#integer"))
+  
+  (GetDataPropertiesBetween (:kb |http://www.owllink.org/ont/families| :negative "true" ) 
+    |families:John| 
+    (OWLLiteral "51" "http://www.w3.org/2001/XMLSchema#integer"))
+  
+  (GetDataPropertiesOfLiteral (:kb |http://www.owllink.org/ont/families| ) 
+    (OWLLiteral "51" "http://www.w3.org/2001/XMLSchema#integer"))
+  
+  (GetDataPropertiesOfLiteral (:kb |http://www.owllink.org/ont/families| :negative "true" ) 
+    (OWLLiteral "51" "http://www.w3.org/2001/XMLSchema#integer"))
+  
+  (GetInstances (:kb |http://www.owllink.org/ont/families| :direct "true" ) 
+    |families:Woman| )
+  
+  (GetObjectPropertyTargets (:kb |http://www.owllink.org/ont/families| ) 
+    |families:hasWife| 
+    |families:John| )
+  
+  (GetObjectPropertyTargets (:kb |http://www.owllink.org/ont/families| :negative "true" ) 
+    |families:hasWife| 
+    |families:John| )
+  
+  (GetObjectPropertySources (:kb |http://www.owllink.org/ont/families| ) 
+    |families:hasWife| 
+    |families:Mary| )
+  
+  (GetObjectPropertySources (:kb |http://www.owllink.org/ont/families| :negative "true" ) 
+    |families:hasWife| 
+    |families:Mary| )
+  
+  (GetFlattenedInstances (:kb |http://www.owllink.org/ont/families| ) 
+    |families:Person| )
+  
+  (GetFlattenedInstances (:kb |http://www.owllink.org/ont/families| :direct "true" ) 
+    |families:Person| )
+  
+  (GetFlattenedObjectPropertyTargets (:kb |http://www.owllink.org/ont/families| ) 
+    |families:hasWife| 
+    |families:John| )
+  
+  (GetFlattenedObjectPropertyTargets (:kb |http://www.owllink.org/ont/families| :negative "true" ) 
+    |families:hasWife| 
+    |families:John| )
+  
+  (GetFlattenedObjectPropertySources (:kb |http://www.owllink.org/ont/families| ) 
+    |families:hasWife| 
+    |families:Mary| )
+  
+  (GetFlattenedObjectPropertySources (:kb |http://www.owllink.org/ont/families| :negative "true" ) 
+    |families:hasWife| 
+    |families:Mary| )
+  
+  (GetDataPropertyTargets (:kb |http://www.owllink.org/ont/families| ) 
+    |families:hasAge| 
+    |families:John| )
+  
+  (GetDataPropertySources (:kb |http://www.owllink.org/ont/families| ) 
+    |families:hasAge| 
+    (OWLLiteral "51" "http://www.w3.org/2001/XMLSchema#integer"))
+  
+  (GetDataPropertySources (:kb |http://www.owllink.org/ont/families| :negative "true" ) 
+    |families:hasAge| 
+    (OWLLiteral "51" "http://www.w3.org/2001/XMLSchema#integer"))
+  
+  (GetFlattenedDataPropertySources (:kb |http://www.owllink.org/ont/families| ) 
+    |families:hasAge| 
+    (OWLLiteral "51" "http://www.w3.org/2001/XMLSchema#integer"))
+  
+  (GetFlattenedDataPropertySources (:kb |http://www.owllink.org/ont/families| :negative "true" ) 
+    |families:hasAge| 
+    (OWLLiteral "51" "http://www.w3.org/2001/XMLSchema#integer"))
+  
+  (ReleaseKB (:kb |http://www.owllink.org/ont/families| ) ))

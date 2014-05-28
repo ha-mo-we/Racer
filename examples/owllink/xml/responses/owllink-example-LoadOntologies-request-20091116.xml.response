@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ResponseMessage xmlns="http://www.owllink.org/owllink#"
+                 xmlns:owl="http://www.w3.org/2002/07/owl#">
+  <KB kb="http://www.owllink.org/examples/families"/>
+  <OK warning="((http://www.owllink.org/ontologies/primer.owl -->
+  http://www.owllink.org/examples/families))"/>
+  <SetOfIndividualSynsets>
+    <IndividualSynset>
+      <owl:NamedIndividual abbreviatedIRI="families:Jack"/>
+    </IndividualSynset>
+    <IndividualSynset>
+      <owl:NamedIndividual abbreviatedIRI="families:John"/>
+      <owl:NamedIndividual abbreviatedIRI="otherOnt:JohnBrown"/>
+    </IndividualSynset>
+    <IndividualSynset>
+      <owl:NamedIndividual abbreviatedIRI="families:Mary"/>
+      <owl:NamedIndividual abbreviatedIRI="otherOnt:MaryBrown"/>
+    </IndividualSynset>
+  </SetOfIndividualSynsets>
+  <ClassSynsets>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="families:Father"/>
+    </ClassSynset>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="families:Man"/>
+    </ClassSynset>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="families:Human"/>
+      <owl:Class abbreviatedIRI="families:Person"/>
+    </ClassSynset>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="owl:Thing"/>
+    </ClassSynset>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="families:Parent"/>
+    </ClassSynset>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="families:MyBirthdayGuests"/>
+    </ClassSynset>
+  </ClassSynsets>
+  <OK/>
+  <SetOfClassSynsets>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="families:HappyPerson"/>
+    </ClassSynset>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="families:Parent"/>
+    </ClassSynset>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="owl:Thing"/>
+    </ClassSynset>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="families:Human"/>
+      <owl:Class abbreviatedIRI="families:Person"/>
+    </ClassSynset>
+  </SetOfClassSynsets>
+  <SetOfIndividualSynsets>
+    <IndividualSynset>
+      <owl:NamedIndividual abbreviatedIRI="families:John"/>
+      <owl:NamedIndividual abbreviatedIRI="otherOnt:JohnBrown"/>
+    </IndividualSynset>
+  </SetOfIndividualSynsets>
+  <OK/>
+</ResponseMessage>

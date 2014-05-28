@@ -1,0 +1,105 @@
+
+
+(ResponseMessage () 
+  
+  (KB (:kb |http://www.owllink.org/ont/families| ) )
+  
+  (OK (:warning "((http://www.owllink.org/ontologies/primer.owl --> http://www.owllink.org/ont/families))" ) )
+  
+  (BooleanResponse (:result "true" ) )
+  
+  (SetOfObjectPropertySynsets () 
+    (ObjectPropertySynset () 
+      |owl:bottomObjectProperty| )
+    (ObjectPropertySynset () 
+      |families:hasFather| ))
+  
+  (SetOfObjectPropertySynsets () 
+    (ObjectPropertySynset () 
+      |owl:topObjectProperty| )
+    (ObjectPropertySynset () 
+      |families:hasSpouse| ))
+  
+  (SetOfObjectProperties () 
+    |families:hasChild| 
+    |otherOnt:child| )
+  
+  (Error (:error "OWLlink request GetDisjointObjectProperties not yet implemented" ) )
+  
+  (ObjectPropertyHierarchy () 
+    (ObjectPropertySynset () 
+      |owl:bottomObjectProperty| )
+    (ObjectPropertySubObjectPropertiesPair () 
+      (ObjectPropertySynset () 
+        |owl:topObjectProperty| )
+      (SubObjectPropertySynsets () 
+        (ObjectPropertySynset () 
+          |families:hasSpouse| )
+        (ObjectPropertySynset () 
+          |families:hasParent| )
+        (ObjectPropertySynset () 
+          |families:hasSon| )
+        (ObjectPropertySynset () 
+          |families:hasRelative| )
+        (ObjectPropertySynset () 
+          |families:parentOf| )
+        (ObjectPropertySynset () 
+          |families:hasHusband| )
+        (ObjectPropertySynset () 
+          |families:hasAncestor| )
+        (ObjectPropertySynset () 
+          |families:hasGrandparent| )
+        (ObjectPropertySynset () 
+          |families:hasUncle| )
+        (ObjectPropertySynset () 
+          |families:hasBrother| )
+        (ObjectPropertySynset () 
+          |families:loves| )
+        (ObjectPropertySynset () 
+          |families:hasDaughter| )
+        (ObjectPropertySynset () 
+          |families:hasChild| 
+          |otherOnt:child| )))
+    (ObjectPropertySubObjectPropertiesPair () 
+      (ObjectPropertySynset () 
+        |families:hasSpouse| )
+      (SubObjectPropertySynsets () 
+        (ObjectPropertySynset () 
+          |families:hasWife| )))
+    (ObjectPropertySubObjectPropertiesPair () 
+      (ObjectPropertySynset () 
+        |families:hasParent| )
+      (SubObjectPropertySynsets () 
+        (ObjectPropertySynset () 
+          |families:hasFather| ))))
+  
+  (BooleanResponse (:result "true" ) )
+  
+  (SetOfDataPropertySynsets () 
+    (DataPropertySynset () 
+      |owl:bottomDataProperty| ))
+  
+  (SetOfDataPropertySynsets () 
+    (DataPropertySynset () 
+      |owl:topDataProperty| ))
+  
+  (DataPropertySynonyms () 
+    |families:hasAge| 
+    |otherOnt:age| )
+  
+  (Error (:error "OWLlink request GetDisjointDataProperties not yet implemented" ) )
+  
+  (DataPropertyHierarchy () 
+    (DataPropertySynset () 
+      |owl:bottomDataProperty| )
+    (DataPropertySubDataPropertiesPair () 
+      (DataPropertySynset () 
+        |owl:topDataProperty| )
+      (SubDataPropertySynsets () 
+        (DataPropertySynset () 
+          |families:hasSSN| )
+        (DataPropertySynset () 
+          |families:hasAge| 
+          |otherOnt:age| ))))
+  
+  (OK () ))

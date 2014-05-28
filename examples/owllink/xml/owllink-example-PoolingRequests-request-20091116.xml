@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RequestMessage xmlns="http://www.owllink.org/owllink#"
+    xml:base="http://www.owllink.org/examples/myOntology#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.owllink.org/owllink# 
+      http://www.owllink.org/owllink-20091116.xsd">
+    <CreateKB kb="http://www.owllink.org/examples/KB_1"/>
+    <!-- Some tells in KB_1 -->
+    <Tell kb="http://www.owllink.org/examples/KB_1">
+        <owl:SubClassOf>
+            <owl:Class IRI="B"/>
+            <owl:Class IRI="A"/>
+        </owl:SubClassOf>
+        <owl:SubClassOf>
+            <owl:Class IRI="C"/>
+            <owl:Class IRI="A"/>
+        </owl:SubClassOf>
+        <owl:EquivalentClasses>
+            <owl:Class IRI="D"/>
+            <owl:Class IRI="E"/>
+        </owl:EquivalentClasses>
+        <owl:ClassAssertion>
+            <owl:Class IRI="A"/>
+            <owl:NamedIndividual IRI="iA"/>
+        </owl:ClassAssertion>
+        <owl:SubClassOf>
+            <owl:Class IRI="C"/>
+            <owl:Class IRI="A"/>
+        </owl:SubClassOf>
+    </Tell>
+    <!-- Some asks -->
+    <GetAllClasses kb="http://www.owllink.org/examples/KB_1"/>
+    <GetEquivalentClasses kb="http://www.owllink.org/examples/KB_1">
+        <owl:Class IRI="D"/>
+    </GetEquivalentClasses>
+    <IsEntailedDirect kb="http://www.owllink.org/examples/KB_1">
+        <owl:SubClassOf>
+            <owl:Class abbreviatedIRI="owl:Thing"/>
+            <owl:Class abbreviatedIRI="owl:Nothing"/>            
+        </owl:SubClassOf>
+    </IsEntailedDirect>
+    <GetSubClasses kb="http://www.owllink.org/examples/KB_1">
+        <owl:Class IRI="C"/>
+    </GetSubClasses>
+    <!-- Some tells for the public KB named 'MyKB_2' -->
+    <CreateKB kb="http://www.owllink.org/examples/KB_2" name="MyKB_2"/>
+    <Tell kb="http://www.owllink.org/examples/KB_2">
+        <owl:SubClassOf>
+            <owl:Class IRI="A"/>
+            <owl:Class IRI="B"/>
+        </owl:SubClassOf>
+    </Tell>
+    <!-- KB Management -->
+    <ReleaseKB kb="http://www.owllink.org/examples/KB_2"/>
+    <ReleaseKB kb="http://www.owllink.org/examples/KB_1"/>
+    <!-- One more ask -->
+    <GetAllClasses kb="http://www.owllink.org/examples/KB_1"/>
+</RequestMessage>

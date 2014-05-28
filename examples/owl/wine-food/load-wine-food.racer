@@ -1,0 +1,11 @@
+
+;;; Please change the pathname /Users/rm/Desktop/examples to the directory
+;;; where you copied the examples.
+
+(mirror "http://www.w3.org/TR/2004/REC-owl-guide-20040210/wine.rdf"
+        "file:///Users/rm/Desktop/examples/wine-food/wine.owl")
+
+(mirror "http://www.w3.org/TR/2004/REC-owl-guide-20040210/food.rdf"
+        "file:///Users/rm/Desktop/examples/wine-food/food.owl")
+
+(owl-read-document "file:///Users/rm/Desktop/exampls/wine-food/wine.owl")

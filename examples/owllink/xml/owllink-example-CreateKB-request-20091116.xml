@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RequestMessage xmlns="http://www.owllink.org/owllink#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.owllink.org/owllink# 
+      http://www.owllink.org/owllink-20091116.xsd">
+    <CreateKB kb="http://www.owllink.org/examples/KB_1"/>
+    <Tell kb="http://www.owllink.org/examples/KB_1">
+        <owl:SubClassOf>
+            <owl:Class IRI="http://www.owllink.org/examples/myOntology#A"/>
+            <owl:Class IRI="http://www.owllink.org/examples/myOntology#B"/>
+        </owl:SubClassOf>
+        <owl:SubClassOf>
+            <owl:Class IRI="http://www.owllink.org/examples/myOntology#B"/>
+            <owl:Class IRI="http://www.owllink.org/examples/myOntology#C"/>
+        </owl:SubClassOf>
+    </Tell>
+    <IsClassSatisfiable kb="http://www.owllink.org/examples/KB_1">
+        <owl:Class IRI="http://www.owllink.org/examples/myOntology#A"/>
+    </IsClassSatisfiable>
+    <ReleaseKB kb="http://www.owllink.org/examples/KB_1"/>
+</RequestMessage>

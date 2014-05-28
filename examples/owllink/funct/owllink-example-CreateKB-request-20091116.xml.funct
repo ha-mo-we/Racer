@@ -1,0 +1,42 @@
+
+
+NamespacePrefix(
+  NIL 
+  <http://www.owllink.org/owllink#> )
+
+NamespacePrefix(
+  "owl" 
+  <http://www.w3.org/2002/07/owl#> )
+
+NamespacePrefix(
+  "xsi" 
+  <http://www.w3.org/2001/XMLSchema-instance> )
+
+RequestMessage(
+  
+  CreateKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_1> ))
+  
+  Tell(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_1> )
+    owl.SubClassOf(
+      <http://www.owllink.org/examples/myOntology#A> 
+      <http://www.owllink.org/examples/myOntology#B> )
+    owl.SubClassOf(
+      <http://www.owllink.org/examples/myOntology#B> 
+      <http://www.owllink.org/examples/myOntology#C> ))
+  
+  IsClassSatisfiable(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_1> )
+    <http://www.owllink.org/examples/myOntology#A> )
+  
+  ReleaseKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_1> )))

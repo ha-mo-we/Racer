@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ResponseMessage xmlns="http://www.owllink.org/owllink#"
+                 xmlns:owl="http://www.w3.org/2002/07/owl#">
+  <Description name="RacerPro">
+    <ProtocolVersion major="1"
+                     minor="0"/>
+    <ReasonerVersion major="2"
+                     minor="0"
+                     build="38"/>
+    <Property key="appliedSemantics">
+      <OneOf abbreviatedIRI="xsd:string">
+        <Literal>direct</Literal>
+      </OneOf>
+      <Literal>direct</Literal>
+    </Property>
+    <Property key="supportedDatatypes">
+      <List abbreviatedIRI="xsd:anyURI"/>
+      <Literal>http://www.w3.org/2001/XMLSchema#negativeInteger</Literal>
+      <Literal>http://www.w3.org/2001/XMLSchema#nonNegativeInteger</Literal>
+      <Literal>http://www.w3.org/2001/XMLSchema#positiveInteger</Literal>
+      <Literal>http://www.w3.org/2001/XMLSchema#nonPositiveInteger</Literal>
+      <Literal>http://www.w3.org/2001/XMLSchema#integer</Literal>
+      <Literal>http://www.w3.org/2001/XMLSchema#byte</Literal>
+      <Literal>http://www.w3.org/2001/XMLSchema#unsignedByte</Literal>
+      <Literal>http://www.w3.org/2001/XMLSchema#unsignedShort</Literal>
+      <Literal>http://www.w3.org/2001/XMLSchema#unsignedInt</Literal>
+      <Literal>http://www.w3.org/2001/XMLSchema#unsignedLong</Literal>
+      <Literal>http://www.w3.org/2001/XMLSchema#short</Literal>
+      <Literal>http://www.w3.org/2001/XMLSchema#int</Literal>
+      <Literal>http://www.w3.org/2001/XMLSchema#long</Literal>
+      <Literal>http://www.w3.org/2001/XMLSchema#float</Literal>
+      <Literal>http://www.w3.org/2001/XMLSchema#double</Literal>
+      <Literal>http://www.w3.org/2001/XMLSchema#decimal</Literal>
+      <Literal>http://www.w3.org/2001/XMLSchema#string</Literal>
+      <Literal>http://www.w3.org/2001/XMLSchema#boolean</Literal>
+    </Property>
+    <Setting key="uniqueNameAssumption">
+      <Datatype abbreviatedIRI="xsd:boolean"/>
+      <Literal>false</Literal>
+    </Setting>
+    <Setting key="verbose">
+      <Datatype abbreviatedIRI="xsd:boolean"/>
+      <Literal>false</Literal>
+    </Setting>
+    <Setting key="leanMode">
+      <Datatype abbreviatedIRI="xsd:boolean"/>
+      <Literal>false</Literal>
+    </Setting>
+    <Setting key="keepsAxioms">
+      <Datatype abbreviatedIRI="xsd:boolean"/>
+      <Literal>true</Literal>
+    </Setting>
+    <Setting key="usesLessMemory">
+      <Datatype abbreviatedIRI="xsd:boolean"/>
+      <Literal>false</Literal>
+    </Setting>
+    <Setting key="ignoresAnnotations">
+      <Datatype abbreviatedIRI="xsd:boolean"/>
+      <Literal>false</Literal>
+    </Setting>
+    <Setting key="ignoresDeclarations">
+      <Datatype abbreviatedIRI="xsd:boolean"/>
+      <Literal>false</Literal>
+    </Setting>
+    <Setting key="incremental">
+      <Datatype abbreviatedIRI="xsd:boolean"/>
+      <Literal>true</Literal>
+    </Setting>
+    <Setting key="selectedProfile">
+      <OneOf abbreviatedIRI="xsd:string">
+        <Literal>OWL 2 DL</Literal>
+        <Literal>OWL DL</Literal>
+        <Literal>SHIQ(D-)</Literal>
+      </OneOf>
+      <Literal>OWL 2 DL</Literal>
+    </Setting>
+    <Setting key="abbreviatesIRIs">
+      <Datatype abbreviatedIRI="xsd:boolean"/>
+      <Literal>true</Literal>
+    </Setting>
+    <SupportedExtension identifier="http://www.racer-systems.com/owllink/ext/racer"/>
+    <SupportedExtension identifier="http://www.owllink.org/ext/retraction"/>
+  </Description>
+</ResponseMessage>

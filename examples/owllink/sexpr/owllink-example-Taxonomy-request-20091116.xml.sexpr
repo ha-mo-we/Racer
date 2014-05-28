@@ -1,0 +1,66 @@
+
+
+(NamespacePrefix () 
+  NIL 
+  |http://www.owllink.org/owllink#| )
+
+(NamespacePrefix () 
+  owl 
+  |http://www.w3.org/2002/07/owl#| )
+
+(NamespacePrefix () 
+  xsi 
+  |http://www.w3.org/2001/XMLSchema-instance| )
+
+(RequestMessage () 
+  
+  (CreateKB (:kb |http://www.owllink.org/examples/KB_1| ) )
+  
+  (CreateKB (:kb |http://www.owllink.org/examples/KB_2| ) )
+  
+  (Tell (:kb |http://www.owllink.org/examples/KB_2| ) 
+    (SubClassOf 
+      A 
+      |owl:Thing| ))
+  
+  (CreateKB (:kb |http://www.owllink.org/examples/KB_3| ) )
+  
+  (Tell (:kb |http://www.owllink.org/examples/KB_3| ) 
+    (SubClassOf 
+      A 
+      |owl:Thing| )
+    (SubClassOf 
+      B 
+      A )
+    (SubClassOf 
+      D 
+      A ))
+  
+  (CreateKB (:kb |http://www.owllink.org/examples/KB_4| ) )
+  
+  (Tell (:kb |http://www.owllink.org/examples/KB_4| ) 
+    (EquivalentClasses 
+      A 
+      |owl:Thing| )
+    (EquivalentClasses 
+      C 
+      |owl:Nothing| )
+    (SubClassOf 
+      B 
+      |owl:Thing| ))
+  
+  (GetSubClassHierarchy (:kb |http://www.owllink.org/examples/KB_1| ) )
+  
+  (GetSubClassHierarchy (:kb |http://www.owllink.org/examples/KB_2| ) )
+  
+  (GetSubClassHierarchy (:kb |http://www.owllink.org/examples/KB_3| ) )
+  
+  (GetSubClassHierarchy (:kb |http://www.owllink.org/examples/KB_4| ) )
+  
+  (ReleaseKB (:kb |http://www.owllink.org/examples/KB_1| ) )
+  
+  (ReleaseKB (:kb |http://www.owllink.org/examples/KB_2| ) )
+  
+  (ReleaseKB (:kb |http://www.owllink.org/examples/KB_3| ) )
+  
+  (ReleaseKB (:kb |http://www.owllink.org/examples/KB_4| ) ))

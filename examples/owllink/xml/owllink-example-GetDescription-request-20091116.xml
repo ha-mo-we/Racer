@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RequestMessage xmlns="http://www.owllink.org/owllink#"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.owllink.org/owllink# 
+      http://www.owllink.org/owllink-20091116.xsd">
+    <GetDescription/>
+</RequestMessage>

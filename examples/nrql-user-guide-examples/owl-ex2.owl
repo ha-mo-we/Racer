@@ -1,0 +1,23 @@
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns="http://www.owl-ontologies.com/unnamed.owl#"
+  xml:base="http://www.owl-ontologies.com/unnamed.owl">
+
+  <owl:Ontology rdf:about=""/>
+
+  <owl:Class rdf:ID="person"/>
+
+  <owl:ObjectProperty rdf:ID="hasChild">
+    <rdfs:domain rdf:resource="#person"/>
+    <rdfs:range rdf:resource="#person"/>
+  </owl:ObjectProperty>
+
+  <person rdf:ID="alice">
+    <hasChild>
+      <person rdf:ID="betty"/>
+    </hasChild>
+  </person>
+</rdf:RDF>

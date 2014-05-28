@@ -1,0 +1,41 @@
+
+
+(ResponseMessage () 
+  
+  (KB (:kb |http://www.owllink.org/examples/KB_2| ) )
+  
+  (OK () )
+  
+  (OK () )
+  
+  (SetOfClassSynsets () 
+    (ClassSynset () 
+      |http://www.w3.org/2002/07/owl#Nothing| )
+    (ClassSynset () 
+      |http://www.owllink.org/test/ont#A| ))
+  
+  (SetOfClassSynsets () 
+    (ClassSynset () 
+      |http://www.w3.org/2002/07/owl#Nothing| )
+    (ClassSynset () 
+      |http://www.owllink.org/test/ont#A| ))
+  
+  (OK () )
+  
+  (SetOfClassSynsets () 
+    (ClassSynset () 
+      |owl:Nothing| )
+    (ClassSynset () 
+      |test:A| ))
+  
+  (SemanticError (:error "Reasoning error Undefined concept name A in TBox http://www.owllink.org/examples/KB_2 occured" ) )
+  
+  (Prefixes () 
+    (Prefix (:name "test" :fullIRI |http://www.owllink.org/test/ont#| ) )
+    (Prefix (:name "myOnt" :fullIRI |http://www.owllink.org/examples/myOntology#| ) )
+    (Prefix (:name "rdf" :fullIRI |http://www.w3.org/1999/02/22-rdf-syntax-ns#| ) )
+    (Prefix (:name "rdfs" :fullIRI |http://www.w3.org/2000/01/rdf-schema#| ) )
+    (Prefix (:name "xsd" :fullIRI |http://www.w3.org/2001/XMLSchema#| ) )
+    (Prefix (:name "owl" :fullIRI |http://www.w3.org/2002/07/owl#| ) ))
+  
+  (OK () ))

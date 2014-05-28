@@ -1,0 +1,112 @@
+
+
+NamespacePrefix(
+  NIL 
+  <http://www.owllink.org/owllink#> )
+
+NamespacePrefix(
+  "owl" 
+  <http://www.w3.org/2002/07/owl#> )
+
+NamespacePrefix(
+  "xsi" 
+  <http://www.w3.org/2001/XMLSchema-instance> )
+
+RequestMessage(
+  
+  CreateKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Prefix(
+      Attribute(
+        name 
+        "families" )
+      Attribute(
+        fullIRI 
+        <http://example.com/owl/families/> ))
+    Prefix(
+      Attribute(
+        name 
+        "otherOnt" )
+      Attribute(
+        fullIRI 
+        <http://example.org/otherOntologies/families/> )))
+  
+  LoadOntologies(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    OntologyIRI(
+      Attribute(
+        IRI 
+        <http://www.owllink.org/ontologies/primer.owl> )))
+  
+  IsEntailed(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    owl.EquivalentClasses(
+      families:Human 
+      families:Person ))
+  
+  IsEntailed(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    owl.DisjointClasses(
+      families:Woman 
+      families:Father ))
+  
+  IsEntailed(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    owl.Declaration(
+      
+      owl.NamedIndividual(families:John )))
+  
+  IsEntailed(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    owl.DisjointObjectProperties(
+      families:hasParent 
+      families:hasSpouse ))
+  
+  IsEntailed(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    owl.Declaration(
+      
+      owl.Class(families:Dead )))
+  
+  IsEntailed(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    owl.SubObjectPropertyOf(
+      families:hasWife 
+      families:hasSpouse ))
+  
+  IsEntailedDirect(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    owl.SubObjectPropertyOf(
+      families:hasSpouse 
+      families:hasWife ))
+  
+  IsEntailedDirect(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    owl.ClassAssertion(
+      families:SocialRole 
+      families:Father ))
+  
+  ReleaseKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )))

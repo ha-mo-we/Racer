@@ -1,0 +1,53 @@
+(full-reset)
+
+(owl-read-file "~/KBs/people+pets.owl")
+
+(evaluate 
+ (let ((res (retrieve '(?x ?y) '(and (?x #!:person) (?x ?y #!:has_pet)))))
+
+   (with-html ("minilisp.html") 
+
+              (html (head)
+                    (html (title) 
+                          (content "MiniLisp Output")))
+
+              (html (body)
+
+                    (html (h1)
+                          (content "MiniLisp Output"))
+
+                    (html (h2)
+                          (content "Query Head"))
+                    (content (query-head :last))
+
+                    (html (h2)
+                          (content "Query Body"))
+                    (content (query-body :last))
+
+                    (html (h2)
+                          (content "Query Answer"))
+
+                    (html (table :border 1)
+
+                          (let ((count 0))
+
+                            (maplist 
+                             (lambda (bindings) 
+
+                               (html (tr)
+                                     (html (th :colspan 2)
+                                           (content (format nil "Result Tuple No. ~A" (incf count)))))
+
+                               (maplist 
+                                (lambda (var-val)
+                                  (let ((var (first var-val))
+                                        (val (second var-val)))
+
+                                    (html (tr)
+                                          (html (td)
+                                                (content var))
+                                          (html (td)
+                                                (content val)))))
+                                bindings))
+                             res)))))))
+

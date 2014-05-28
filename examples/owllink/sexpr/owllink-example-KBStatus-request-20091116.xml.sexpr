@@ -1,0 +1,30 @@
+
+
+(NamespacePrefix () 
+  NIL 
+  |http://www.owllink.org/owllink#| )
+
+(NamespacePrefix () 
+  owl 
+  |http://www.w3.org/2002/07/owl#| )
+
+(NamespacePrefix () 
+  xsi 
+  |http://www.w3.org/2001/XMLSchema-instance| )
+
+(RequestMessage () 
+  
+  (CreateKB (:kb |http://www.owllink.org/ont/families| ) 
+    (Prefix (:name "families" :fullIRI |http://example.com/owl/families/| ) )
+    (Prefix (:name "otherOnt" :fullIRI |http://example.org/otherOntologies/families/| ) ))
+  
+  (LoadOntologies (:kb |http://www.owllink.org/ont/families| ) 
+    (OntologyIRI (:IRI |http://www.owllink.org/ontologies/primer.owl| ) ))
+  
+  (IsKBSatisfiable (:kb |http://www.owllink.org/ont/families| ) )
+  
+  (IsKBConsistentlyDeclared (:kb |http://www.owllink.org/ont/families| ) )
+  
+  (GetKBLanguage (:kb |http://www.owllink.org/ont/families| ) )
+  
+  (ReleaseKB (:kb |http://www.owllink.org/ont/families| ) ))

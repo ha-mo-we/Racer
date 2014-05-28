@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RequestMessage xmlns="http://www.owllink.org/owllink#" xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.owllink.org/owllink# 
+      http://www.owllink.org/owllink-20091116.xsd">
+    <CreateKB kb="http://www.owllink.org/ont/families">
+        <Prefix name="families" fullIRI="http://example.com/owl/families/"/>
+        <Prefix name="otherOnt" fullIRI="http://example.org/otherOntologies/families/"/>
+    </CreateKB>
+    <LoadOntologies kb="http://www.owllink.org/ont/families">
+        <OntologyIRI IRI="http://www.owllink.org/ontologies/primer.owl"/>
+    </LoadOntologies>   
+    <GetTypes kb="http://www.owllink.org/ont/families" direct="true">
+        <owl:NamedIndividual abbreviatedIRI="families:John"/>        
+    </GetTypes>
+    <GetFlattenedTypes kb="http://www.owllink.org/ont/families">        
+        <owl:NamedIndividual abbreviatedIRI="families:John"/>
+    </GetFlattenedTypes>
+    <GetDifferentIndividuals kb="http://www.owllink.org/ont/families">
+        <owl:NamedIndividual abbreviatedIRI="families:John"/>        
+    </GetDifferentIndividuals>
+    <GetFlattenedDifferentIndividuals kb="http://www.owllink.org/ont/families">
+        <owl:NamedIndividual abbreviatedIRI="families:John"/>        
+    </GetFlattenedDifferentIndividuals>
+    <GetSameIndividuals kb="http://www.owllink.org/ont/families">
+        <owl:NamedIndividual abbreviatedIRI="families:John"/>  
+    </GetSameIndividuals>
+    <GetObjectPropertiesOfSource kb="http://www.owllink.org/ont/families">
+        <owl:NamedIndividual abbreviatedIRI="families:John"/>          
+    </GetObjectPropertiesOfSource>
+    <GetObjectPropertiesOfSource kb="http://www.owllink.org/ont/families" negative="true">
+        <owl:NamedIndividual abbreviatedIRI="families:John"/>          
+    </GetObjectPropertiesOfSource>
+    <GetObjectPropertiesBetween kb="http://www.owllink.org/ont/families" negative="false">
+        <owl:NamedIndividual abbreviatedIRI="families:John"/>      
+        <owl:NamedIndividual abbreviatedIRI="families:Mary"/> 
+    </GetObjectPropertiesBetween>    
+    <GetObjectPropertiesBetween kb="http://www.owllink.org/ont/families" negative="true">
+        <owl:NamedIndividual abbreviatedIRI="families:John"/>      
+        <owl:NamedIndividual abbreviatedIRI="families:Mary"/> 
+    </GetObjectPropertiesBetween>
+    <GetObjectPropertiesOfTarget kb="http://www.owllink.org/ont/families" negative="false">
+        <owl:NamedIndividual abbreviatedIRI="families:Mary"/>           
+    </GetObjectPropertiesOfTarget>
+    <GetObjectPropertiesOfTarget kb="http://www.owllink.org/ont/families" negative="true">
+        <owl:NamedIndividual abbreviatedIRI="families:Mary"/>           
+    </GetObjectPropertiesOfTarget>
+    <GetDataPropertiesOfSource kb="http://www.owllink.org/ont/families" negative="false">
+        <owl:NamedIndividual abbreviatedIRI="families:John"/>
+    </GetDataPropertiesOfSource>
+    <GetDataPropertiesOfSource kb="http://www.owllink.org/ont/families" negative="true">
+        <owl:NamedIndividual abbreviatedIRI="families:John"/>
+    </GetDataPropertiesOfSource>
+    <GetDataPropertiesBetween kb="http://www.owllink.org/ont/families">
+        <owl:NamedIndividual abbreviatedIRI="families:John"/>
+        <owl:Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">51</owl:Literal>
+    </GetDataPropertiesBetween>    
+    <GetDataPropertiesBetween kb="http://www.owllink.org/ont/families" negative="true">
+        <owl:NamedIndividual abbreviatedIRI="families:John"/>
+        <owl:Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">51</owl:Literal>
+    </GetDataPropertiesBetween>
+    <GetDataPropertiesOfLiteral kb="http://www.owllink.org/ont/families">
+        <owl:Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">51</owl:Literal>
+    </GetDataPropertiesOfLiteral>
+    <GetDataPropertiesOfLiteral kb="http://www.owllink.org/ont/families" negative="true">
+        <owl:Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">51</owl:Literal>
+    </GetDataPropertiesOfLiteral>
+    <GetInstances kb="http://www.owllink.org/ont/families" direct="true">
+        <owl:Class abbreviatedIRI="families:Woman"/>
+    </GetInstances>
+    <GetObjectPropertyTargets kb="http://www.owllink.org/ont/families">
+        <owl:ObjectProperty abbreviatedIRI="families:hasWife"/> 
+        <owl:NamedIndividual abbreviatedIRI="families:John"/>         
+    </GetObjectPropertyTargets>
+    <GetObjectPropertyTargets kb="http://www.owllink.org/ont/families" negative="true">
+        <owl:ObjectProperty abbreviatedIRI="families:hasWife"/> 
+        <owl:NamedIndividual abbreviatedIRI="families:John"/>         
+    </GetObjectPropertyTargets>    
+    <GetObjectPropertySources kb="http://www.owllink.org/ont/families">
+        <owl:ObjectProperty abbreviatedIRI="families:hasWife"/> 
+        <owl:NamedIndividual abbreviatedIRI="families:Mary"/>         
+    </GetObjectPropertySources>
+    <GetObjectPropertySources kb="http://www.owllink.org/ont/families" negative="true">
+        <owl:ObjectProperty abbreviatedIRI="families:hasWife"/> 
+        <owl:NamedIndividual abbreviatedIRI="families:Mary"/>         
+    </GetObjectPropertySources>
+    <GetFlattenedInstances kb="http://www.owllink.org/ont/families">
+        <owl:Class abbreviatedIRI="families:Person"/>        
+    </GetFlattenedInstances>
+    <GetFlattenedInstances kb="http://www.owllink.org/ont/families" direct="true">
+        <owl:Class abbreviatedIRI="families:Person"/>        
+    </GetFlattenedInstances>
+    <GetFlattenedObjectPropertyTargets kb="http://www.owllink.org/ont/families">
+        <owl:ObjectProperty abbreviatedIRI="families:hasWife"/> 
+        <owl:NamedIndividual abbreviatedIRI="families:John"/>          
+    </GetFlattenedObjectPropertyTargets>
+    <GetFlattenedObjectPropertyTargets kb="http://www.owllink.org/ont/families" negative="true">
+        <owl:ObjectProperty abbreviatedIRI="families:hasWife"/> 
+        <owl:NamedIndividual abbreviatedIRI="families:John"/>          
+    </GetFlattenedObjectPropertyTargets>
+    <GetFlattenedObjectPropertySources kb="http://www.owllink.org/ont/families">
+        <owl:ObjectProperty abbreviatedIRI="families:hasWife"/> 
+        <owl:NamedIndividual abbreviatedIRI="families:Mary"/>          
+    </GetFlattenedObjectPropertySources>
+    <GetFlattenedObjectPropertySources kb="http://www.owllink.org/ont/families" negative="true">
+        <owl:ObjectProperty abbreviatedIRI="families:hasWife"/> 
+        <owl:NamedIndividual abbreviatedIRI="families:Mary"/>          
+    </GetFlattenedObjectPropertySources>
+    <GetDataPropertyTargets kb="http://www.owllink.org/ont/families">
+        <owl:DataProperty abbreviatedIRI="families:hasAge"/>
+        <owl:NamedIndividual abbreviatedIRI="families:John"/>
+    </GetDataPropertyTargets>
+    <GetDataPropertySources kb="http://www.owllink.org/ont/families">
+        <owl:DataProperty abbreviatedIRI="families:hasAge"/> 
+        <owl:Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">51</owl:Literal>      
+    </GetDataPropertySources>
+    <GetDataPropertySources kb="http://www.owllink.org/ont/families" negative="true">
+        <owl:DataProperty abbreviatedIRI="families:hasAge"/> 
+        <owl:Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">51</owl:Literal>      
+    </GetDataPropertySources>
+    <GetFlattenedDataPropertySources kb="http://www.owllink.org/ont/families">
+        <owl:DataProperty abbreviatedIRI="families:hasAge"/> 
+        <owl:Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">51</owl:Literal>          
+    </GetFlattenedDataPropertySources>
+    <GetFlattenedDataPropertySources kb="http://www.owllink.org/ont/families" negative="true">
+        <owl:DataProperty abbreviatedIRI="families:hasAge"/> 
+        <owl:Literal datatypeIRI="http://www.w3.org/2001/XMLSchema#integer">51</owl:Literal>          
+    </GetFlattenedDataPropertySources>
+    <ReleaseKB kb="http://www.owllink.org/ont/families"/>
+</RequestMessage>

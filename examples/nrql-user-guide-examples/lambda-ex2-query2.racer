@@ -1,0 +1,32 @@
+(with-future-bindings (?car)
+
+  (delete-all-queries)
+
+  (prepare-abox-query (?part) (and (?car car) (?car ?part has-part))
+		      :dont-show-lambdas t
+		      :id :parts-of-car)
+  
+  (prepare-abox-query ( ((lambda (weight) weight)
+			 (told-value-if-exists (weight ?part))))
+
+		      (and (?car car) (?car ?part has-part) (?part (a weight)))
+		      :dont-show-lambdas t
+		      :id :weights-of-parts-of-car))
+
+
+(retrieve1 (?car car)
+	    ( ((lambda (car)
+		 
+		 (with-nrql-settings (:dont-show-lambdas t
+				      :bindings `((?car ,car)))
+
+		   (let ((w
+			  (reduce + 
+				  (flatten 
+				   (execute-or-reexecute-query :weights-of-parts-of-car))))
+			 (parts (length 
+				 (execute-or-reexecute-query :parts-of-car))))
+		     
+		     `((?car ,car) (?total-weight ,w)))))
+
+	       ?car)))

@@ -1,0 +1,15 @@
+(retrieve1 (?car car)
+           (((lambda (car)
+	       (let ((w
+		      (reduce +
+			      (flatten
+			       (retrieve1 `(and (,car car) 
+						(,car ?part has-part)
+						(?part (a weight)))
+					  `(((lambda (weight) weight) 
+					     (told-value-if-exists 
+					      (weight ?part))))))))
+		     (parts (length (retrieve `(?part) `(,car ?part has-part)))))
+		 `((?car ,car) (?no-of-parts ,parts) (?total-weight ,w))))
+             ?car)))
+

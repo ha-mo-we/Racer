@@ -1,0 +1,46 @@
+
+
+(NamespacePrefix () 
+  NIL 
+  |http://www.owllink.org/owllink#| )
+
+(NamespacePrefix () 
+  owl 
+  |http://www.w3.org/2002/07/owl#| )
+
+(NamespacePrefix () 
+  xsi 
+  |http://www.w3.org/2001/XMLSchema-instance| )
+
+(RequestMessage () 
+  
+  (CreateKB (:kb |http://www.owllink.org/examples/KB_2| ) 
+    (Prefix (:name "test" :fullIRI |http://www.owllink.org/test/ont#| ) )
+    (Prefix (:name "myOnt" :fullIRI |http://www.owllink.org/examples/myOntology#| ) ))
+  
+  (Tell (:kb |http://www.owllink.org/examples/KB_2| ) 
+    (SubClassOf 
+      |test:A| 
+      |myOnt:A| ))
+  
+  (Set (:kb |http://www.owllink.org/examples/KB_2| :key "abbreviatesIRIs" ) 
+    (Literal (:value "false" ) ))
+  
+  (GetSubClasses (:kb |http://www.owllink.org/examples/KB_2| :direct "false" ) 
+    |http://www.owllink.org/examples/myOntology#A| )
+  
+  (GetSubClasses (:kb |http://www.owllink.org/examples/KB_2| :direct "false" ) 
+    |myOnt:A| )
+  
+  (Set (:kb |http://www.owllink.org/examples/KB_2| :key "abbreviatesIRIs" ) 
+    (Literal (:value "true" ) ))
+  
+  (GetSubClasses (:kb |http://www.owllink.org/examples/KB_2| :direct "false" ) 
+    |http://www.owllink.org/examples/myOntology#A| )
+  
+  (GetSubClasses (:kb |http://www.owllink.org/examples/KB_2| :direct "false" ) 
+    A )
+  
+  (GetPrefixes (:kb |http://www.owllink.org/examples/KB_2| ) )
+  
+  (ReleaseKB (:kb |http://www.owllink.org/examples/KB_2| ) ))

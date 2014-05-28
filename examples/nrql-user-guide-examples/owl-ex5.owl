@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns="http://www.owl-ontologies.com/Ontology1159352693.owl#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+  xml:base="http://www.owl-ontologies.com/Ontology1159352693.owl">
+
+  <owl:Ontology rdf:about="">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Demo Ontology</rdfs:comment>
+  </owl:Ontology>
+
+  <owl:Class rdf:ID="class">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >This is a test class</rdfs:comment>
+  </owl:Class>
+
+  <owl:ObjectProperty rdf:ID="object-property">
+    <rdfs:domain rdf:resource="#class"/>
+  </owl:ObjectProperty>
+
+  <owl:DatatypeProperty rdf:ID="datatype-property">
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+    <rdfs:domain rdf:resource="#class"/>
+  </owl:DatatypeProperty>
+
+  <owl:ObjectProperty rdf:ID="annotation-object-property">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AnnotationProperty"/>
+    <rdfs:domain rdf:resource="#class"/>
+  </owl:ObjectProperty>
+
+ <owl:DatatypeProperty rdf:ID="annotation-datatype-property">
+    <rdfs:domain rdf:resource="#class"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AnnotationProperty"/>
+  </owl:DatatypeProperty>
+
+  <class rdf:ID="test">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Comment for individual test</rdfs:comment>
+    <object-property rdf:resource="#test"/>
+    <datatype-property rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+    >123</datatype-property>
+    <annotation-object-property rdf:resource="#test"/>
+    <annotation-datatype-property rdf:datatype="http://www.w3.org/2001/XMLSchema#int"
+    >456</annotation-datatype-property>
+  </class>
+
+</rdf:RDF>

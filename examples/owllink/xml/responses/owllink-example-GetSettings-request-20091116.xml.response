@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ResponseMessage xmlns="http://www.owllink.org/owllink#"
+                 xmlns:owl="http://www.w3.org/2002/07/owl#">
+  <KB kb="http://www.owllink.org/examples/KB_1"/>
+  <Settings>
+    <Setting key="uniqueNameAssumption">
+      <Datatype abbreviatedIRI="xsd:boolean"/>
+      <Literal>false</Literal>
+    </Setting>
+    <Setting key="verbose">
+      <Datatype abbreviatedIRI="xsd:boolean"/>
+      <Literal>false</Literal>
+    </Setting>
+    <Setting key="leanMode">
+      <Datatype abbreviatedIRI="xsd:boolean"/>
+      <Literal>false</Literal>
+    </Setting>
+    <Setting key="keepsAxioms">
+      <Datatype abbreviatedIRI="xsd:boolean"/>
+      <Literal>true</Literal>
+    </Setting>
+    <Setting key="usesLessMemory">
+      <Datatype abbreviatedIRI="xsd:boolean"/>
+      <Literal>false</Literal>
+    </Setting>
+    <Setting key="ignoresAnnotations">
+      <Datatype abbreviatedIRI="xsd:boolean"/>
+      <Literal>false</Literal>
+    </Setting>
+    <Setting key="ignoresDeclarations">
+      <Datatype abbreviatedIRI="xsd:boolean"/>
+      <Literal>false</Literal>
+    </Setting>
+    <Setting key="incremental">
+      <Datatype abbreviatedIRI="xsd:boolean"/>
+      <Literal>true</Literal>
+    </Setting>
+    <Setting key="selectedProfile">
+      <OneOf abbreviatedIRI="xsd:string">
+        <Literal>OWL 2 DL</Literal>
+        <Literal>OWL DL</Literal>
+        <Literal>SHIQ(D-)</Literal>
+      </OneOf>
+      <Literal>OWL 2 DL</Literal>
+    </Setting>
+    <Setting key="abbreviatesIRIs">
+      <Datatype abbreviatedIRI="xsd:boolean"/>
+      <Literal>true</Literal>
+    </Setting>
+  </Settings>
+  <OK/>
+</ResponseMessage>

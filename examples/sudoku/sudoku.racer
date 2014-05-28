@@ -1,0 +1,297 @@
+(full-reset)
+
+(undefine-all)
+
+;;;
+;;; Required axioms 
+;;; 
+
+(disjoint c1 c2 c3 c4 c5 c6 c7 c8 c9)
+
+(define-primitive-role r)
+
+(define-primitive-role q1 :transitive t :parent r)
+(define-primitive-role q2 :transitive t :parent r)
+
+(define-primitive-role h1 :transitive t :parent r)
+(define-primitive-role h2 :transitive t :parent r)
+
+(define-primitive-role v1 :transitive t :parent r)
+(define-primitive-role v2 :transitive t :parent r)
+
+(implies top 
+	   
+         (and (or c1 c2 c3 c4 c5 c6 c7 c8 c9)
+		
+              (or (not c1)
+                  (all r (not c1)))
+              (or (not c2)
+                  (all r (not c2)))
+              (or (not c3)
+                  (all r (not c3)))
+              (or (not c4)
+                  (all r (not c4)))
+              (or (not c5)
+                  (all r (not c5)))
+              (or (not c6)
+                  (all r (not c6)))
+              (or (not c7)
+                  (all r (not c7)))
+              (or (not c8)
+                  (all r (not c8)))
+              (or (not c9)
+                  (all r (not c9)))))
+
+;;;
+;;; Required MiniLisp helper functions
+;;; 
+  
+(define rel (a b r)
+        (cond ((eq r 'q)
+               (add-role-assertion (current-abox) a b 'q1)
+               (add-role-assertion (current-abox) b a 'q2))
+              ((eq r 'h)
+               (add-role-assertion (current-abox) a b 'h1)
+               (add-role-assertion (current-abox) b a 'h2))
+              ((eq r 'v)
+               (add-role-assertion (current-abox) a b 'v1)
+               (add-role-assertion (current-abox) b a 'v2))))
+
+(define i (x y)
+        (to-symbol (format nil "i~A~A" x y)))
+
+	    
+(define grid () ;; 3x3 
+
+        (dolist (x-off '(0 3 6))
+          (dolist (y-off '(0 3 6))
+            (rel (i (+ x-off 1) (+ y-off 1))
+                 (i (+ x-off 1) (+ y-off 2))
+                 'q)
+            (rel (i (+ x-off 1) (+ y-off 2))
+                 (i (+ x-off 1) (+ y-off 3))
+                 'q)
+            (rel (i (+ x-off 1) (+ y-off 3))
+                 (i (+ x-off 2) (+ y-off 3))
+                 'q)
+            (rel (i (+ x-off 2) (+ y-off 3))
+                 (i (+ x-off 3) (+ y-off 3))
+                 'q)
+            (rel (i (+ x-off 3) (+ y-off 3))
+                 (i (+ x-off 3) (+ y-off 2))
+                 'q)
+            (rel (i (+ x-off 3) (+ y-off 2))
+                 (i (+ x-off 3) (+ y-off 1))
+                 'q)
+            (rel (i (+ x-off 3) (+ y-off 1))
+                 (i (+ x-off 2) (+ y-off 1))
+                 'q)
+            (rel (i (+ x-off 2) (+ y-off 1))
+                 (i (+ x-off 2) (+ y-off 2))
+                 'q)))
+
+      
+        ;;;
+        ;;;
+        ;;;
+            
+        (dotimes (y-off 9)
+          (let ((y-off (1+ y-off)))
+            (rel (i 1 y-off) (i 2 y-off) 'h)
+            (rel (i 2 y-off) (i 3 y-off) 'h)
+            (rel (i 3 y-off) (i 4 y-off) 'h)
+            (rel (i 4 y-off) (i 5 y-off) 'h)
+            (rel (i 5 y-off) (i 6 y-off) 'h)
+            (rel (i 6 y-off) (i 7 y-off) 'h)
+            (rel (i 7 y-off) (i 8 y-off) 'h)
+            (rel (i 8 y-off) (i 9 y-off) 'h)))
+      
+        ;;;
+        ;;;
+        ;;;
+            
+        (dotimes (x-off 9)
+          (let ((x-off (1+ x-off)))
+            (rel (i x-off 1) (i x-off 2) 'v)
+            (rel (i x-off 2) (i x-off 3) 'v)
+            (rel (i x-off 3) (i x-off 4) 'v)
+            (rel (i x-off 4) (i x-off 5) 'v)
+            (rel (i x-off 5) (i x-off 6) 'v)
+            (rel (i x-off 6) (i x-off 7) 'v)
+            (rel (i x-off 7) (i x-off 8) 'v)
+            (rel (i x-off 8) (i x-off 9) 'v))))
+           
+;;;
+;;; MiniLisp interface functions
+;;;
+
+(define sudoku-web (rows)
+  (cond ((in-unsafe-mode?)
+
+         (forget-abox 'default)
+         (let ((n (length rows)))
+           (cond ((= n 9) 
+
+                  (grid)
+
+                  (let ((x 0))
+                    (maplist (lambda (row)
+                               (incf x)
+                               (let ((y 0))
+                                 (maplist (lambda (item)
+                                            (incf y)
+                                            (when (and (numberp item)
+                                                       (> item 0))
+                                              (add-concept-assertion
+                                               (current-abox)
+                                               (to-symbol (format nil "i~A~A" x y))
+                                               (to-symbol (format nil "c~A" item)))))
+                                          row)))
+                             rows))
+
+                  (with-html ("result.html") 
+                             (html (head)
+                                   (html (title) 
+                                         (content "Sudoku")))
+                              
+                             (if (abox-consistent-p)
+                                 (let ((n 9))
+                                   (html (body)
+                                
+                                         (html (h1)
+                                               (content "Sudoku Solution"))
+                                         (html (table :border 1)
+                                      
+                                               (dotimes (x n)
+                                        
+                                                 (html (tr)
+                                          
+                                                       (dotimes (y n)
+
+                                                         (html (td)
+                                                        
+                                                               (content 
+                                                                (subseq 
+                                                                 (symbol-name
+                                                                  (first 
+                                                                   (first 
+                                                                    (most-specific-instantiators
+                                                                     (to-symbol
+                                                                      (format nil "i~A~A" (1+ x) (1+ y)))
+                                                                     (current-abox)))))
+						 
+                                                                 1)))))))))
+                               (html (h1) 
+                                     (content "Sorry, no solution"))))
+	   
+                  (publish-file "result.html"
+                                "/sudoku.html"
+                                "text/html")
+
+                  (display "Please open \"http://localhost:8080/sudoku.html\" in your WebBrowser"))
+
+
+                 (t 
+
+                  (display "Bad Sudoku.")))))
+
+        (t (display "RacerPro is not running in unsafe mode!
+Cannot demonstrate HTML generation. 
+Use \"SUDOKU\" instead of \"SUDOKU-web\"."))))
+
+
+(define sudoku (rows)
+  (forget-abox 'default)
+  (let ((n (length rows)))
+    (cond ((= n 9) 
+
+	   (grid)
+
+	   (let ((x 0))
+	     (maplist (lambda (row)
+			(incf x)
+			(let ((y 0))
+			  (maplist 
+			   (lambda (item)
+			     (incf y)
+			     (when (and (numberp item)
+					(> item 0))
+			       (add-concept-assertion 
+				(current-abox)
+				(to-symbol (format nil "i~A~A" x y))
+				(to-symbol (format nil "c~A" item)))))
+			   row)))
+		      rows))
+
+	   (if (abox-consistent-p)
+	       (let ((n 9))
+		 (terpri)
+		 (terpri)
+		 (dotimes (x n)
+		   (format t 
+			   "-------------------------------------")
+		   (terpri)
+		   (dotimes (y n)
+		     (format t "| ~A " 
+			     (subseq 
+			      (symbol-name
+			       (first 
+				(first 
+				 (most-specific-instantiators 
+				  (to-symbol
+				   (format nil "i~A~A" (1+ x) (1+ y)))
+				  (current-abox)))))
+			      1)))
+		   (format t "|") (terpri))
+		 (format t 
+			 "-------------------------------------")
+                 
+		 (terpri))
+	     (format t "~%Sorry, no solution")))
+
+	  (t (format t "~%Bad Sudoku.")))))
+
+;;;
+;;; Register new server functions...
+;;; 
+
+(server-function sudoku-web)
+
+(server-function sudoku)
+
+;;;
+;;; ... and use them! 
+;;;  
+
+;;;
+;;; Evaluate the following expressions one-by-one, using Ctrl-Shift-e 
+;;; (otherwise you will not see the produced output since Buffer evaluation
+;;; is "silent") 
+;;; 
+
+(time 
+ (SUDOKU ((0 6 0 5 0 3 2 0 8)
+	  (1 0 5 0 0 8 0 0 3)
+	  (8 0 0 0 0 6 4 1 0)
+	  (9 0 0 0 0 1 0 4 0)
+	  (0 7 0 3 0 4 0 8 0)
+	  (0 8 0 7 0 0 0 0 9)
+	  (0 1 8 4 0 0 0 0 6)
+	  (2 0 0 8 0 0 7 0 1)
+	  (7 0 6 1 0 5 0 3 0))))
+
+
+(time 
+ (SUDOKU-web ((2 0 0 8 5 0 0 0 7)
+	      (0 7 0 4 1 0 0 3 0)
+	      (5 0 0 0 2 0 0 0 8)
+	      (0 0 0 0 0 0 0 8 1)
+	      (7 1 2 0 0 0 9 4 5)
+	      (3 8 0 0 0 0 0 0 0)
+	      (6 0 0 0 8 0 0 0 9)
+	      (0 2 0 0 9 5 0 7 0)
+	      (1 0 0 0 3 6 0 0 4))))
+
+
+
+

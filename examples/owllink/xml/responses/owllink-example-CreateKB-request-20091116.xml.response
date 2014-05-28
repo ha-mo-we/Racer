@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ResponseMessage xmlns="http://www.owllink.org/owllink#"
+                 xmlns:owl="http://www.w3.org/2002/07/owl#">
+  <KB kb="http://www.owllink.org/examples/KB_1"/>
+  <OK/>
+  <BooleanResponse result="true"/>
+  <OK/>
+</ResponseMessage>

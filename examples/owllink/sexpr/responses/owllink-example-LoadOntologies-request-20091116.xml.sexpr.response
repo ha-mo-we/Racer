@@ -1,0 +1,52 @@
+
+
+(ResponseMessage () 
+  
+  (KB (:kb |http://www.owllink.org/examples/families| ) )
+  
+  (OK (:warning "((http://www.owllink.org/ontologies/primer.owl --> http://www.owllink.org/examples/families))" ) )
+  
+  (SetOfIndividualSynsets () 
+    (IndividualSynset () 
+      |families:Jack| )
+    (IndividualSynset () 
+      |families:John| 
+      |otherOnt:JohnBrown| )
+    (IndividualSynset () 
+      |families:Mary| 
+      |otherOnt:MaryBrown| ))
+  
+  (ClassSynsets () 
+    (ClassSynset () 
+      |families:Father| )
+    (ClassSynset () 
+      |families:Man| )
+    (ClassSynset () 
+      |families:Human| 
+      |families:Person| )
+    (ClassSynset () 
+      |owl:Thing| )
+    (ClassSynset () 
+      |families:Parent| )
+    (ClassSynset () 
+      |families:MyBirthdayGuests| ))
+  
+  (OK () )
+  
+  (SetOfClassSynsets () 
+    (ClassSynset () 
+      |families:HappyPerson| )
+    (ClassSynset () 
+      |families:Parent| )
+    (ClassSynset () 
+      |owl:Thing| )
+    (ClassSynset () 
+      |families:Human| 
+      |families:Person| ))
+  
+  (SetOfIndividualSynsets () 
+    (IndividualSynset () 
+      |families:John| 
+      |otherOnt:JohnBrown| ))
+  
+  (OK () ))

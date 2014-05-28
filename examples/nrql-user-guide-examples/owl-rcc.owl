@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns="http://www.owl-ontologies.com/Ontology1162148702.owl#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+  xml:base="http://www.owl-ontologies.com/Ontology1162148702.owl">
+  <owl:Ontology rdf:about=""/>
+  <owl:Class rdf:ID="city">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="geo-thing"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="continent">
+    <rdfs:subClassOf rdf:resource="#geo-thing"/>
+  </owl:Class>
+  <owl:Class rdf:ID="country">
+    <rdfs:subClassOf rdf:resource="#geo-thing"/>
+  </owl:Class>
+  <owl:ObjectProperty rdf:ID="contains">
+    <rdfs:domain rdf:resource="#geo-thing"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="adjacent">
+    <rdfs:domain rdf:resource="#geo-thing"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="disjoint">
+    <rdfs:domain rdf:resource="#geo-thing"/>
+  </owl:ObjectProperty>
+  <country rdf:ID="germany">
+    <contains>
+      <city rdf:ID="hamburg">
+      </city>
+    </contains>
+  </country>
+  <continent rdf:ID="europe">
+    <contains>
+      <country rdf:ID="france">
+        <contains>
+          <city rdf:ID="paris"/>
+        </contains>
+        <adjacent rdf:resource="#germany"/>
+      </country>
+    </contains>
+    <contains rdf:resource="#germany"/>
+  </continent>
+</rdf:RDF>
+
+<!-- Created with Protege (with OWL Plugin 2.2, Build 324)  http://protege.stanford.edu -->

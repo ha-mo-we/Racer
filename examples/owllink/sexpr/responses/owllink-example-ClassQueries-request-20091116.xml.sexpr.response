@@ -1,0 +1,35 @@
+
+
+(ResponseMessage () 
+  
+  (KB (:kb |http://www.owllink.org/ont/families| ) )
+  
+  (OK (:warning "((http://www.owllink.org/ontologies/primer.owl --> http://www.owllink.org/ont/families))" ) )
+  
+  (BooleanResponse (:result "true" ) )
+  
+  (ClassSynsets () 
+    (ClassSynset () 
+      |owl:Nothing| )
+    (ClassSynset () 
+      |families:ChildlessPerson| )
+    (ClassSynset () 
+      |families:YoungChild| )
+    (ClassSynset () 
+      |families:Mother| )
+    (ClassSynset () 
+      |families:Woman| ))
+  
+  (SetOfClassSynsets () 
+    (ClassSynset () 
+      |families:Father| )
+    (ClassSynset () 
+      |families:Mother| ))
+  
+  (SetOfClassSynsets () 
+    (ClassSynset () 
+      |families:Father| ))
+  
+  (SetOfClassSynsets () )
+  
+  (OK () ))

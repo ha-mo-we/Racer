@@ -1,0 +1,45 @@
+
+
+(NamespacePrefix () 
+  NIL 
+  |http://www.owllink.org/owllink#| )
+
+(NamespacePrefix () 
+  owl 
+  |http://www.w3.org/2002/07/owl#| )
+
+(NamespacePrefix () 
+  xsi 
+  |http://www.w3.org/2001/XMLSchema-instance| )
+
+(RequestMessage () 
+  
+  (CreateKB (:kb |http://www.owllink.org/examples/families| ) 
+    (Prefix (:name "families" :fullIRI |http://example.com/owl/families/| ) )
+    (Prefix (:name "otherOnt" :fullIRI |http://example.org/otherOntologies/families/| ) ))
+  
+  (LoadOntologies (:kb |http://www.owllink.org/examples/families| ) 
+    (OntologyIRI (:IRI |http://www.owllink.org/ontologies/primer.owl| ) ))
+  
+  (GetInstances (:kb |http://www.owllink.org/examples/families| ) 
+    |families:Person| )
+  
+  (GetTypes (:kb |http://www.owllink.org/examples/families| :direct "false" ) 
+    |families:John| )
+  
+  (Tell (:kb |http://www.owllink.org/examples/families| ) 
+    (SubClassOf 
+      |families:HappyPerson| 
+      |families:Person| )
+    (SubClassOf 
+      |otherOnt:ExcitedPerson| 
+      |families:HappyPerson| ))
+  
+  (GetSuperClasses (:kb |http://www.owllink.org/examples/families| :direct "false" ) 
+    |otherOnt:ExcitedPerson| )
+  
+  (GetObjectPropertySources (:kb |http://www.owllink.org/examples/families| ) 
+    |families:hasWife| 
+    |families:Mary| )
+  
+  (ReleaseKB (:kb |http://www.owllink.org/examples/families| ) ))

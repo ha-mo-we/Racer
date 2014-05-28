@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ResponseMessage xmlns="http://www.owllink.org/owllink#"
+                 xmlns:owl="http://www.w3.org/2002/07/owl#">
+  <KB kb="http://www.owllink.org/examples/KB_2"/>
+  <OK/>
+  <OK/>
+  <SetOfClassSynsets>
+    <ClassSynset>
+      <owl:Class IRI="http://www.w3.org/2002/07/owl#Nothing"/>
+    </ClassSynset>
+    <ClassSynset>
+      <owl:Class IRI="http://www.owllink.org/test/ont#A"/>
+    </ClassSynset>
+  </SetOfClassSynsets>
+  <SetOfClassSynsets>
+    <ClassSynset>
+      <owl:Class IRI="http://www.w3.org/2002/07/owl#Nothing"/>
+    </ClassSynset>
+    <ClassSynset>
+      <owl:Class IRI="http://www.owllink.org/test/ont#A"/>
+    </ClassSynset>
+  </SetOfClassSynsets>
+  <OK/>
+  <SetOfClassSynsets>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="owl:Nothing"/>
+    </ClassSynset>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="test:A"/>
+    </ClassSynset>
+  </SetOfClassSynsets>
+  <SetOfClassSynsets>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="owl:Nothing"/>
+    </ClassSynset>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="test:A"/>
+    </ClassSynset>
+  </SetOfClassSynsets>
+  <Prefixes>
+    <Prefix name="test"
+            fullIRI="http://www.owllink.org/test/ont#"/>
+    <Prefix name="myOnt"
+            fullIRI="http://www.owllink.org/examples/myOntology#"/>
+    <Prefix name="rdf"
+            fullIRI="http://www.w3.org/1999/02/22-rdf-syntax-ns#"/>
+    <Prefix name="rdfs"
+            fullIRI="http://www.w3.org/2000/01/rdf-schema#"/>
+    <Prefix name="xsd"
+            fullIRI="http://www.w3.org/2001/XMLSchema#"/>
+    <Prefix name="owl"
+            fullIRI="http://www.w3.org/2002/07/owl#"/>
+  </Prefixes>
+  <OK/>
+</ResponseMessage>

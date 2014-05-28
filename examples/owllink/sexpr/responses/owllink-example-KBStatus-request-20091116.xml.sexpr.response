@@ -1,0 +1,15 @@
+
+
+(ResponseMessage () 
+  
+  (KB (:kb |http://www.owllink.org/ont/families| ) )
+  
+  (OK (:warning "((http://www.owllink.org/ontologies/primer.owl --> http://www.owllink.org/ont/families))" ) )
+  
+  (BooleanResponse (:result "true" ) )
+  
+  (Error (:error "OWLlink request IsKBConsistentlyDeclared not yet implemented" ) )
+  
+  (StringResponse (:result "ALCRIQ(D)-" :warning "But TBox language is: ALCRIN(D)-" ) )
+  
+  (OK () ))

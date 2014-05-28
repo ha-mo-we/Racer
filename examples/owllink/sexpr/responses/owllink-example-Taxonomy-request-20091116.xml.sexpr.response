@@ -1,0 +1,69 @@
+
+
+(ResponseMessage () 
+  
+  (KB (:kb |http://www.owllink.org/examples/KB_1| ) )
+  
+  (KB (:kb |http://www.owllink.org/examples/KB_2| ) )
+  
+  (OK () )
+  
+  (KB (:kb |http://www.owllink.org/examples/KB_3| ) )
+  
+  (OK () )
+  
+  (KB (:kb |http://www.owllink.org/examples/KB_4| ) )
+  
+  (OK () )
+  
+  (ClassHierarchy () 
+    (ClassSynset () 
+      |owl:Nothing| ))
+  
+  (ClassHierarchy () 
+    (ClassSynset () 
+      |owl:Nothing| )
+    (ClassSubClassesPair () 
+      (ClassSynset () 
+        |owl:Thing| )
+      (SubClassSynsets () 
+        (ClassSynset () 
+          A ))))
+  
+  (ClassHierarchy () 
+    (ClassSynset () 
+      |owl:Nothing| )
+    (ClassSubClassesPair () 
+      (ClassSynset () 
+        |owl:Thing| )
+      (SubClassSynsets () 
+        (ClassSynset () 
+          A )))
+    (ClassSubClassesPair () 
+      (ClassSynset () 
+        A )
+      (SubClassSynsets () 
+        (ClassSynset () 
+          D )
+        (ClassSynset () 
+          B ))))
+  
+  (ClassHierarchy () 
+    (ClassSynset () 
+      |owl:Nothing| 
+      C )
+    (ClassSubClassesPair () 
+      (ClassSynset () 
+        |owl:Thing| 
+        A )
+      (SubClassSynsets () 
+        (ClassSynset () 
+          B ))))
+  
+  (OK () )
+  
+  (OK () )
+  
+  (OK () )
+  
+  (OK () ))

@@ -1,0 +1,317 @@
+
+
+NamespacePrefix(
+  NIL 
+  <http://www.owllink.org/owllink#> )
+
+NamespacePrefix(
+  "owl" 
+  <http://www.w3.org/2002/07/owl#> )
+
+NamespacePrefix(
+  "xsi" 
+  <http://www.w3.org/2001/XMLSchema-instance> )
+
+RequestMessage(
+  
+  CreateKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Prefix(
+      Attribute(
+        name 
+        "families" )
+      Attribute(
+        fullIRI 
+        <http://example.com/owl/families/> ))
+    Prefix(
+      Attribute(
+        name 
+        "otherOnt" )
+      Attribute(
+        fullIRI 
+        <http://example.org/otherOntologies/families/> )))
+  
+  LoadOntologies(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    OntologyIRI(
+      Attribute(
+        IRI 
+        <http://www.owllink.org/ontologies/primer.owl> )))
+  
+  GetTypes(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Attribute(
+      direct 
+      "true" )
+    families:John )
+  
+  GetFlattenedTypes(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:John )
+  
+  GetDifferentIndividuals(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:John )
+  
+  GetFlattenedDifferentIndividuals(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:John )
+  
+  GetSameIndividuals(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:John )
+  
+  GetObjectPropertiesOfSource(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:John )
+  
+  GetObjectPropertiesOfSource(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Attribute(
+      negative 
+      "true" )
+    families:John )
+  
+  GetObjectPropertiesBetween(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Attribute(
+      negative 
+      "false" )
+    families:John 
+    families:Mary )
+  
+  GetObjectPropertiesBetween(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Attribute(
+      negative 
+      "true" )
+    families:John 
+    families:Mary )
+  
+  GetObjectPropertiesOfTarget(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Attribute(
+      negative 
+      "false" )
+    families:Mary )
+  
+  GetObjectPropertiesOfTarget(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Attribute(
+      negative 
+      "true" )
+    families:Mary )
+  
+  GetDataPropertiesOfSource(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Attribute(
+      negative 
+      "false" )
+    families:John )
+  
+  GetDataPropertiesOfSource(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Attribute(
+      negative 
+      "true" )
+    families:John )
+  
+  GetDataPropertiesBetween(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:John 
+    "51"^^<http://www.w3.org/2001/XMLSchema#integer> )
+  
+  GetDataPropertiesBetween(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Attribute(
+      negative 
+      "true" )
+    families:John 
+    "51"^^<http://www.w3.org/2001/XMLSchema#integer> )
+  
+  GetDataPropertiesOfLiteral(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    "51"^^<http://www.w3.org/2001/XMLSchema#integer> )
+  
+  GetDataPropertiesOfLiteral(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Attribute(
+      negative 
+      "true" )
+    "51"^^<http://www.w3.org/2001/XMLSchema#integer> )
+  
+  GetInstances(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Attribute(
+      direct 
+      "true" )
+    families:Woman )
+  
+  GetObjectPropertyTargets(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:hasWife 
+    families:John )
+  
+  GetObjectPropertyTargets(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Attribute(
+      negative 
+      "true" )
+    families:hasWife 
+    families:John )
+  
+  GetObjectPropertySources(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:hasWife 
+    families:Mary )
+  
+  GetObjectPropertySources(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Attribute(
+      negative 
+      "true" )
+    families:hasWife 
+    families:Mary )
+  
+  GetFlattenedInstances(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:Person )
+  
+  GetFlattenedInstances(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Attribute(
+      direct 
+      "true" )
+    families:Person )
+  
+  GetFlattenedObjectPropertyTargets(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:hasWife 
+    families:John )
+  
+  GetFlattenedObjectPropertyTargets(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Attribute(
+      negative 
+      "true" )
+    families:hasWife 
+    families:John )
+  
+  GetFlattenedObjectPropertySources(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:hasWife 
+    families:Mary )
+  
+  GetFlattenedObjectPropertySources(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Attribute(
+      negative 
+      "true" )
+    families:hasWife 
+    families:Mary )
+  
+  GetDataPropertyTargets(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:hasAge 
+    families:John )
+  
+  GetDataPropertySources(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:hasAge 
+    "51"^^<http://www.w3.org/2001/XMLSchema#integer> )
+  
+  GetDataPropertySources(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Attribute(
+      negative 
+      "true" )
+    families:hasAge 
+    "51"^^<http://www.w3.org/2001/XMLSchema#integer> )
+  
+  GetFlattenedDataPropertySources(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:hasAge 
+    "51"^^<http://www.w3.org/2001/XMLSchema#integer> )
+  
+  GetFlattenedDataPropertySources(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Attribute(
+      negative 
+      "true" )
+    families:hasAge 
+    "51"^^<http://www.w3.org/2001/XMLSchema#integer> )
+  
+  ReleaseKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )))

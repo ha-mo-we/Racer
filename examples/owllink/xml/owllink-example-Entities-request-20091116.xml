@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RequestMessage xmlns="http://www.owllink.org/owllink#" xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.owllink.org/owllink# 
+      http://www.owllink.org/owllink-20091116.xsd">
+    <CreateKB kb="http://www.owllink.org/ont/families">
+        <Prefix name="families" fullIRI="http://example.com/owl/families/"/>
+        <Prefix name="otherOnt" fullIRI="http://example.org/otherOntologies/families/"/>
+    </CreateKB>
+    <LoadOntologies kb="http://www.owllink.org/ont/families">
+        <OntologyIRI IRI="http://www.owllink.org/ontologies/primer.owl"/>
+    </LoadOntologies>
+    <GetAllObjectProperties kb="http://www.owllink.org/ont/families"/>
+    <GetAllIndividuals kb="http://www.owllink.org/ont/families"/>
+    <GetAllClasses kb="http://www.owllink.org/ont/families"/>
+    <GetAllAnnotationProperties kb="http://www.owllink.org/ont/families"/>
+    <GetAllDatatypes kb="http://www.owllink.org/ont/families"/>
+    <GetAllDataProperties kb="http://www.owllink.org/ont/families"/>
+    <ReleaseKB kb="http://www.owllink.org/ont/families"/>
+</RequestMessage>

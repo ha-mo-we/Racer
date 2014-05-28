@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RequestMessage xmlns="http://www.owllink.org/owllink#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.owllink.org/owllink# 
+      http://www.owllink.org/owllink-20091116.xsd">
+    <CreateKB kb="http://www.owllink.org/examples/families">
+        <Prefix name="families" fullIRI="http://example.com/owl/families/"/>
+        <Prefix name="otherOnt" fullIRI="http://example.org/otherOntologies/families/"/>
+    </CreateKB>
+    <LoadOntologies kb="http://www.owllink.org/examples/families">
+        <OntologyIRI IRI="http://www.owllink.org/ontologies/primer.owl"/>
+    </LoadOntologies>
+    <GetInstances kb="http://www.owllink.org/examples/families">
+      <owl:Class abbreviatedIRI="families:Person"/>
+    </GetInstances>
+    <GetTypes kb="http://www.owllink.org/examples/families" direct="false">
+      <owl:NamedIndividual abbreviatedIRI="families:John"/>
+    </GetTypes>
+    <Tell kb="http://www.owllink.org/examples/families">
+        <owl:SubClassOf>
+            <owl:Class abbreviatedIRI="families:HappyPerson"/>
+            <owl:Class abbreviatedIRI="families:Person"/>
+        </owl:SubClassOf>
+        <owl:SubClassOf>
+            <owl:Class abbreviatedIRI="otherOnt:ExcitedPerson"/>
+            <owl:Class abbreviatedIRI="families:HappyPerson"/>
+        </owl:SubClassOf>
+    </Tell>
+    <GetSuperClasses kb="http://www.owllink.org/examples/families" direct="false">
+      <owl:Class abbreviatedIRI="otherOnt:ExcitedPerson"/>
+    </GetSuperClasses>
+    <GetObjectPropertySources kb="http://www.owllink.org/examples/families">
+      <owl:ObjectProperty abbreviatedIRI="families:hasWife"/>
+      <owl:NamedIndividual abbreviatedIRI="families:Mary"/>
+    </GetObjectPropertySources>
+    <ReleaseKB kb="http://www.owllink.org/examples/families"/>
+</RequestMessage>

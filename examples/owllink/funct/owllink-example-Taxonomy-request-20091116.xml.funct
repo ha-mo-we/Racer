@@ -1,0 +1,111 @@
+
+
+NamespacePrefix(
+  NIL 
+  <http://www.owllink.org/owllink#> )
+
+NamespacePrefix(
+  "owl" 
+  <http://www.w3.org/2002/07/owl#> )
+
+NamespacePrefix(
+  "xsi" 
+  <http://www.w3.org/2001/XMLSchema-instance> )
+
+RequestMessage(
+  
+  CreateKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_1> ))
+  
+  CreateKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_2> ))
+  
+  Tell(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_2> )
+    owl.SubClassOf(
+      A 
+      owl:Thing ))
+  
+  CreateKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_3> ))
+  
+  Tell(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_3> )
+    owl.SubClassOf(
+      A 
+      owl:Thing )
+    owl.SubClassOf(
+      B 
+      A )
+    owl.SubClassOf(
+      D 
+      A ))
+  
+  CreateKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_4> ))
+  
+  Tell(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_4> )
+    owl.EquivalentClasses(
+      A 
+      owl:Thing )
+    owl.EquivalentClasses(
+      C 
+      owl:Nothing )
+    owl.SubClassOf(
+      B 
+      owl:Thing ))
+  
+  GetSubClassHierarchy(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_1> ))
+  
+  GetSubClassHierarchy(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_2> ))
+  
+  GetSubClassHierarchy(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_3> ))
+  
+  GetSubClassHierarchy(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_4> ))
+  
+  ReleaseKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_1> ))
+  
+  ReleaseKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_2> ))
+  
+  ReleaseKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_3> ))
+  
+  ReleaseKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_4> )))

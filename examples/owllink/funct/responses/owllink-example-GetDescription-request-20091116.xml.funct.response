@@ -1,0 +1,261 @@
+
+
+ResponseMessage(
+  
+  Description(
+    Attribute(
+      name 
+      "RacerPro" )
+    ProtocolVersion(
+      Attribute(
+        major 
+        "1" )
+      Attribute(
+        minor 
+        "0" ))
+    ReasonerVersion(
+      Attribute(
+        major 
+        "2" )
+      Attribute(
+        minor 
+        "0" )
+      Attribute(
+        build 
+        39 ))
+    Property(
+      Attribute(
+        key 
+        "appliedSemantics" )
+      OneOf(
+        Attribute(
+          type 
+          xsd:string )
+        Literal(
+          Attribute(
+            value 
+            "direct" )))
+      Literal(
+        Attribute(
+          value 
+          "direct" )))
+    Property(
+      Attribute(
+        key 
+        "supportedDatatypes" )
+      List(
+        Attribute(
+          type 
+          xsd:anyURI ))
+      Literal(
+        Attribute(
+          value 
+          <http://www.w3.org/2001/XMLSchema#negativeInteger> ))
+      Literal(
+        Attribute(
+          value 
+          <http://www.w3.org/2001/XMLSchema#nonNegativeInteger> ))
+      Literal(
+        Attribute(
+          value 
+          <http://www.w3.org/2001/XMLSchema#positiveInteger> ))
+      Literal(
+        Attribute(
+          value 
+          <http://www.w3.org/2001/XMLSchema#nonPositiveInteger> ))
+      Literal(
+        Attribute(
+          value 
+          <http://www.w3.org/2001/XMLSchema#integer> ))
+      Literal(
+        Attribute(
+          value 
+          <http://www.w3.org/2001/XMLSchema#byte> ))
+      Literal(
+        Attribute(
+          value 
+          <http://www.w3.org/2001/XMLSchema#unsignedByte> ))
+      Literal(
+        Attribute(
+          value 
+          <http://www.w3.org/2001/XMLSchema#unsignedShort> ))
+      Literal(
+        Attribute(
+          value 
+          <http://www.w3.org/2001/XMLSchema#unsignedInt> ))
+      Literal(
+        Attribute(
+          value 
+          <http://www.w3.org/2001/XMLSchema#unsignedLong> ))
+      Literal(
+        Attribute(
+          value 
+          <http://www.w3.org/2001/XMLSchema#short> ))
+      Literal(
+        Attribute(
+          value 
+          <http://www.w3.org/2001/XMLSchema#int> ))
+      Literal(
+        Attribute(
+          value 
+          <http://www.w3.org/2001/XMLSchema#long> ))
+      Literal(
+        Attribute(
+          value 
+          <http://www.w3.org/2001/XMLSchema#float> ))
+      Literal(
+        Attribute(
+          value 
+          <http://www.w3.org/2001/XMLSchema#double> ))
+      Literal(
+        Attribute(
+          value 
+          <http://www.w3.org/2001/XMLSchema#decimal> ))
+      Literal(
+        Attribute(
+          value 
+          <http://www.w3.org/2001/XMLSchema#string> ))
+      Literal(
+        Attribute(
+          value 
+          <http://www.w3.org/2001/XMLSchema#boolean> )))
+    Setting(
+      Attribute(
+        key 
+        "uniqueNameAssumption" )
+      Datatype(
+        Attribute(
+          IRI 
+          xsd:boolean ))
+      Literal(
+        Attribute(
+          value 
+          "false" )))
+    Setting(
+      Attribute(
+        key 
+        "verbose" )
+      Datatype(
+        Attribute(
+          IRI 
+          xsd:boolean ))
+      Literal(
+        Attribute(
+          value 
+          "false" )))
+    Setting(
+      Attribute(
+        key 
+        "leanMode" )
+      Datatype(
+        Attribute(
+          IRI 
+          xsd:boolean ))
+      Literal(
+        Attribute(
+          value 
+          "false" )))
+    Setting(
+      Attribute(
+        key 
+        "keepsAxioms" )
+      Datatype(
+        Attribute(
+          IRI 
+          xsd:boolean ))
+      Literal(
+        Attribute(
+          value 
+          "true" )))
+    Setting(
+      Attribute(
+        key 
+        "usesLessMemory" )
+      Datatype(
+        Attribute(
+          IRI 
+          xsd:boolean ))
+      Literal(
+        Attribute(
+          value 
+          "false" )))
+    Setting(
+      Attribute(
+        key 
+        "ignoresAnnotations" )
+      Datatype(
+        Attribute(
+          IRI 
+          xsd:boolean ))
+      Literal(
+        Attribute(
+          value 
+          "false" )))
+    Setting(
+      Attribute(
+        key 
+        "ignoresDeclarations" )
+      Datatype(
+        Attribute(
+          IRI 
+          xsd:boolean ))
+      Literal(
+        Attribute(
+          value 
+          "false" )))
+    Setting(
+      Attribute(
+        key 
+        "incremental" )
+      Datatype(
+        Attribute(
+          IRI 
+          xsd:boolean ))
+      Literal(
+        Attribute(
+          value 
+          "true" )))
+    Setting(
+      Attribute(
+        key 
+        "selectedProfile" )
+      OneOf(
+        Attribute(
+          type 
+          xsd:string )
+        Literal(
+          Attribute(
+            value 
+            "OWL 2 DL" ))
+        Literal(
+          Attribute(
+            value 
+            "OWL DL" ))
+        Literal(
+          Attribute(
+            value 
+            "SHIQ(D-)" )))
+      Literal(
+        Attribute(
+          value 
+          "OWL 2 DL" )))
+    Setting(
+      Attribute(
+        key 
+        "abbreviatesIRIs" )
+      Datatype(
+        Attribute(
+          IRI 
+          xsd:boolean ))
+      Literal(
+        Attribute(
+          value 
+          "true" )))
+    SupportedExtension(
+      Attribute(
+        identifier 
+        <http://www.racer-systems.com/owllink/ext/racer> ))
+    SupportedExtension(
+      Attribute(
+        identifier 
+        <http://www.owllink.org/ext/retraction> ))))

@@ -1,0 +1,41 @@
+
+
+NamespacePrefix(
+  NIL 
+  <http://www.owllink.org/owllink#> )
+
+NamespacePrefix(
+  "xsi" 
+  <http://www.w3.org/2001/XMLSchema-instance> )
+
+RequestMessage(
+  
+  CreateKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_1> )
+    Attribute(
+      name 
+      "KB 1" ))
+  
+  Set(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_1> )
+    Attribute(
+      key 
+      "abbreviatesIRIs" )
+    Literal(
+      Attribute(
+        value 
+        "true" )))
+  
+  GetSettings(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_1> ))
+  
+  ReleaseKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_1> )))

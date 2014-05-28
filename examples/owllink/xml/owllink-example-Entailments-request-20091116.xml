@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RequestMessage xmlns="http://www.owllink.org/owllink#" xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.owllink.org/owllink# 
+      http://www.owllink.org/owllink-20091116.xsd">
+    <CreateKB kb="http://www.owllink.org/ont/families">
+        <Prefix name="families" fullIRI="http://example.com/owl/families/"/>
+        <Prefix name="otherOnt" fullIRI="http://example.org/otherOntologies/families/"/>
+    </CreateKB>
+    <LoadOntologies kb="http://www.owllink.org/ont/families">
+        <OntologyIRI IRI="http://www.owllink.org/ontologies/primer.owl"/>
+    </LoadOntologies>
+    <IsEntailed kb="http://www.owllink.org/ont/families">
+        <owl:EquivalentClasses>
+            <owl:Class abbreviatedIRI="families:Human"/>
+            <owl:Class abbreviatedIRI="families:Person"/>
+        </owl:EquivalentClasses>
+    </IsEntailed>
+    <IsEntailed kb="http://www.owllink.org/ont/families">
+        <owl:DisjointClasses>
+            <owl:Class abbreviatedIRI="families:Woman"/>
+            <owl:Class abbreviatedIRI="families:Father"/>
+        </owl:DisjointClasses>
+    </IsEntailed>
+    <IsEntailed kb="http://www.owllink.org/ont/families">
+        <owl:Declaration>
+            <owl:NamedIndividual abbreviatedIRI="families:John"/>
+        </owl:Declaration>
+    </IsEntailed>
+    <IsEntailed kb="http://www.owllink.org/ont/families">        
+        <owl:DisjointObjectProperties>
+            <owl:ObjectProperty abbreviatedIRI="families:hasParent"/>
+            <owl:ObjectProperty abbreviatedIRI="families:hasSpouse"/>
+        </owl:DisjointObjectProperties>
+    </IsEntailed>
+    <IsEntailed kb="http://www.owllink.org/ont/families">
+        <owl:Declaration>
+            <owl:Class abbreviatedIRI="families:Dead"/>           
+        </owl:Declaration>
+    </IsEntailed>
+    <IsEntailed kb="http://www.owllink.org/ont/families">
+        <owl:SubObjectPropertyOf>
+            <owl:ObjectProperty abbreviatedIRI="families:hasWife"/>       
+            <owl:ObjectProperty abbreviatedIRI="families:hasSpouse"/>     
+        </owl:SubObjectPropertyOf>    
+    </IsEntailed>    
+    <IsEntailedDirect kb="http://www.owllink.org/ont/families">
+        <owl:SubObjectPropertyOf>         
+            <owl:ObjectProperty abbreviatedIRI="families:hasSpouse"/>
+            <owl:ObjectProperty abbreviatedIRI="families:hasWife"/>   
+        </owl:SubObjectPropertyOf>   
+    </IsEntailedDirect>    
+    <IsEntailedDirect kb="http://www.owllink.org/ont/families">
+        <owl:ClassAssertion>
+            <owl:Class abbreviatedIRI="families:SocialRole"/>
+            <owl:NamedIndividual abbreviatedIRI="families:Father"/>               
+        </owl:ClassAssertion>
+    </IsEntailedDirect>  
+    <ReleaseKB kb="http://www.owllink.org/ont/families"/>
+</RequestMessage>

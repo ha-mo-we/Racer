@@ -1,0 +1,55 @@
+
+
+ResponseMessage(
+  
+  KB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> ))
+  
+  OK(
+    Attribute(
+      warning 
+      "((http://www.owllink.org/ontologies/primer.owl --> http://www.owllink.org/ont/families))" ))
+  
+  BooleanResponse(
+    Attribute(
+      result 
+      "true" ))
+  
+  BooleanResponse(
+    Attribute(
+      result 
+      "true" ))
+  
+  BooleanResponse(
+    Attribute(
+      result 
+      "false" ))
+  
+  BooleanResponse(
+    Attribute(
+      result 
+      "true" ))
+  
+  BooleanResponse(
+    Attribute(
+      result 
+      "false" ))
+  
+  BooleanResponse(
+    Attribute(
+      result 
+      "true" ))
+  
+  BooleanResponse(
+    Attribute(
+      result 
+      "false" ))
+  
+  BooleanResponse(
+    Attribute(
+      result 
+      "true" ))
+  
+  OK())

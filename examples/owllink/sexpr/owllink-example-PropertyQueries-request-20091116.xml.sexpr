@@ -1,0 +1,60 @@
+
+
+(NamespacePrefix () 
+  NIL 
+  |http://www.owllink.org/owllink#| )
+
+(NamespacePrefix () 
+  owl 
+  |http://www.w3.org/2002/07/owl#| )
+
+(NamespacePrefix () 
+  xsi 
+  |http://www.w3.org/2001/XMLSchema-instance| )
+
+(RequestMessage () 
+  
+  (CreateKB (:kb |http://www.owllink.org/ont/families| ) 
+    (Prefix (:name "families" :fullIRI |http://example.com/owl/families/| ) )
+    (Prefix (:name "otherOnt" :fullIRI |http://example.org/otherOntologies/families/| ) ))
+  
+  (LoadOntologies (:kb |http://www.owllink.org/ont/families| ) 
+    (OntologyIRI (:IRI |http://www.owllink.org/ontologies/primer.owl| ) ))
+  
+  (IsObjectPropertySatisfiable (:kb |http://www.owllink.org/ont/families| ) 
+    |families:hasDaughter| )
+  
+  (GetSubObjectProperties (:kb |http://www.owllink.org/ont/families| ) 
+    |families:hasParent| )
+  
+  (GetSuperObjectProperties (:kb |http://www.owllink.org/ont/families| ) 
+    |families:hasWife| )
+  
+  (GetEquivalentObjectProperties (:kb |http://www.owllink.org/ont/families| ) 
+    |families:hasChild| )
+  
+  (GetDisjointObjectProperties (:kb |http://www.owllink.org/ont/families| ) 
+    |families:hasParent| )
+  
+  (GetSubObjectPropertyHierarchy (:kb |http://www.owllink.org/ont/families| ) 
+    |owl:topObjectProperty| )
+  
+  (IsDataPropertySatisfiable (:kb |http://www.owllink.org/ont/families| ) 
+    |families:hasAge| )
+  
+  (GetSubDataProperties (:kb |http://www.owllink.org/ont/families| ) 
+    |families:hasSSN| )
+  
+  (GetSuperDataProperties (:kb |http://www.owllink.org/ont/families| ) 
+    |families:hasSSN| )
+  
+  (GetEquivalentDataProperties (:kb |http://www.owllink.org/ont/families| ) 
+    |families:hasAge| )
+  
+  (GetDisjointDataProperties (:kb |http://www.owllink.org/ont/families| ) 
+    |families:hasAge| )
+  
+  (GetSubDataPropertyHierarchy (:kb |http://www.owllink.org/ont/families| ) 
+    |owl:topDataProperty| )
+  
+  (ReleaseKB (:kb |http://www.owllink.org/ont/families| ) ))

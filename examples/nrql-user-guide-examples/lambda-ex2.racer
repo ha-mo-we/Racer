@@ -1,0 +1,22 @@
+(full-reset)
+
+(define-primitive-role has-part :transitive t)
+
+(instance car1 car)
+
+(related car1 engine1 has-part) 
+
+(related engine1 cylinder-1-4 has-part) 
+
+(related car1 wheel-1-4 has-part) 
+
+(related car1 chassis1 has-part) 
+
+(define-concrete-domain-attribute weight :type real)
+
+(instance engine1 (= weight 200.0))
+
+(instance chassis1 (= weight 400.0))
+
+(instance wheel-1-4 (= weight 30.0))
+

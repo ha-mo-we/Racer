@@ -1,0 +1,41 @@
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns="http://www.owl-ontologies.com/unnamed.owl#"
+  xml:base="http://www.owl-ontologies.com/unnamed.owl">
+
+  <owl:Ontology rdf:about=""/>
+
+  <owl:Class rdf:ID="person"/>
+
+  <owl:DatatypeProperty rdf:ID="age">
+    <rdfs:domain rdf:resource="#person"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#int"/>
+  </owl:DatatypeProperty>
+
+
+  <owl:FunctionalProperty rdf:ID="name">
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#string"/>
+    <rdfs:domain rdf:resource="#person"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#DatatypeProperty"/>
+  </owl:FunctionalProperty>
+
+  <owl:ObjectProperty rdf:ID="hasChild">
+    <rdfs:domain rdf:resource="#person"/>
+    <rdfs:range rdf:resource="#person"/>
+  </owl:ObjectProperty>
+
+  <person rdf:ID="alice">
+     <age rdf:datatype="http://www.w3.org/2001/XMLSchema#int">80</age>
+    <name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Alice</name>
+    <hasChild>
+      <person rdf:ID="betty">
+        <age rdf:datatype="http://www.w3.org/2001/XMLSchema#int">50</age>
+        <name rdf:datatype="http://www.w3.org/2001/XMLSchema#string">Betty</name>
+      </person>
+    </hasChild>
+  </person>
+</rdf:RDF>

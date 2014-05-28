@@ -1,0 +1,197 @@
+
+
+ResponseMessage(
+  
+  KB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> ))
+  
+  OK(
+    Attribute(
+      warning 
+      "((http://www.owllink.org/ontologies/primer.owl --> http://www.owllink.org/ont/families))" ))
+  
+  ClassSynsets(
+    ClassSynset(
+      families:Father )
+    ClassSynset(
+      families:MyBirthdayGuests ))
+  
+  Classes(
+    families:Father 
+    families:Man 
+    families:Human 
+    families:Person 
+    owl:Thing 
+    families:Parent 
+    families:MyBirthdayGuests )
+  
+  SetOfIndividualSynsets(
+    IndividualSynset(
+      families:Mary 
+      otherOnt:MaryBrown )
+    IndividualSynset(
+      families:Jack )
+    IndividualSynset(
+      families:Bill ))
+  
+  SetOfIndividuals(
+    families:Mary 
+    otherOnt:MaryBrown 
+    families:Jack 
+    families:Bill )
+  
+  IndividualSynonyms(
+    families:John 
+    otherOnt:JohnBrown )
+  
+  SetOfObjectPropertySynsets(
+    ObjectPropertySynset(
+      owl:topObjectProperty )
+    ObjectPropertySynset(
+      families:hasSpouse )
+    ObjectPropertySynset(
+      families:hasRelative )
+    ObjectPropertySynset(
+      families:hasWife ))
+  
+  SetOfObjectPropertySynsets(
+    ObjectPropertySynset(
+      owl:topObjectProperty )
+    ObjectPropertySynset(
+      families:hasParent )
+    ObjectPropertySynset(
+      families:hasFather )
+    ObjectPropertySynset(
+      families:hasWife ))
+  
+  SetOfObjectPropertySynsets(
+    ObjectPropertySynset(
+      owl:topObjectProperty )
+    ObjectPropertySynset(
+      families:hasWife )
+    ObjectPropertySynset(
+      families:hasSpouse ))
+  
+  SetOfObjectPropertySynsets(
+    ObjectPropertySynset(
+      owl:topObjectProperty ))
+  
+  SetOfObjectPropertySynsets(
+    ObjectPropertySynset(
+      owl:topObjectProperty )
+    ObjectPropertySynset(
+      families:hasWife )
+    ObjectPropertySynset(
+      families:hasRelative ))
+  
+  SetOfObjectPropertySynsets(
+    ObjectPropertySynset(
+      owl:topObjectProperty )
+    ObjectPropertySynset(
+      families:hasWife ))
+  
+  SetOfDataPropertySynsets(
+    DataPropertySynset(
+      owl:topDataProperty )
+    DataPropertySynset(
+      families:hasAge 
+      otherOnt:age ))
+  
+  SetOfDataPropertySynsets(
+    DataPropertySynset(
+      owl:topDataProperty )
+    DataPropertySynset(
+      families:hasAge 
+      otherOnt:age ))
+  
+  SetOfDataPropertySynsets(
+    DataPropertySynset(
+      owl:topDataProperty )
+    DataPropertySynset(
+      families:hasAge 
+      otherOnt:age ))
+  
+  SemanticError(
+    Attribute(
+      error 
+      "Cannot deal with negated DataProperties yet. To be implemented" ))
+  
+  SetOfDataPropertySynsets(
+    DataPropertySynset(
+      families:hasAge 
+      otherOnt:age )
+    DataPropertySynset(
+      owl:topDataProperty ))
+  
+  SemanticError(
+    Attribute(
+      error 
+      "Cannot deal with negated DataProperties yet. To be implemented" ))
+  
+  SetOfIndividualSynsets(
+    IndividualSynset(
+      families:Mary 
+      otherOnt:MaryBrown ))
+  
+  SetOfIndividualSynsets()
+  
+  SetOfIndividualSynsets(
+    IndividualSynset(
+      families:John 
+      otherOnt:JohnBrown ))
+  
+  SetOfIndividualSynsets()
+  
+  SetOfIndividualSynsets(
+    IndividualSynset(
+      families:Bill )
+    IndividualSynset(
+      families:Mary 
+      otherOnt:MaryBrown ))
+  
+  SetOfIndividuals(
+    families:John 
+    otherOnt:JohnBrown 
+    families:Mary 
+    otherOnt:MaryBrown 
+    families:Jack )
+  
+  SetOfIndividuals()
+  
+  SetOfIndividuals()
+  
+  SetOfIndividuals(
+    families:John 
+    otherOnt:JohnBrown )
+  
+  SetOfIndividuals()
+  
+  SetOfIndividuals(
+    families:Bill 
+    families:Mary 
+    otherOnt:MaryBrown )
+  
+  SetOfLiterals("51"^^xsd:integer )
+  
+  SetOfIndividualSynsets(
+    IndividualSynset(
+      families:John 
+      otherOnt:JohnBrown ))
+  
+  SemanticError(
+    Attribute(
+      error 
+      "Cannot deal with negated DataProperties yet. To be implemented" ))
+  
+  SetOfIndividuals(
+    families:John 
+    otherOnt:JohnBrown )
+  
+  SemanticError(
+    Attribute(
+      error 
+      "Cannot deal with negated DataProperties yet. To be implemented" ))
+  
+  OK())

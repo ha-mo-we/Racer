@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ResponseMessage xmlns="http://www.owllink.org/owllink#"
+                 xmlns:owl="http://www.w3.org/2002/07/owl#">
+  <KB kb="http://www.owllink.org/ont/families"/>
+  <OK warning="((http://www.owllink.org/ontologies/primer.owl -->
+  http://www.owllink.org/ont/families))"/>
+  <BooleanResponse result="true"/>
+  <ClassSynsets>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="owl:Nothing"/>
+    </ClassSynset>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="families:YoungChild"/>
+    </ClassSynset>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="families:Woman"/>
+    </ClassSynset>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="families:Mother"/>
+    </ClassSynset>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="families:ChildlessPerson"/>
+    </ClassSynset>
+  </ClassSynsets>
+  <SetOfClassSynsets>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="families:Father"/>
+    </ClassSynset>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="families:Mother"/>
+    </ClassSynset>
+  </SetOfClassSynsets>
+  <SetOfClassSynsets>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="families:Father"/>
+    </ClassSynset>
+  </SetOfClassSynsets>
+  <SetOfClassSynsets/>
+  <OK/>
+</ResponseMessage>

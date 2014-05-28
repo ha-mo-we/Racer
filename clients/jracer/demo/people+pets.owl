@@ -1,0 +1,1118 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns="http://cohse.semanticweb.org/ontologies/people#"
+  xml:base="http://cohse.semanticweb.org/ontologies/people">
+  <owl:Ontology rdf:about="">
+  <owl:versionInfo>2.8</owl:versionInfo>
+  </owl:Ontology>
+  <owl:Class rdf:ID="tiger">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >tiger</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="animal"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="cat_liker">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >cat liker</rdfs:label>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:ID="person"/>
+          <owl:Restriction>
+            <owl:someValuesFrom>
+              <owl:Class rdf:ID="cat"/>
+            </owl:someValuesFrom>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:ID="likes"/>
+            </owl:onProperty>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:ID="adult">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >adult</rdfs:label>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="young"/>
+    </owl:disjointWith>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Things that are adult.</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="tabloid">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >tabloid</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A newspaper. Tabloids are usually thought of as more "down-market" than broadsheets.</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="newspaper"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="lorry">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >lorry</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="vehicle"/>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="white_thing">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >white thing</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="leaf">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >leaf</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="part_of"/>
+        </owl:onProperty>
+        <owl:someValuesFrom>
+          <owl:Class rdf:ID="tree"/>
+        </owl:someValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="bone">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >bone</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="company">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >company</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="cat_owner">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#person"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:ID="has_pet"/>
+            </owl:onProperty>
+            <owl:someValuesFrom>
+              <owl:Class rdf:about="#cat"/>
+            </owl:someValuesFrom>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >cat owner</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="bicycle">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A human propelled vehicle, with two wheels   </rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#vehicle"/>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >bicycle</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#animal">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="eats"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >animal</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="bus_driver">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#person"/>
+          <owl:Restriction>
+            <owl:someValuesFrom>
+              <owl:Class rdf:ID="bus"/>
+            </owl:someValuesFrom>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:ID="drives"/>
+            </owl:onProperty>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >bus driver</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Someone who drives a bus.</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="car">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >car</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#vehicle"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="haulage_truck_driver">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >haulage truck driver</rdfs:label>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#person"/>
+          <owl:Restriction>
+            <owl:someValuesFrom>
+              <owl:Class rdf:ID="truck"/>
+            </owl:someValuesFrom>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#drives"/>
+            </owl:onProperty>
+          </owl:Restriction>
+          <owl:Restriction>
+            <owl:someValuesFrom>
+              <owl:Restriction>
+                <owl:onProperty>
+                  <owl:ObjectProperty rdf:about="#part_of"/>
+                </owl:onProperty>
+                <owl:someValuesFrom>
+                  <owl:Class rdf:ID="haulage_company"/>
+                </owl:someValuesFrom>
+              </owl:Restriction>
+            </owl:someValuesFrom>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:ID="works_for"/>
+            </owl:onProperty>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="van_driver">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >van driver</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#person"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#drives"/>
+            </owl:onProperty>
+            <owl:someValuesFrom>
+              <owl:Class rdf:ID="van"/>
+            </owl:someValuesFrom>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#young">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >young</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="kid">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#person"/>
+          <owl:Class rdf:about="#young"/>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >kid</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="giraffe">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="#leaf"/>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#eats"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf rdf:resource="#animal"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >giraffe</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="grownup">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#person"/>
+          <owl:Class rdf:about="#adult"/>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >grownup</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="broadsheet">
+    <owl:disjointWith rdf:resource="#tabloid"/>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#newspaper"/>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A newspaper. Broadsheets are usually considered to be more "high-brow" than tabloids.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >broadsheet</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#tree">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >tree</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="plant"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#cat">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >cat</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#animal"/>
+  </owl:Class>
+  <owl:Class rdf:about="#van">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >van</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#vehicle"/>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:about="#newspaper">
+    <rdfs:subClassOf>
+      <owl:Class>
+        <owl:unionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#broadsheet"/>
+          <owl:Class rdf:about="#tabloid"/>
+        </owl:unionOf>
+      </owl:Class>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="publication"/>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >newspaper</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >All newspapers are either broadsheets or tabloids.</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="mad_cow">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A mad cow is a cow that has been eating the brains of sheep.</rdfs:comment>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:ID="cow"/>
+          <owl:Restriction>
+            <owl:someValuesFrom>
+              <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                  <owl:Class rdf:ID="brain"/>
+                  <owl:Restriction>
+                    <owl:onProperty>
+                      <owl:ObjectProperty rdf:about="#part_of"/>
+                    </owl:onProperty>
+                    <owl:someValuesFrom>
+                      <owl:Class rdf:ID="sheep"/>
+                    </owl:someValuesFrom>
+                  </owl:Restriction>
+                </owl:intersectionOf>
+              </owl:Class>
+            </owl:someValuesFrom>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#eats"/>
+            </owl:onProperty>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >mad cow</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="bus_company">
+    <rdfs:subClassOf rdf:resource="#company"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >bus company</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="lorry_driver">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >lorry driver</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#person"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#drives"/>
+            </owl:onProperty>
+            <owl:someValuesFrom rdf:resource="#lorry"/>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:ID="man">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#person"/>
+          <owl:Class rdf:ID="male"/>
+          <owl:Class rdf:about="#adult"/>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >man</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#haulage_company">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >haulage company</rdfs:label>
+    <rdfs:subClassOf rdf:resource="#company"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="haulage_worker">
+    <owl:equivalentClass>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#works_for"/>
+        </owl:onProperty>
+        <owl:someValuesFrom>
+          <owl:Class>
+            <owl:unionOf rdf:parseType="Collection">
+              <owl:Class rdf:about="#haulage_company"/>
+              <owl:Restriction>
+                <owl:someValuesFrom rdf:resource="#haulage_company"/>
+                <owl:onProperty>
+                  <owl:ObjectProperty rdf:about="#part_of"/>
+                </owl:onProperty>
+              </owl:Restriction>
+            </owl:unionOf>
+          </owl:Class>
+        </owl:someValuesFrom>
+      </owl:Restriction>
+    </owl:equivalentClass>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >haulage worker</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="magazine">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#publication"/>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >magazine</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="woman">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >woman</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#person"/>
+          <owl:Class rdf:ID="female"/>
+          <owl:Class rdf:about="#adult"/>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:ID="pet_owner">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >pet owner</rdfs:label>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#person"/>
+          <owl:Restriction>
+            <owl:someValuesFrom rdf:resource="#animal"/>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#has_pet"/>
+            </owl:onProperty>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="elderly">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >elderly</rdfs:label>
+    <rdfs:subClassOf rdf:resource="#adult"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Axiom_2">
+    <owl:disjointWith>
+      <owl:Class>
+        <owl:unionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#plant"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#part_of"/>
+            </owl:onProperty>
+            <owl:someValuesFrom>
+              <owl:Class rdf:about="#plant"/>
+            </owl:someValuesFrom>
+          </owl:Restriction>
+        </owl:unionOf>
+      </owl:Class>
+    </owl:disjointWith>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:unionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#animal"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#part_of"/>
+            </owl:onProperty>
+            <owl:someValuesFrom rdf:resource="#animal"/>
+          </owl:Restriction>
+        </owl:unionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#brain">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >brain</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="white_van_man">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#man"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#drives"/>
+            </owl:onProperty>
+            <owl:someValuesFrom>
+              <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                  <owl:Class rdf:about="#white_thing"/>
+                  <owl:Class rdf:about="#van"/>
+                </owl:intersectionOf>
+              </owl:Class>
+            </owl:someValuesFrom>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A white van man is a man who drives a white van.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >white van man</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:allValuesFrom rdf:resource="#tabloid"/>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="reads"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#bus">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#vehicle"/>
+    </rdfs:subClassOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >bus</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="vegetarian">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >vegetarian</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A vegetarian is defined as an animal that eats no other animals, or parts of animals.</rdfs:comment>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#animal"/>
+          <owl:Restriction>
+            <owl:allValuesFrom>
+              <owl:Class>
+                <owl:complementOf rdf:resource="#animal"/>
+              </owl:Class>
+            </owl:allValuesFrom>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#eats"/>
+            </owl:onProperty>
+          </owl:Restriction>
+          <owl:Restriction>
+            <owl:allValuesFrom>
+              <owl:Class>
+                <owl:complementOf>
+                  <owl:Restriction>
+                    <owl:someValuesFrom rdf:resource="#animal"/>
+                    <owl:onProperty>
+                      <owl:ObjectProperty rdf:about="#part_of"/>
+                    </owl:onProperty>
+                  </owl:Restriction>
+                </owl:complementOf>
+              </owl:Class>
+            </owl:allValuesFrom>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#eats"/>
+            </owl:onProperty>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#female">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >female</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#sheep">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >sheep</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#eats"/>
+        </owl:onProperty>
+        <owl:allValuesFrom>
+          <owl:Class rdf:ID="grass"/>
+        </owl:allValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf rdf:resource="#animal"/>
+  </owl:Class>
+  <owl:Class rdf:about="#person">
+    <rdfs:subClassOf rdf:resource="#animal"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >person</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:about="#plant">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >plant</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#truck">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >truck</rdfs:label>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#vehicle"/>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="red_top">
+    <rdfs:subClassOf rdf:resource="#tabloid"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >red top</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="driver">
+    <rdfs:subClassOf rdf:resource="#adult"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >driver</rdfs:label>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#person"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#drives"/>
+            </owl:onProperty>
+            <owl:someValuesFrom>
+              <owl:Class rdf:about="#vehicle"/>
+            </owl:someValuesFrom>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="duck">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#animal"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >duck</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#cow">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Cows are naturally vegetarians.</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#vegetarian"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >cow</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="dog">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#eats"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="#bone"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <owl:disjointWith rdf:resource="#cat"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >dog</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="old_lady">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >old lady</rdfs:label>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#person"/>
+          <owl:Class rdf:about="#female"/>
+          <owl:Class rdf:about="#elderly"/>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:subClassOf>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Restriction>
+            <owl:allValuesFrom rdf:resource="#cat"/>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#has_pet"/>
+            </owl:onProperty>
+          </owl:Restriction>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#has_pet"/>
+            </owl:onProperty>
+            <owl:someValuesFrom rdf:resource="#animal"/>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="animal_lover">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#person"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#has_pet"/>
+            </owl:onProperty>
+            <owl:minCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+            >3</owl:minCardinality>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Someone who really likes animals   </rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >animal lover</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#vehicle">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >vehicle</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="quality_broadsheet">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >quality broadsheet</rdfs:label>
+    <rdfs:subClassOf rdf:resource="#broadsheet"/>
+  </owl:Class>
+  <owl:Class rdf:ID="dog_liker">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#person"/>
+          <owl:Restriction>
+            <owl:someValuesFrom rdf:resource="#dog"/>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#likes"/>
+            </owl:onProperty>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >dog liker</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:about="#grass">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >grass</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#plant"/>
+  </owl:Class>
+  <owl:Class rdf:about="#publication">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >publication</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="dog_owner">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#person"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#has_pet"/>
+            </owl:onProperty>
+            <owl:someValuesFrom rdf:resource="#dog"/>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >dog owner</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:about="#male">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The class of all male things.</rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >male</rdfs:label>
+  </owl:Class>
+  <owl:Class rdf:ID="pet">
+    <owl:equivalentClass>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="is_pet_of"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+      </owl:Restriction>
+    </owl:equivalentClass>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >pet</rdfs:label>
+  </owl:Class>
+  <owl:ObjectProperty rdf:ID="has_father">
+    <rdfs:subPropertyOf>
+      <owl:ObjectProperty rdf:ID="has_parent"/>
+    </rdfs:subPropertyOf>
+    <rdfs:range rdf:resource="#man"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >has_father</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#drives">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >drives</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#part_of">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:ID="has_part"/>
+    </owl:inverseOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >part_of</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="has_child">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >has_child</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#reads">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >reads</rdfs:label>
+    <rdfs:range rdf:resource="#publication"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#has_parent">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >has_parent</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#works_for">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >works_for</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#has_part">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >has_part</rdfs:label>
+    <owl:inverseOf rdf:resource="#part_of"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#likes">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >likes</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#is_pet_of">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >is_pet_of</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:about="#has_pet"/>
+    </owl:inverseOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="has_mother">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:subPropertyOf rdf:resource="#has_parent"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >has_mother</rdfs:label>
+    <rdfs:range rdf:resource="#woman"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="eaten_by">
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:about="#eats"/>
+    </owl:inverseOf>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >eaten_by</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#has_pet">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >has_pet</rdfs:label>
+    <rdfs:domain rdf:resource="#person"/>
+    <owl:inverseOf rdf:resource="#is_pet_of"/>
+    <rdfs:range rdf:resource="#animal"/>
+    <rdfs:subPropertyOf rdf:resource="#likes"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Anyone that has a pet must like that pet. </rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#eats">
+    <rdfs:domain rdf:resource="#animal"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <owl:inverseOf rdf:resource="#eaten_by"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >eats</rdfs:label>
+  </owl:ObjectProperty>
+  <owl:DatatypeProperty rdf:ID="service_number">
+    <rdfs:range rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >service_number</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </owl:DatatypeProperty>
+  <dog rdf:ID="Fido">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Fido</rdfs:label>
+  </dog>
+  <duck rdf:ID="Dewey">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Dewey</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </duck>
+  <tiger rdf:ID="Fluffy">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Fluffy</rdfs:label>
+  </tiger>
+  <person rdf:ID="Fred">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Fred</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <has_pet>
+      <cat rdf:ID="Tibbs">
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        ></rdfs:comment>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >Tibbs</rdfs:label>
+      </cat>
+    </has_pet>
+  </person>
+  <broadsheet rdf:ID="The_Guardian">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The Guardian</rdfs:label>
+  </broadsheet>
+  <broadsheet rdf:ID="The_Times">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The Times</rdfs:label>
+  </broadsheet>
+  <duck rdf:ID="Huey">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Huey</rdfs:label>
+  </duck>
+  <owl:Thing rdf:ID="Tom">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Tom</rdfs:label>
+  </owl:Thing>
+  <rdf:Description rdf:ID="Joe">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Joe</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdf:type>
+      <owl:Restriction>
+        <owl:onProperty rdf:resource="#has_pet"/>
+        <owl:maxCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger"
+        >1</owl:maxCardinality>
+      </owl:Restriction>
+    </rdf:type>
+    <rdf:type rdf:resource="#person"/>
+    <has_pet rdf:resource="#Fido"/>
+  </rdf:Description>
+  <male rdf:ID="Mick">
+    <drives>
+      <white_thing rdf:ID="Q123_ABC">
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >A white van</rdfs:comment>
+        <rdf:type rdf:resource="#van"/>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >Q123 ABC</rdfs:label>
+      </white_thing>
+    </drives>
+    <reads>
+      <owl:Thing rdf:ID="Daily_Mirror">
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >The paper read by Mick (a white van man). </rdfs:comment>
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >Daily Mirror</rdfs:label>
+      </owl:Thing>
+    </reads>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Mick is male and drives a white van. Due to the axiom concerning drivers, we know that Mick must be a man, and is therefore a white van man. The axiom about the reading material of a white van man then allows us to infer things about the Daily Mirror.  </rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Mick</rdfs:label>
+  </male>
+  <female rdf:ID="Minnie">
+    <has_pet rdf:resource="#Tom"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdf:type rdf:resource="#elderly"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Minnie</rdfs:label>
+  </female>
+  <person rdf:ID="Walt">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <has_pet>
+      <duck rdf:ID="Louie">
+        <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        >Louie</rdfs:label>
+        <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+        ></rdfs:comment>
+      </duck>
+    </has_pet>
+    <has_pet rdf:resource="#Dewey"/>
+    <has_pet rdf:resource="#Huey"/>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Walt</rdfs:label>
+  </person>
+  <person rdf:ID="Kevin">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Kevin</rdfs:label>
+  </person>
+  <cow rdf:ID="Flossie">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Flossie</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </cow>
+  <dog rdf:ID="Rex">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Rex</rdfs:label>
+    <is_pet_of rdf:resource="#Mick"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </dog>
+  <bus rdf:ID="The42">
+    <service_number rdf:datatype="http://www.w3.org/2001/XMLSchema#integer"
+    >42</service_number>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The42</rdfs:label>
+  </bus>
+  <tabloid rdf:ID="The_Sun">
+    <rdfs:label rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The Sun</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    ></rdfs:comment>
+  </tabloid>
+</rdf:RDF>
+
+<!-- Created with Protege (with OWL Plugin 3.4, Build 102)  http://protege.stanford.edu -->

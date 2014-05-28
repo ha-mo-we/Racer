@@ -1,0 +1,270 @@
+;;;
+;;; Third file of SemWeb demo, demonstrates LUBM querying 
+;;; Note that lubm-prepare.racer needs to be run before 
+;;;
+;;; Open this file in the RacerEditor and evaluate expression 
+;;; by expression using Ctrl-Shift-e (or Cmd-e on a Mac) and watch the results in the 
+;;; Shell tab of RacerPorter 
+;;;
+
+;;;
+;;; some Sparql queries  
+;;; 
+
+(define-prefix "lubm" "http://www.lehigh.edu/%7Ezhp2/2004/0401/univ-bench.owl#")
+
+(sparql-answer-query "select ?x where { ?x rdf:type lubm:Chair }")
+
+(sparql-answer-query "select ?x ?y where { ?x rdf:type lubm:Chair . ?x lubm:headOf ?y }")
+
+(sparql-answer-query "select ?x where { ?x rdf:type lubm:Chair }" :native t)
+
+(sparql-answer-query "select ?x where { ?x rdf:type lubm:FullProfessor }" :native t)
+
+;;;
+;;; some basic nRQL queries  
+;;; 
+
+(retrieve (?x) (?x #!lubm:Chair))
+
+(retrieve (?x) (and (?x #!lubm:Professor) (?x nil #!lubm:headOf)))
+
+#|
+
+;;;
+;;; some native Sparql queries  
+;;; 
+
+;;; use Ctrl-Shift-s (or Cmd-Shift-s on a Mac) in RacerPorter on a Sparql query
+;;; Ctrl-Shift-s only works if query is enclosed by blank lines! 
+
+select ?x where { ?x rdf:type lubm:Chair }
+
+select ?x where { ?x rdf:type lubm:FullProfessor }
+
+select ?x ?y where { ?x rdf:type lubm:Chair . ?x lubm:headOf ?y }
+
+|#
+
+;;;
+;;; Demonstrate nRQL query composition
+;;; 
+
+(retrieve (?x
+             ((:lambda (y)
+                (let ((n-courses 
+                       (length
+                        (retrieve 
+                         '(?z) 
+                         `(,y ?z #!lubm:teacherOf)))))
+                  `(?num-courses ,n-courses)))
+              ?x))
+
+         (and 
+          (?x #!lubm:FullProfessor)
+          (?x ?y #!lubm:teacherOf)
+          (?y #!lubm:Course))
+         :dont-show-lambdas-p t)
+
+;;;
+;;; a more efficent version exploiting so-called "promises" 
+;;; (a special precompilation and reuse technique)
+;;; 
+
+(delete-all-queries)
+
+(with-future-bindings (?x)
+                      (delete-all-queries)
+                      (prepare-abox-query 
+                       (?z) (?x ?z #!lubm:teacherOf)
+                       :dont-show-lambdas t
+                       :id :teachers))
+
+(retrieve1 (?x (some #!lubm:teacherOf #!lubm:Course)) 
+           ( ?x
+             ((:lambda (x)
+                (with-nrql-settings (:bindings `((?x ,x)))
+                  `(?num-courses 
+                    ,(length
+                      (execute-or-reexecute-query :teachers)))))
+              ?x)))
+
+;;;
+;;; demonstrate native nRQL aggregation operators
+;;; 
+
+(retrieve (?x (count ?y) (group-by ?x)) 
+          (and 
+            (?x #!lubm:Professor)
+            (?x ?y #!lubm:teacherOf)
+            (?y #!lubm:Course)))
+
+(retrieve (?x (count ?y) (group-by ?x))
+          (and (?x #!:Professor) 
+               (?y ?x #!:publicationAuthor) 
+               (?y #!:Publication)))
+
+
+;;;
+;;; demonstrate HTML report generation with MiniLisp 
+;;; 
+
+(delete-all-queries)
+
+(evaluate 
+
+ (cond ((in-unsafe-mode?)
+
+        (let ((res (retrieve '(?x ?y) '(and (?x #!lubm:Chair) (?x ?y #!lubm:teacherOf)))))
+
+          (with-html ( (file "chair.html") )
+
+                     (html (head)
+                           (html (title) 
+                                 (content "Query Evaluation Output")))
+
+                     (html (body)
+
+                           (html (h1)
+                                 (content "Query Evaluation Output"))
+
+                           (html (h2)
+                                 (content "Query Head"))
+                           (content (query-head :last))
+
+                           (html (h2)
+                                 (content "Query Body"))
+                           (content (query-body :last))
+
+                           (html (h2)
+                                 (content "Query Answer"))
+
+                           (html (table :border 1)
+
+                                 (let ((count 0))
+
+                                   (maplist 
+                                    (lambda (bindings) 
+
+                                      (html (tr)
+                                            (html (th :colspan 2)
+                                                  (content
+                                                   (format nil
+                                                           "Result Tuple No. ~A" 
+                                                           (incf count)))))
+
+                                      (maplist 
+                                       (lambda (var-val)
+                                         (let ((var (first var-val))
+                                               (val (second var-val)))
+
+                                           (html (tr)
+                                                 (html (td)
+                                                       (content var))
+                                                 (html (td)
+                                                       (content val)))))
+                                       bindings))
+                                    res)))))
+
+          
+          (publish-file (file "chair.html")
+                        "/chair.html"
+                        "text/html")
+
+          (display "Please open \"http://localhost:8080/chair.html\" in your WebBrowser")))
+
+
+       (t (display "RacerPro is not running in unsafe mode!
+Cannot demonstrate HTML report generation."))))
+
+
+;;;
+;;; Some more advanced queries and a rule... 
+;;; 
+
+(define-datatype-property #!lubm:age1 :range real)
+
+;;;
+;;; add some concrete random ages to the Chair profs (they have none so far)
+;;; Note: we are defering the addition of the age fillers until the rule
+;;; has finished. If the ABox is modified at runtime (when the rule is still
+;;; running) it will result in a very bad performance. Thus, all updates should
+;;; be defered using "(defer ..)". 
+;;; 
+
+(firerule (and (?x #!lubm:Chair)
+               (neg (?x (an #!lubm:age1))))
+
+          ((lambda 
+                   (defer 
+                    (add-datatype-role-filler 
+                     (current-abox)
+                     ?x 
+                     (float (+ 30 (random 35)))
+                     '#!lubm:age1)))))
+
+
+(enable-data-substrate-mirroring)
+
+;;;
+;;; retrieve Chair profs and their ages 
+;;;
+
+(retrieve (?x ?*age)
+          (and (?x #!lubm:Chair)
+               (?*x ?*age #!lubm:age1)))
+
+;;;
+;;; demonstrate universal quantification in nRQL: 
+;;; retrieve oldest Chair professor who still
+;;; gives lectures
+;;;
+
+(retrieve (?x ?*age-x)
+          (and (?x #!lubm:Chair)
+               (?x ?y #!lubm:teacherOf)
+               (?*x ?*age-x #!lubm:age1)
+               (neg (project-to (?x)
+                                (and (?y #!lubm:Chair)
+                                     (?y ?z #!lubm:teacherOf)
+                                     (?*y ?*age-y #!lubm:age1)
+                                     (?*x ?*age-x #!lubm:age1)
+                                     (?*age-x ?*age-y 
+                                              (:satisfies
+                                               (:predicate <))))))))
+
+
+;;;
+;;; Next, it is demonstrated that inferences by Racer can be stored in the triple store such that
+;;; later on reasoning overhead can be avoided.
+;;;
+
+(evaluate
+ (materialize-inferences 'default
+                         :db "lubm-ts-extended"
+                         :directory demodir
+			 :index-p t
+                         :role-fillers t
+                         :told-datatype-fillers t))
+
+(evaluate
+ (open-triple-store "lubm-ts-extended" :directory demodir)) ; just a few dozen seconds, restart from here in case the triple store lubm-ts-extended exists
+
+(sparql-answer-query "select ?x where { ?x rdf:type lubm:Chair }" :native t) ; use Agraph's SPARQL engine to operate on the extended triple store
+
+;;; Switch to the Query IO tab in RacerPorter to browse the results.
+
+(sparql-answer-query "select ?x ?y where { ?x rdf:type lubm:Chair . ?x lubm:emailAddress ?y }" :native t) ; yet another example
+
+(evaluate ; Generate an XML file containing the query results.
+ (cond ((in-unsafe-mode?)
+        (with-open-output-file ((format nil "~Aresult.xml" demodir))
+                        (sparql-answer-query "select ?x ?y where { ?x rdf:type lubm:Chair . ?x lubm:emailAddress ?y }" 
+                                             :native t
+                                             :results-format :sparql-xml
+                                             :output-stream *output-stream*)))
+
+       (t  (display "RacerPro is not running in unsafe mode!
+Cannot demonstrate XML report generation."))))
+
+

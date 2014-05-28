@@ -1,0 +1,29 @@
+
+
+NamespacePrefix(
+  NIL 
+  <http://www.owllink.org/owllink#> )
+
+NamespacePrefix(
+  "xsi" 
+  <http://www.w3.org/2001/XMLSchema-instance> )
+
+RequestMessage(
+  
+  CreateKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_1> )
+    Attribute(
+      name 
+      "KB 1" ))
+  
+  GetSettings(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_1> ))
+  
+  ReleaseKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_1> )))

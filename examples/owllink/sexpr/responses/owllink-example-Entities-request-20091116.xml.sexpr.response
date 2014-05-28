@@ -1,0 +1,86 @@
+
+
+(ResponseMessage () 
+  
+  (KB (:kb |http://www.owllink.org/ont/families| ) )
+  
+  (OK (:warning "((http://www.owllink.org/ontologies/primer.owl --> http://www.owllink.org/ont/families))" ) )
+  
+  (SetOfObjectProperties () 
+    |families:hasSpouse| 
+    |families:parentOf| 
+    |otherOnt:child| 
+    |families:hasRelative| 
+    |families:hasHusband| 
+    |families:hasAncestor| 
+    |families:hasGrandparent| 
+    |families:hasUncle| 
+    |families:hasDaughter| 
+    |families:hasWife| 
+    |families:loves| 
+    |families:hasChild| 
+    |families:hasParent| 
+    |families:hasBrother| 
+    |families:hasSon| 
+    |families:hasFather| )
+  
+  (SetOfIndividuals () 
+    |families:Jack| 
+    |otherOnt:MaryBrown| 
+    |families:Bill| 
+    |families:Susan| 
+    |families:Mary| 
+    |families:Father| 
+    |families:Meg| 
+    |families:Jim| 
+    |otherOnt:JohnBrown| 
+    |families:John| 
+    |families:James| )
+  
+  (SetOfClasses () 
+    |families:Human| 
+    |owl:Thing| 
+    |families:SocialRole| 
+    |families:Dead| 
+    |otherOnt:Grownup| 
+    |families:YoungChild| 
+    |families:MyBirthdayGuests| 
+    |families:Parent| 
+    |families:Adult| 
+    |families:JohnsChildren| 
+    |families:Female| 
+    |families:Father| 
+    |families:NarcisticPerson| 
+    |families:Man| 
+    |families:Orphan| 
+    |families:ChildlessPerson| 
+    |families:Woman| 
+    |families:Person| 
+    |families:Grandfather| 
+    |families:Mother| 
+    |families:Teenager| 
+    |families:HappyPerson| )
+  
+  (SetOfAnnotationProperties () 
+    |rdfs:comment| )
+  
+  (SetOfDatatypes () 
+    (owl:Datatype () 
+      |families:personAge| )
+    (owl:Datatype () 
+      |families:minorAge| )
+    (owl:Datatype () 
+      |families:majorAge| )
+    (owl:Datatype () 
+      |families:toddlerAge| )
+    (owl:Datatype () 
+      |xsd:integer| )
+    (owl:Datatype () 
+      |xsd:nonNegativeInteger| ))
+  
+  (SetOfDataProperties () 
+    |otherOnt:age| 
+    |families:hasAge| 
+    |families:hasSSN| )
+  
+  (OK () ))

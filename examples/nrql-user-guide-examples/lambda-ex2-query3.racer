@@ -1,0 +1,15 @@
+(retrieve1 (?car car)
+	   (((lambda (car)
+	       (with-open-output-file ("minilisp-output.txt")
+		 (let ((w
+			(reduce +
+				(flatten
+				 (retrieve1 `(and (,car car) 
+						  (,car ?part has-part)
+						  (?part (a weight)))
+					    `(((lambda (weight) weight) 
+					       (told-value-if-exists 
+						(weight ?part))))))))
+		       (parts (length (retrieve `(?part) `(,car ?part has-part)))))
+		   (format *output-stream* (format nil "Car with name ~A weights ~A kg and has ~A parts.~%" car w parts)))))
+	     ?car)))

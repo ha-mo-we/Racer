@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE RequestMessage [
+<!ENTITY ont "http://www.owllink.org/examples/myOntology#"> ]>
+<RequestMessage xmlns="http://www.owllink.org/owllink#"
+    xml:base="http://www.owllink.org/examples/myOntology#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.owllink.org/owllink# 
+      http://www.owllink.org/owllink-20091116.xsd">
+    <CreateKB kb="http://www.owllink.org/examples/KB_2">
+        <Prefix name="test" fullIRI="http://www.owllink.org/test/ont#"/>
+        <Prefix name="myOnt" fullIRI="http://www.owllink.org/examples/myOntology#"/>
+    </CreateKB>
+    <Tell kb="http://www.owllink.org/examples/KB_2">
+        <owl:SubClassOf>
+            <owl:Class abbreviatedIRI="test:A"/>
+            <owl:Class abbreviatedIRI="myOnt:A"/>
+        </owl:SubClassOf>
+    </Tell>
+    <Set kb="http://www.owllink.org/examples/KB_2" key="abbreviatesIRIs">
+        <Literal>false</Literal>
+    </Set>
+    <GetSubClasses kb="http://www.owllink.org/examples/KB_2" direct="false">
+        <owl:Class IRI="&ont;A"/>
+    </GetSubClasses>
+    <GetSubClasses kb="http://www.owllink.org/examples/KB_2" direct="false">
+        <owl:Class abbreviatedIRI="myOnt:A"/>
+    </GetSubClasses>
+    <Set kb="http://www.owllink.org/examples/KB_2" key="abbreviatesIRIs">
+        <Literal>true</Literal>
+    </Set>
+    <GetSubClasses kb="http://www.owllink.org/examples/KB_2" direct="false">
+        <owl:Class IRI="http://www.owllink.org/examples/myOntology#A"/>
+    </GetSubClasses>
+    <GetSubClasses kb="http://www.owllink.org/examples/KB_2" direct="false">
+        <owl:Class IRI="A"/>
+    </GetSubClasses>
+    <GetPrefixes kb="http://www.owllink.org/examples/KB_2"/>
+    <ReleaseKB kb="http://www.owllink.org/examples/KB_2"/>
+</RequestMessage>

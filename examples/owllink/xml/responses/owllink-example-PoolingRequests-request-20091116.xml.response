@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ResponseMessage xmlns="http://www.owllink.org/owllink#"
+                 xmlns:owl="http://www.w3.org/2002/07/owl#">
+  <KB kb="http://www.owllink.org/examples/KB_1"/>
+  <OK/>
+  <SetOfClasses>
+    <owl:Class IRI="http://www.owllink.org/examples/myOntology#E"/>
+    <owl:Class IRI="http://www.owllink.org/examples/myOntology#A"/>
+    <owl:Class IRI="http://www.owllink.org/examples/myOntology#C"/>
+    <owl:Class IRI="http://www.owllink.org/examples/myOntology#D"/>
+    <owl:Class IRI="http://www.owllink.org/examples/myOntology#B"/>
+  </SetOfClasses>
+  <SetOfClasses>
+    <owl:Class IRI="http://www.owllink.org/examples/myOntology#E"/>
+    <owl:Class IRI="http://www.owllink.org/examples/myOntology#D"/>
+  </SetOfClasses>
+  <BooleanResponse result="false"/>
+  <SetOfClassSynsets>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="owl:Nothing"/>
+    </ClassSynset>
+  </SetOfClassSynsets>
+  <KB kb="http://www.owllink.org/examples/KB_2"/>
+  <OK/>
+  <OK/>
+  <OK/>
+  <KBError error="KB http://www.owllink.org/examples/KB_1 not found. Request denied"/>
+</ResponseMessage>

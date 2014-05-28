@@ -1,0 +1,44 @@
+;;;
+;;; First file of SemWeb demo, generates a TripleStore
+;;; Needs to be executed only once
+;;;
+;;; Either load this file via RacerPorter "Load..."
+;;; or open in RacerEditor and evaluate with Ctrl-Shift-h (or Cmd-h on a Mac)
+;;;
+
+(full-reset)
+
+(defpar demodir "c:/examples/semweb/") ; please adjust manually, e.g. "C:/RacerPro/examples/semweb/"
+
+;; (defpar demodir "/home/mi.wessel/racer-support/examples-win/semweb/")
+
+(define file1 (fn)
+ (format nil "~Alubm/university/~A" demodir fn))
+
+(evaluate 
+
+ (cond ((in-unsafe-mode?) 
+
+        (create-triple-store "lubm-ts" :directory demodir :if-exists :supersede)
+
+        (triple-store-read-file (file1 "univ-bench.owl") :init nil :ignore-import t)
+
+        (dotimes (i 15)
+          (format t "~%Reading ~A..." (format nil "university0-~A.owl" i))
+          (triple-store-read-file (file1 (format nil "university0-~A.owl" i))
+                           :init nil :ignore-import t))
+        (index-all-triples)
+
+        (close-triple-store))
+
+       (t
+
+        (display "RacerPro is not running in unsafe mode!
+Cannot continue with demonstration. 
+Please restart RacerPro in unsafe mode
+(use \"RacerPro -- -u\") and retry."))))
+
+
+
+
+

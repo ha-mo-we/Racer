@@ -1,0 +1,62 @@
+
+
+(NamespacePrefix () 
+  NIL 
+  |http://www.owllink.org/owllink#| )
+
+(NamespacePrefix () 
+  owl 
+  |http://www.w3.org/2002/07/owl#| )
+
+(NamespacePrefix () 
+  xsi 
+  |http://www.w3.org/2001/XMLSchema-instance| )
+
+(RequestMessage () 
+  
+  (CreateKB (:kb |http://www.owllink.org/ont/families| ) 
+    (Prefix (:name "families" :fullIRI |http://example.com/owl/families/| ) )
+    (Prefix (:name "otherOnt" :fullIRI |http://example.org/otherOntologies/families/| ) ))
+  
+  (LoadOntologies (:kb |http://www.owllink.org/ont/families| ) 
+    (OntologyIRI (:IRI |http://www.owllink.org/ontologies/primer.owl| ) ))
+  
+  (IsEntailed (:kb |http://www.owllink.org/ont/families| ) 
+    (EquivalentClasses 
+      |families:Human| 
+      |families:Person| ))
+  
+  (IsEntailed (:kb |http://www.owllink.org/ont/families| ) 
+    (DisjointClasses 
+      |families:Woman| 
+      |families:Father| ))
+  
+  (IsEntailed (:kb |http://www.owllink.org/ont/families| ) 
+    (Declaration 
+      (NamedIndividual |families:John|)))
+  
+  (IsEntailed (:kb |http://www.owllink.org/ont/families| ) 
+    (DisjointObjectProperties 
+      |families:hasParent| 
+      |families:hasSpouse| ))
+  
+  (IsEntailed (:kb |http://www.owllink.org/ont/families| ) 
+    (Declaration 
+      (Class |families:Dead|)))
+  
+  (IsEntailed (:kb |http://www.owllink.org/ont/families| ) 
+    (SubObjectPropertyOf 
+      |families:hasWife| 
+      |families:hasSpouse| ))
+  
+  (IsEntailedDirect (:kb |http://www.owllink.org/ont/families| ) 
+    (SubObjectPropertyOf 
+      |families:hasSpouse| 
+      |families:hasWife| ))
+  
+  (IsEntailedDirect (:kb |http://www.owllink.org/ont/families| ) 
+    (ClassAssertion 
+      |families:SocialRole| 
+      |families:Father| ))
+  
+  (ReleaseKB (:kb |http://www.owllink.org/ont/families| ) ))

@@ -1,0 +1,120 @@
+
+
+NamespacePrefix(
+  NIL 
+  <http://www.owllink.org/owllink#> )
+
+NamespacePrefix(
+  "owl" 
+  <http://www.w3.org/2002/07/owl#> )
+
+NamespacePrefix(
+  "xsi" 
+  <http://www.w3.org/2001/XMLSchema-instance> )
+
+RequestMessage(
+  
+  CreateKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    Prefix(
+      Attribute(
+        name 
+        "families" )
+      Attribute(
+        fullIRI 
+        <http://example.com/owl/families/> ))
+    Prefix(
+      Attribute(
+        name 
+        "otherOnt" )
+      Attribute(
+        fullIRI 
+        <http://example.org/otherOntologies/families/> )))
+  
+  LoadOntologies(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    OntologyIRI(
+      Attribute(
+        IRI 
+        <http://www.owllink.org/ontologies/primer.owl> )))
+  
+  IsObjectPropertySatisfiable(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:hasDaughter )
+  
+  GetSubObjectProperties(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:hasParent )
+  
+  GetSuperObjectProperties(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:hasWife )
+  
+  GetEquivalentObjectProperties(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:hasChild )
+  
+  GetDisjointObjectProperties(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:hasParent )
+  
+  GetSubObjectPropertyHierarchy(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    owl:topObjectProperty )
+  
+  IsDataPropertySatisfiable(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:hasAge )
+  
+  GetSubDataProperties(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:hasSSN )
+  
+  GetSuperDataProperties(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:hasSSN )
+  
+  GetEquivalentDataProperties(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:hasAge )
+  
+  GetDisjointDataProperties(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    families:hasAge )
+  
+  GetSubDataPropertyHierarchy(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )
+    owl:topDataProperty )
+  
+  ReleaseKB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/ont/families> )))

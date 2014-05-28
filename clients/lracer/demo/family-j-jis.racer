@@ -1,0 +1,79 @@
+;;; many thanks to KURODA Hisao for providing 
+;;; this japanese version of the family.racer KB
+
+(in-knowledge-base 家族 鈴木家)
+
+(signature :atomic-concepts (ヒト 人間 雌 雄 女 男
+                                   親 母 父
+                                   祖母 伯母 叔父
+                                   姉妹 兄弟)
+           :roles ((子孫を持つ :transitive t)
+                   (子供を持つ :parent 子孫を持つ)
+                   きょうだいを持つ
+                   (姉妹を持つ :parent きょうだいを持つ)
+                   (兄弟を持つ :parent きょうだいを持つ)
+                   (性を持つ :feature t))
+           :individuals (みよ はな たろう ゆき とめ))
+
+(implies *top* (all 子供を持つ 人間))
+(implies (some 子供を持つ *top*) 親)
+
+(implies (some きょうだいを持つ *top*) (or 姉妹 兄弟))
+(implies *top* (all きょうだいを持つ (or 姉妹 兄弟)))
+(implies *top* (all 姉妹を持つ (some 性を持つ 雌)))
+(implies *top* (all 兄弟を持つ (some 性を持つ 雄)))
+
+(implies 人間 (and ヒト (some 性を持つ (or 雌 雄))))
+(disjoint 雌 雄)
+(implies 女 (and 人間 (some 性を持つ 雌)))
+(implies 男 (and 人間 (some 性を持つ 雄)))
+
+(equivalent 親 (and 人間 (some 子供を持つ 人間)))
+(equivalent 母 (and 女 親)) 
+(equivalent 父 (and 男 親))
+
+(equivalent 祖母 
+	    (and 母 
+		 (some 子供を持つ 
+		       (some 子供を持つ 人間))))
+(equivalent 伯母 (and 女 (some きょうだいを持つ 親)))
+(equivalent 叔父 (and 男 (some きょうだいを持つ 親)))
+
+(equivalent 兄弟 (and 男 (some きょうだいを持つ 人間)))
+(equivalent 姉妹 (and 女 (some きょうだいを持つ 人間)))
+
+(instance みよ 母)
+(related みよ はな 子供を持つ)
+(related みよ たろう 子供を持つ)
+
+(instance はな 母)
+(related はな ゆき 子供を持つ)
+(related はな とめ 子供を持つ)
+
+(instance たろう 兄弟)
+(related たろう はな きょうだいを持つ)
+(instance たろう (at-most 1 きょうだいを持つ))
+
+(related ゆき とめ 姉妹を持つ)
+
+(related とめ ゆき 姉妹を持つ)
+#|
+(concept-subsumes? 兄弟 叔父)
+
+(concept-ancestors 母)
+
+(concept-descendants 男)
+
+(all-transitive-roles)
+
+(individual-instance? ゆき 女)
+
+(individual-types とめ)
+
+(individual-fillers みよ 子孫を持つ)
+
+(individual-direct-types とめ)
+
+(concept-instances 姉妹)
+
+|#

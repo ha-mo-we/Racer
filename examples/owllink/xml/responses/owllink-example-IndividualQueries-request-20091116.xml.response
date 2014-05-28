@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ResponseMessage xmlns="http://www.owllink.org/owllink#"
+                 xmlns:owl="http://www.w3.org/2002/07/owl#">
+  <KB kb="http://www.owllink.org/ont/families"/>
+  <OK warning="((http://www.owllink.org/ontologies/primer.owl -->
+  http://www.owllink.org/ont/families))"/>
+  <ClassSynsets>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="families:Father"/>
+    </ClassSynset>
+    <ClassSynset>
+      <owl:Class abbreviatedIRI="families:MyBirthdayGuests"/>
+    </ClassSynset>
+  </ClassSynsets>
+  <Classes>
+    <owl:Class abbreviatedIRI="families:Father"/>
+    <owl:Class abbreviatedIRI="families:Man"/>
+    <owl:Class abbreviatedIRI="families:Human"/>
+    <owl:Class abbreviatedIRI="families:Person"/>
+    <owl:Class abbreviatedIRI="owl:Thing"/>
+    <owl:Class abbreviatedIRI="families:Parent"/>
+    <owl:Class abbreviatedIRI="families:MyBirthdayGuests"/>
+  </Classes>
+  <SetOfIndividualSynsets>
+    <IndividualSynset>
+      <owl:NamedIndividual abbreviatedIRI="families:Mary"/>
+      <owl:NamedIndividual abbreviatedIRI="otherOnt:MaryBrown"/>
+    </IndividualSynset>
+    <IndividualSynset>
+      <owl:NamedIndividual abbreviatedIRI="families:Jack"/>
+    </IndividualSynset>
+    <IndividualSynset>
+      <owl:NamedIndividual abbreviatedIRI="families:Bill"/>
+    </IndividualSynset>
+  </SetOfIndividualSynsets>
+  <SetOfIndividuals>
+    <owl:NamedIndividual abbreviatedIRI="families:Mary"/>
+    <owl:NamedIndividual abbreviatedIRI="otherOnt:MaryBrown"/>
+    <owl:NamedIndividual abbreviatedIRI="families:Jack"/>
+    <owl:NamedIndividual abbreviatedIRI="families:Bill"/>
+  </SetOfIndividuals>
+  <IndividualSynonyms>
+    <owl:NamedIndividual abbreviatedIRI="families:John"/>
+    <owl:NamedIndividual abbreviatedIRI="otherOnt:JohnBrown"/>
+  </IndividualSynonyms>
+  <SetOfObjectPropertySynsets>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="owl:topObjectProperty"/>
+    </ObjectPropertySynset>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="families:hasSpouse"/>
+    </ObjectPropertySynset>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="families:hasRelative"/>
+    </ObjectPropertySynset>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="families:hasWife"/>
+    </ObjectPropertySynset>
+  </SetOfObjectPropertySynsets>
+  <SetOfObjectPropertySynsets>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="owl:topObjectProperty"/>
+    </ObjectPropertySynset>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="families:hasParent"/>
+    </ObjectPropertySynset>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="families:hasFather"/>
+    </ObjectPropertySynset>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="families:hasWife"/>
+    </ObjectPropertySynset>
+  </SetOfObjectPropertySynsets>
+  <SetOfObjectPropertySynsets>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="owl:topObjectProperty"/>
+    </ObjectPropertySynset>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="families:hasWife"/>
+    </ObjectPropertySynset>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="families:hasSpouse"/>
+    </ObjectPropertySynset>
+  </SetOfObjectPropertySynsets>
+  <SetOfObjectPropertySynsets>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="owl:topObjectProperty"/>
+    </ObjectPropertySynset>
+  </SetOfObjectPropertySynsets>
+  <SetOfObjectPropertySynsets>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="owl:topObjectProperty"/>
+    </ObjectPropertySynset>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="families:hasWife"/>
+    </ObjectPropertySynset>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="families:hasRelative"/>
+    </ObjectPropertySynset>
+  </SetOfObjectPropertySynsets>
+  <SetOfObjectPropertySynsets>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="owl:topObjectProperty"/>
+    </ObjectPropertySynset>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="families:hasWife"/>
+    </ObjectPropertySynset>
+  </SetOfObjectPropertySynsets>
+  <SetOfDataPropertySynsets>
+    <DataPropertySynset>
+      <owl:DataProperty abbreviatedIRI="owl:topDataProperty"/>
+    </DataPropertySynset>
+    <DataPropertySynset>
+      <owl:DataProperty abbreviatedIRI="families:hasAge"/>
+      <owl:DataProperty abbreviatedIRI="otherOnt:age"/>
+    </DataPropertySynset>
+  </SetOfDataPropertySynsets>
+  <SetOfDataPropertySynsets>
+    <DataPropertySynset>
+      <owl:DataProperty abbreviatedIRI="owl:topDataProperty"/>
+    </DataPropertySynset>
+    <DataPropertySynset>
+      <owl:DataProperty abbreviatedIRI="families:hasAge"/>
+      <owl:DataProperty abbreviatedIRI="otherOnt:age"/>
+    </DataPropertySynset>
+  </SetOfDataPropertySynsets>
+  <SetOfDataPropertySynsets>
+    <DataPropertySynset>
+      <owl:DataProperty abbreviatedIRI="owl:topDataProperty"/>
+    </DataPropertySynset>
+    <DataPropertySynset>
+      <owl:DataProperty abbreviatedIRI="families:hasAge"/>
+      <owl:DataProperty abbreviatedIRI="otherOnt:age"/>
+    </DataPropertySynset>
+  </SetOfDataPropertySynsets>
+  <SemanticError error="Cannot deal with negated DataProperties yet. To be implemented"/>
+  <SetOfDataPropertySynsets>
+    <DataPropertySynset>
+      <owl:DataProperty abbreviatedIRI="families:hasAge"/>
+      <owl:DataProperty abbreviatedIRI="otherOnt:age"/>
+    </DataPropertySynset>
+    <DataPropertySynset>
+      <owl:DataProperty abbreviatedIRI="owl:topDataProperty"/>
+    </DataPropertySynset>
+  </SetOfDataPropertySynsets>
+  <SemanticError error="Cannot deal with negated DataProperties yet. To be implemented"/>
+  <SetOfIndividualSynsets>
+    <IndividualSynset>
+      <owl:NamedIndividual abbreviatedIRI="families:Mary"/>
+      <owl:NamedIndividual abbreviatedIRI="otherOnt:MaryBrown"/>
+    </IndividualSynset>
+  </SetOfIndividualSynsets>
+  <SetOfIndividualSynsets/>
+  <SetOfIndividualSynsets>
+    <IndividualSynset>
+      <owl:NamedIndividual abbreviatedIRI="families:John"/>
+      <owl:NamedIndividual abbreviatedIRI="otherOnt:JohnBrown"/>
+    </IndividualSynset>
+  </SetOfIndividualSynsets>
+  <SetOfIndividualSynsets/>
+  <SetOfIndividualSynsets>
+    <IndividualSynset>
+      <owl:NamedIndividual abbreviatedIRI="families:Bill"/>
+    </IndividualSynset>
+    <IndividualSynset>
+      <owl:NamedIndividual abbreviatedIRI="families:Mary"/>
+      <owl:NamedIndividual abbreviatedIRI="otherOnt:MaryBrown"/>
+    </IndividualSynset>
+  </SetOfIndividualSynsets>
+  <SetOfIndividuals>
+    <owl:NamedIndividual abbreviatedIRI="families:John"/>
+    <owl:NamedIndividual abbreviatedIRI="otherOnt:JohnBrown"/>
+    <owl:NamedIndividual abbreviatedIRI="families:Mary"/>
+    <owl:NamedIndividual abbreviatedIRI="otherOnt:MaryBrown"/>
+    <owl:NamedIndividual abbreviatedIRI="families:Jack"/>
+  </SetOfIndividuals>
+  <SetOfIndividuals/>
+  <SetOfIndividuals/>
+  <SetOfIndividuals>
+    <owl:NamedIndividual abbreviatedIRI="families:John"/>
+    <owl:NamedIndividual abbreviatedIRI="otherOnt:JohnBrown"/>
+  </SetOfIndividuals>
+  <SetOfIndividuals/>
+  <SetOfIndividuals>
+    <owl:NamedIndividual abbreviatedIRI="families:Bill"/>
+    <owl:NamedIndividual abbreviatedIRI="families:Mary"/>
+    <owl:NamedIndividual abbreviatedIRI="otherOnt:MaryBrown"/>
+  </SetOfIndividuals>
+  <SetOfLiterals>
+    <owl:Literal datatypeIRI="xsd:integer">51</owl:Literal>
+  </SetOfLiterals>
+  <SetOfIndividualSynsets>
+    <IndividualSynset>
+      <owl:NamedIndividual abbreviatedIRI="families:John"/>
+      <owl:NamedIndividual abbreviatedIRI="otherOnt:JohnBrown"/>
+    </IndividualSynset>
+  </SetOfIndividualSynsets>
+  <SemanticError error="Cannot deal with negated DataProperties yet. To be implemented"/>
+  <SetOfIndividuals>
+    <owl:NamedIndividual abbreviatedIRI="families:John"/>
+    <owl:NamedIndividual abbreviatedIRI="otherOnt:JohnBrown"/>
+  </SetOfIndividuals>
+  <SemanticError error="Cannot deal with negated DataProperties yet. To be implemented"/>
+  <OK/>
+</ResponseMessage>

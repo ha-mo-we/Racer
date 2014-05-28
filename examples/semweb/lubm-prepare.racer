@@ -1,0 +1,37 @@
+;;;
+;;; Second file of SemWeb demo, uses a TripleStore
+;;; Needs to be executed before the query file (lubm-queries.racer)
+;;;
+;;; Either load this file via RacerPorter "Load..."
+;;; or open in RacerEditor and evaluate with Ctrl-Shift-h (or Cmd-h on a Mac)
+;;;
+
+(full-reset)
+
+;; (defpar demodir "/home/mi.wessel/racer-support/examples-win/semweb/")
+
+(defpar demodir "c:/examples/semweb/") ; please adjust manually, e.g. "C:/RacerPro/examples/semweb/"
+
+(define file (fn)
+ (format nil "~A~A" demodir fn))
+
+(evaluate 
+ (use-triple-store "lubm-ts"  ; load OWL specifications from triple store into reasoner
+                   :directory demodir 
+                   :ignore-import t))
+
+(time (prepare-abox)) ; syntactic preprocessing
+ 
+(time (abox-consistent?)) ; consistency checking
+
+(time (prepare-racer-engine)) ; set up index structures for query answering
+
+(declare-current-knowledge-bases-as-persistent) ; instruct the garbage collector to treat KBs as persistent data
+
+(evaluate (open-triple-store "lubm-ts" :directory demodir))
+
+;;; Open the file lubm-queries for query examples
+
+
+
+

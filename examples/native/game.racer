@@ -1,0 +1,1006 @@
+(in-tbox game)
+
+(signature
+ :atomic-concepts (player alive dead easy-to-kill not-so-easy-to-kill
+		   object takeable edible drinkable wooden full empty
+		   crushed uncrushed readable
+		   generic-container	; room oder container-object
+		   container-object open-close-container
+		   here-object inventory-object accessible visible here
+		   room
+		   exit fore-exit aft-exit port-exit starboard-exit
+		   transport-tube
+		   open-closed open closed locked-unlocked locked unlocked
+		   has-power has-no-power light light-on light-off
+		   colour green-colour silver-colour golden-colour white-colour
+		   yellow-colour brown-colour red-colour black-colour
+		   blue-colour
+		   green-object silver-object golden-object white-object
+		   yellow-object brown-object red-object black-object
+		   blue-object
+		   tiny-sized small-sized medium-sized big-sized huge-sized
+		   ;;; Player
+		   head mouth hand
+		   uniform badge pocket shirt trousers shoe watch translator
+		   id-card credit-card coin galakmidcoin isotopes box
+		   ;;; Scooter
+		   couch couch-leg seat seating
+		   hatch window transparent space space-station docking-port
+		   slot spaceform button scooter
+		   ;;; Toolbox
+		   toolbox glue cap tube bottle bracelet saw hacksaw grip blade nutrientpaste
+		   syringe needle plunger hydraulicram
+		   ;;; Hall-j
+		   bulkhead
+		   ;;; Hall-l
+		   barrier
+		   ;;; Hall-p
+		   sign
+		   ;;; SanFac
+		   stall sink trashcan rubbish toiletroll
+		   ;;; Waiting Room
+		   door magazine book hosing drill implement
+		   ;;; Laboratory
+		   device devicemonitor maze headset 
+		   ;;; Sick Bay
+		   cage bar fussbudget
+		   ;;; Directors Office
+		   cabinet key desk outlet manual computer screen cord plug keyboard paper
+		   ;;; Lounge
+		   planet table chair centimidcoin dispenser carpet display tray colamonitor 
+		   cable coinstore zorkmidcoin refundbutton
+		   can standardcolacan dietcolacan
+		   ;;; Teleport Room
+		   teleporter transporterpad controlpanel
+		   ;;; Map Room
+		   map
+		   ;;; Station Control
+		   monitor
+		   ;;; Briefing Room
+		   photo robot tag
+		   ;;; Store
+		   adapter
+		   fruit crate 
+		   board
+		   ;;; Computer Room
+		   kid terminal
+                  )
+
+ :roles ((has-location :feature t :inverse contains)
+	 (has-exit)
+	 (has-counterpart)
+	 (leads-to :feature t)
+	 (shows)
+	 (has-colour)
+	 (wears)
+	 (has-detail)
+	 (fits-in)))
+
+;;; domain & range restrictions for roles
+
+(implies *top* (all has-location generic-container))
+(implies (some has-exit *top*) room)
+(implies *top* (all leads-to room))
+(implies *top* (all has-exit exit))
+(implies *top* (all has-counterpart exit))
+
+(implies (and generic-container (exactly 0 contains)) (and empty (not full)))
+(implies (and generic-container (at-least 1 contains)) (and full (not empty)))
+(disjoint empty full)
+
+;;; define "here-object" and "inventory-object"
+(equivalent here (and *top* (some contains player)))
+(equivalent here-object (and object (all has-location here)))
+(equivalent inventory-object (and object (all has-location player)))
+
+;;; define "visible" and "accessible"
+(equivalent visible (or here (all has-location here) (all has-location (and visible open))
+			(some contains (and open (some contains player)))
+			(all has-location (some contains (and open (some contains player))))))
+(equivalent accessible (or here (all has-location here) (all has-location (and accessible open))))
+
+;;; concepts
+
+(equivalent generic-container (or player room container-object))
+
+(disjoint room object)
+(disjoint room player)
+(disjoint object player)
+(disjoint exit player)
+
+(implies takeable object)
+(implies edible object)
+(implies drinkable object)
+(implies container-object object)
+(implies open-close-container (and container-object open-closed locked-unlocked))
+
+(implies fore-exit exit)
+(implies aft-exit exit)
+(implies port-exit exit)
+(implies starboard-exit exit)
+(implies transport-tube exit)
+;(implies exit (and open-closed locked-unlocked))
+(implies open open-closed)
+(implies closed open-closed)
+(implies locked locked-unlocked)
+(implies unlocked locked-unlocked)
+(implies locked closed)
+(disjoint open closed)
+(disjoint locked unlocked)
+(disjoint has-power has-no-power)
+(implies light object)
+(implies light-on light)
+(implies light-off light)
+(disjoint light-on light-off)
+(implies full (not crushed))
+(implies crushed empty)
+(disjoint crushed uncrushed)
+
+(equivalent green-object (and object (some has-colour green-colour)))
+(equivalent silver-object (and object (some has-colour silver-colour)))
+(equivalent golden-object (and object (some has-colour golden-colour)))
+(equivalent white-object (and object (some has-colour white-colour)))
+(equivalent yellow-object (and object (some has-colour yellow-colour)))
+(equivalent brown-object (and object (some has-colour brown-colour)))
+(equivalent red-object (and object (some has-colour red-colour)))
+(equivalent black-object (and object (some has-colour black-colour)))
+(equivalent blue-object (and object (some has-colour blue-colour)))
+
+;;; Player
+
+(implies player (and open big-sized))
+(implies head object)
+(implies mouth object)
+(implies hand object)
+(implies uniform takeable)
+(implies shirt object)
+(implies trousers object)
+(implies shoe object)
+(implies badge (and object small-sized))
+(implies watch (and takeable small-sized))
+(implies translator (and takeable tiny-sized))
+(implies id-card (and takeable small-sized))
+(implies credit-card (and takeable small-sized))
+(implies coin (and takeable tiny-sized))
+(implies galakmidcoin coin)
+(implies box open-close-container)
+(implies isotopes (and takeable edible medium-sized))
+
+;;; Scooter
+
+(implies seating (and container-object open))
+(implies couch (and seating big-sized))
+(implies couch-leg (and object small-sized))
+(implies seat (and object big-sized))
+(implies hatch (and exit big-sized))
+(implies window (and transparent medium-sized))
+(implies space (and room huge-sized))
+(implies space-station (and object huge-sized))
+(implies slot (and object small-sized))
+(implies spaceform (and takeable small-sized))
+(implies button (and object small-sized))
+(implies scooter (and object huge-sized))
+
+;;; Toolbox
+
+(implies toolbox (and takeable medium-sized open-close-container))
+(implies bracelet (and takeable small-sized))
+(implies glue (and takeable small-sized))
+(implies tube (and takeable small-sized))
+(implies cap (and takeable small-sized))
+(implies bottle (and takeable transparent))
+(implies nutrientpaste (and takeable edible small-sized))
+(implies saw takeable)
+(implies hacksaw (and saw medium-sized))
+(implies syringe (and takeable small-sized))
+(implies needle (and takeable tiny-sized))
+(implies plunger (and takeable small-sized))
+(implies hydraulicram (and takeable medium-sized))
+
+;;; Hall-j
+(implies bulkhead (and exit open-closed locked-unlocked))
+
+;;; Hall-l
+(implies barrier (and object transparent big-sized))
+
+;;; Hall-p
+(implies sign (and object readable medium-sized))
+
+;;; SanFac
+(implies stall (and room big-sized))
+(implies sink (and container-object medium-sized))
+(implies trashcan (and container-object takeable small-sized))
+(implies rubbish (and object small-sized))
+(implies toiletroll (and object takeable small-sized))
+
+;;; Waiting Room
+(implies door (and open-closed exit))
+(implies magazine (and takeable readable small-sized))
+(implies book (and takeable readable small-sized))
+(implies drill (and takeable small-sized))
+(implies implement (and takeable small-sized))
+(implies hosing (and takeable small-sized))
+
+;;; Laboratory
+(implies device (and object big-sized))
+(implies devicemonitor (and object medium-sized))
+(implies maze (and takeable small-sized))
+(implies headset (and takeable small-sized))
+
+;;; Sick Bay
+
+(implies cage (and container-object big-sized))
+(implies bar (and takeable medium-sized))
+(implies fussbudget (and not-so-easy-to-kill big-sized))
+
+;;; Directors Office
+
+(implies cabinet (and open-close-container big-sized))
+(implies key (and takeable small-sized))
+(implies desk (and container-object open big-sized))
+(implies outlet (and object small-sized))
+(implies manual (and takeable medium-sized))
+(implies computer (and takeable medium-sized))
+(implies screen (and readable object))  ; AND INSERTED ---RM
+(implies cord object)
+(implies plug object)
+(implies keyboard object)
+(implies paper (and takeable readable small-sized))
+
+;;; Lounge
+
+(implies planet (and object huge-sized))
+(implies table (and container-object big-sized))
+(implies chair (and seating medium-sized))
+(implies centimidcoin coin)
+(implies dispenser (and container-object locked big-sized))
+(implies carpet (and object big-sized))
+(implies display (and object small-sized))
+(implies tray (and container-object open))
+(implies colamonitor (and object small-sized))
+(implies cable object)
+(implies coinstore (and container-object open))
+(implies zorkmidcoin coin)
+(implies refundbutton button)
+(implies can (and takeable drinkable small-sized (or crushed uncrushed)))
+(implies standardcolacan can)
+(implies dietcolacan can)
+
+;;; Teleport Room
+
+(implies teleporter (and object huge-sized))
+(implies transporterpad (and object big-sized))
+(implies controlpanel (and object medium-sized))
+
+;;; Map Room
+
+(implies map (and object medium-sized))
+
+;;; Control Station
+
+(implies monitor (and object medium-sized))
+
+;;; Briefing Room
+
+(implies photo object)
+(implies robot (and object big-sized))
+
+
+(implies tag (and object small-sized))
+
+;;; Store
+
+(implies adapter (and takeable small-sized))
+(implies fruit (and edible takeable small-sized))
+(implies crate (and wooden takeable medium-sized))
+(implies board (and wooden takeable medium-sized))
+
+;;; Computer Room
+
+(implies kid (and not-so-easy-to-kill big-sized))
+(implies terminal (and object medium-sized))
+
+
+
+
+(in-abox game-initial game)
+
+;;; define colour objects
+(instance green green-colour)
+(instance silver silver-colour)
+(instance golden golden-colour)
+(instance white white-colour)
+(instance yellow yellow-colour)
+(instance brown brown-colour)
+(instance red red-colour)
+(instance black black-colour)
+(instance blue blue-colour)
+
+(instance myself (and player alive not-so-easy-to-kill))
+(related myself couch1 has-location)
+(instance mouth1 mouth)
+(instance head1 head)
+(instance hand1 hand)
+(instance hand2 hand)
+(related head1 mouth1 has-detail)
+(related myself head1 has-detail)
+(related myself hand1 has-detail)
+(related myself hand2 has-detail)
+(instance uniform1 uniform)
+(instance badge1 badge)
+(instance badge2 badge)
+(instance shirt1 shirt)
+(instance trousers1 trousers)
+(instance shoe1 shoe)
+(instance shoe2 shoe)
+(related uniform1 badge1 has-detail)
+(related uniform1 badge2 has-detail)
+(related uniform1 shirt1 has-detail)
+(related uniform1 trousers1 has-detail)
+(related uniform1 shoe1 has-detail)
+(related uniform1 shoe2 has-detail)
+(instance watch1 watch)
+(instance translator1 translator)
+(related myself uniform1 wears)
+(related myself watch1 wears)
+(related myself translator1 wears)
+(instance id-card1 id-card)
+(related id-card1 white has-colour)
+(related id-card1 myself has-location)
+(instance credit-card1 credit-card)
+(related credit-card1 blue has-colour)
+(related credit-card1 myself has-location)
+(instance coin1 galakmidcoin)
+(related coin1 golden has-colour)
+(related coin1 myself has-location)
+(instance isotopes-box1 (and box closed))
+(related isotopes-box1 silver has-colour)
+(related isotopes-box1 yellow has-colour)
+(related isotopes-box1 black has-colour)
+(related isotopes-box1 myself has-location)
+(instance isotopes1 isotopes)
+(related isotopes1 isotopes-box1 has-location)
+
+;;; Scooter
+
+(instance scooter-bridge room)
+
+(instance space1 space)
+(instance station1 space-station)
+(related station1 space1 has-location)
+(related station1 silver has-colour)
+(related window1 space1 shows)
+(related window1 station1 shows)
+
+(instance port1 docking-port)
+(related station1 port1 has-detail)
+
+(instance couch1 couch)
+(related couch1 brown has-colour)
+(related couch1 black has-colour)
+(related couch1 scooter-bridge has-location)
+(instance couchleg1 couch-leg)
+(related couch1 couchleg1 has-detail)
+(instance couchleg2 couch-leg)
+(related couch1 couchleg2 has-detail)
+(instance couchleg3 couch-leg)
+(related couch1 couchleg3 has-detail)
+(instance couchleg4 couch-leg)
+(related couch1 couchleg4 has-detail)
+
+(instance slot1 slot)
+(related slot1 couch1 has-location)
+(instance spaceform1 spaceform)
+(instance button0 button)
+(related button0 couch1 has-location)
+(related button0 red has-colour)
+
+(instance hatch1 hatch)
+(instance window1 window)
+(related hatch1 window1 has-detail)
+(related hatch1 silver has-colour)
+(related hatch1 scooter-bridge has-location)
+
+(instance hatch1 (and locked fore-exit))
+(related scooter-bridge hatch1 has-exit)
+(related hatch1 space1 leads-to)
+
+(instance scooter1 scooter)
+(related scooter1 space1 has-location)
+(related scooter1 silver has-colour)
+
+;;; Toolbox
+
+(instance toolbox1 toolbox)
+(related toolbox1 scooter-bridge has-location)
+(related toolbox1 silver has-colour)
+(instance bracelet1 bracelet)
+(related bracelet1 toolbox1 has-location)
+(related bracelet1 golden has-colour)
+(instance glue1 glue)
+(related glue1 toolbox1 has-location)
+(related glue1 yellow has-colour)
+(related glue1 glue1-cap has-detail)
+(related glue1 glue1-bottle has-detail)
+(instance glue1-cap cap)
+(related glue1-cap black has-colour)
+(instance glue1-bottle bottle)
+(instance nutrientpaste1 (and nutrientpaste full))
+(related nutrientpaste1 toolbox1 has-location)
+(related nutrientpaste1 green has-colour)
+(related nutrientpaste1 nutrientpaste1-cap has-detail)
+(related nutrientpaste1 nutrientpaste1-tube has-detail)
+(instance nutrientpaste1-cap cap)
+(related nutrientpaste1-cap black has-colour)
+(instance nutrientpaste1-tube tube)
+(related nutrientpaste1-tube green has-colour)
+(instance hacksaw1 hacksaw)
+(related hacksaw1 toolbox1 has-location)
+(related hacksaw1 red has-colour)
+(related hacksaw1 silver has-colour)
+(related hacksaw1 hacksaw1-grip has-detail)
+(related hacksaw1 hacksaw1-blade has-detail)
+(instance hacksaw1-grip grip)
+(related hacksaw1-grip red has-colour)
+(instance hacksaw1-blade blade)
+(related hacksaw1-blade silver has-colour)
+(instance hydraulicram1 hydraulicram)
+(related hydraulicram1 habitation-bulkhead fits-in)
+(related hydraulicram1 computerroom-bulkhead fits-in)
+
+;;; Docking-Port
+
+(instance docking-port room)
+(related docking-port docking-port-tube1 has-exit)
+(instance docking-port-tube1 transport-tube)
+(related docking-port-tube1 hall-m leads-to)
+(related docking-port-tube1 docking-port has-location)
+
+;;; Hall-j
+
+(instance hall-j room)
+(related hall-j hall-j-maproom-exit has-exit)
+(instance hall-j-maproom-exit fore-exit)
+(related hall-j-maproom-exit maproom leads-to)
+(related hall-j-maproom-exit hall-j has-location)
+
+(related hall-j hall-j-teleportroom-exit has-exit)
+(instance hall-j-teleportroom-exit aft-exit)
+(related hall-j-teleportroom-exit teleportroom leads-to)
+(related hall-j-teleportroom-exit hall-j has-location)
+
+(related hall-j habitation-bulkhead has-exit)
+(instance habitation-bulkhead (and port-exit locked))
+(related habitation-bulkhead computerroom leads-to)
+(related habitation-bulkhead hall-j has-location)
+(related habitation-bulkhead computerroom-bulkhead has-counterpart)
+
+(related hall-j hall-j-hall-k-exit has-exit)
+(instance hall-j-hall-k-exit starboard-exit)
+(related hall-j-hall-k-exit hall-k leads-to)
+(related hall-j-hall-k-exit hall-j has-location)
+
+;;; Hall-k
+
+(instance hall-k room)
+(related hall-k hall-k-briefingroom-exit has-exit)
+(instance hall-k-briefingroom-exit fore-exit)
+(related hall-k-briefingroom-exit briefingroom leads-to)
+(related hall-k-briefingroom-exit hall-k has-location)
+
+(related hall-k hall-k-stationcontrol-exit has-exit)
+(instance hall-k-stationcontrol-exit aft-exit)
+(related hall-k-stationcontrol-exit stationcontrol leads-to)
+(related hall-k-stationcontrol-exit hall-k has-location)
+
+(related hall-k hall-k-hall-l-exit has-exit)
+(instance hall-k-hall-l-exit starboard-exit)
+(related hall-k-hall-l-exit hall-l leads-to)
+(related hall-k-hall-l-exit hall-k has-location)
+
+(related hall-k hall-k-hall-j-exit has-exit)
+(instance hall-k-hall-j-exit port-exit)
+(related hall-k-hall-j-exit hall-j leads-to)
+(related hall-k-hall-j-exit hall-k has-location)
+
+;;; Hall-l
+
+(instance hall-l room)
+(related hall-l hall-l-hall-k-exit has-exit)
+(instance hall-l-hall-k-exit port-exit)
+(related hall-l-hall-k-exit hall-k leads-to)
+(related hall-l-hall-k-exit hall-l has-location)
+
+(related hall-l hall-l-hall-m-exit has-exit)
+(instance hall-l-hall-m-exit starboard-exit)
+(related hall-l-hall-m-exit hall-m leads-to)
+(related hall-l-hall-m-exit hall-l has-location)
+
+(related hall-l hall-l-office-exit has-exit)
+(instance hall-l-office-exit aft-exit)
+(related hall-l-office-exit office leads-to)
+(related hall-l-office-exit hall-l has-location)
+
+(related hall-l hall-l-store-exit has-exit)
+(instance hall-l-store-exit (and fore-exit barrier locked))
+(related hall-l-store-exit store leads-to)
+(related hall-l-store-exit hall-l has-location)
+(related hall-l-store-exit store-hall-l-exit has-counterpart)
+
+;;; Hall-m
+
+(instance hall-m room)
+(related hall-m hall-m-tube1 has-exit)
+(instance hall-m-tube1 transport-tube)
+(related hall-m-tube1 docking-port leads-to)
+(related hall-m-tube1 hall-m has-location)
+
+(related hall-m hall-m-hall-n-exit has-exit)
+(instance hall-m-hall-n-exit starboard-exit)
+(related hall-m-hall-n-exit hall-n leads-to)
+(related hall-m-hall-n-exit hall-m has-location)
+
+(related hall-m hall-m-hall-l-exit has-exit)
+(instance hall-m-hall-l-exit port-exit)
+(related hall-m-hall-l-exit hall-l leads-to)
+(related hall-m-hall-l-exit hall-m has-location)
+
+;;; Hall-n
+
+(instance hall-n room)
+(related hall-n hall-n-tube1 has-exit)
+(instance hall-n-tube1 transport-tube)
+(related hall-n-tube1 lounge leads-to)
+(related hall-n-tube1 hall-n has-location)
+
+(related hall-n hall-n-sickbay-exit has-exit)
+(instance hall-n-sickbay-exit fore-exit)
+(related hall-n-sickbay-exit sickbay leads-to)
+(related hall-n-sickbay-exit hall-n has-location)
+
+(related hall-n hall-n-hall-m-exit has-exit)
+(instance hall-n-hall-m-exit port-exit)
+(related hall-n-hall-m-exit hall-m leads-to)
+(related hall-n-hall-m-exit hall-n has-location)
+
+(related hall-n hall-n-hall-o-exit has-exit)
+(instance hall-n-hall-o-exit starboard-exit)
+(related hall-n-hall-o-exit hall-o leads-to)
+(related hall-n-hall-o-exit hall-n has-location)
+
+;;; Hall-o
+
+(instance hall-o room)
+(related hall-o hall-o-hall-p-exit has-exit)
+(instance hall-o-hall-p-exit starboard-exit)
+(related hall-o-hall-p-exit hall-p leads-to)
+(related hall-o-hall-p-exit hall-o has-location)
+
+(related hall-o hall-o-hall-n-exit has-exit)
+(instance hall-o-hall-n-exit port-exit)
+(related hall-o-hall-n-exit hall-n leads-to)
+(related hall-o-hall-n-exit hall-o has-location)
+
+(related hall-o hall-o-lab-exit has-exit)
+(instance hall-o-lab-exit fore-exit)
+(related hall-o-lab-exit lab leads-to)
+(related hall-o-lab-exit hall-o has-location)
+
+;;; Hall-p
+
+(instance hall-p room)
+(related hall-p hall-p-hall-o-exit has-exit)
+(instance hall-p-hall-o-exit port-exit)
+(related hall-p-hall-o-exit hall-o leads-to)
+(related hall-p-hall-o-exit hall-p has-location)
+
+(related hall-p engineering-bulkhead has-exit)
+(instance engineering-bulkhead (and starboard-exit locked))
+;;; (related engineering-bulkhead ???? leads-to)
+(related engineering-bulkhead hall-p has-location)
+
+(related hall-p hall-p-sanfac-exit has-exit)
+(instance hall-p-sanfac-exit fore-exit)
+(related hall-p-sanfac-exit sanfac leads-to)
+(related hall-p-sanfac-exit hall-p has-location)
+
+(related hall-p hall-p-waitingroom-exit has-exit)
+(instance hall-p-waitingroom-exit aft-exit)
+(related hall-p-waitingroom-exit waitingroom leads-to)
+(related hall-p-waitingroom-exit hall-p has-location)
+
+(instance sign1 sign)
+(related sign1 white has-colour)
+(related sign1 red has-colour)
+(related engineering-bulkhead sign1 has-detail)
+
+;;; SanFac Room
+
+(instance sanfac room)
+(related sanfac sanfac-hall-p-exit has-exit)
+(instance sanfac-hall-p-exit aft-exit)
+(related sanfac-hall-p-exit hall-p leads-to)
+(related sanfac-hall-p-exit sanfac has-location)
+(instance stall1 stall)
+(related stall1 sanfac has-location)
+(related stall1 white has-colour)
+(instance sink1 sink)
+(related sink1 sanfac has-location)
+(related sink1 yellow has-colour)
+(instance trashcan1 trashcan)
+(related trashcan1 sanfac has-location)
+(related trashcan1 yellow has-colour)
+(instance rubbish1 rubbish)
+(related rubbish1 trashcan1 has-location)
+(related rubbish1 brown has-colour)
+(instance toiletroll1 toiletroll)
+(related toiletroll1 trashcan1 has-location)
+(related toiletroll1 brown has-colour)
+
+;;; Waiting Room
+
+(instance waitingroom room)
+(related waitingroom waitingroom-hall-p-exit has-exit)
+(instance waitingroom-hall-p-exit fore-exit)
+(related waitingroom-hall-p-exit hall-p leads-to)
+(related waitingroom-hall-p-exit waitingroom has-location)
+
+(related waitingroom waitingroom-dentistroom-exit has-exit)
+(instance waitingroom-dentistroom-exit (and port-exit locked))
+(related waitingroom-dentistroom-exit dentistroom leads-to)
+(related waitingroom-dentistroom-exit waitingroom has-location)
+(related waitingroom-dentistroom-exit dentistroom-waitingroom-exit has-counterpart)
+
+(instance table3 table)
+(related table3 waitingroom has-location)
+(related table3 red has-colour)
+(instance magazine1 magazine)
+(instance magazine2 magazine)
+(instance magazine3 magazine)
+(instance book1 book)
+(related magazine1 table3 has-location)
+(related magazine2 table3 has-location)
+(related magazine3 table3 has-location)
+(related book1 table3 has-location)
+
+;;; Dentistroom
+
+(instance dentistroom room)
+(related dentistroom dentistroom-waitingroom-exit has-exit)
+(instance dentistroom-waitingroom-exit (and starboard-exit locked))
+(related dentistroom-waitingroom-exit waitingroom leads-to)
+(related dentistroom-waitingroom-exit dentistroom has-location)
+(related dentistroom-waitingroom-exit waitingroom-dentistroom-exit has-counterpart)
+
+(instance chair3 chair)
+(related chair3  red has-colour)
+(related chair3 dentistroom has-location)
+(instance drill1 drill)
+(related drill1 dentistroom has-location)
+(instance implement1 implement)
+(related implement1 dentistroom has-location)
+(instance hosing1 hosing)
+(related hosing1 dentistroom has-location)
+
+;;; Laboratory
+
+(instance lab room)
+(related lab lab-hall-o-exit has-exit)
+(instance lab-hall-o-exit aft-exit)
+(related lab-hall-o-exit hall-o leads-to)
+(related lab-hall-o-exit lab has-location)
+
+(instance device1 device)
+(related device1 lab has-location)
+(instance devicemonitor1 devicemonitor)
+(related device1 devicemonitor1 has-detail)
+(instance device2 device)
+(related device2 lab has-location)
+(instance devicemonitor2 devicemonitor)
+(related device2 devicemonitor2 has-detail)
+(instance device3 device)
+(related device3 lab has-location)
+(instance devicemonitor3 devicemonitor)
+(related device3 devicemonitor3 has-detail)
+(instance maze1 maze)
+(related maze1 black has-colour)
+(related maze1 lab has-location)
+(instance headset1 headset)
+(related headset1 black has-colour)
+(related maze1 headset1 has-detail)
+
+;;; Lounge
+
+(instance lounge room)
+(related lounge lounge-tube1 has-exit)
+(instance lounge-tube1 transport-tube)
+(related lounge-tube1 hall-n leads-to)
+(related lounge-tube1 lounge has-location)
+
+(instance window2 window)
+(related window2 lounge has-location)
+(instance planet1 planet)
+(related planet1 green has-colour)
+(related planet1 space1 has-location)
+(related window2 planet1 shows)
+(related window2 space1 shows)
+
+(instance carpet1 carpet)
+(related carpet1 lounge has-location)
+(related carpet1 yellow has-colour)
+(instance table1 table)
+(related table1 lounge has-location)
+(related table1 brown has-colour)
+(instance table2 table)
+(related table2 lounge has-location)
+(related table2 brown has-colour)
+(instance chair1 chair)
+(related chair1 lounge has-location)
+(related chair1 brown has-colour)
+(instance chair2 chair)
+(related chair2 lounge has-location)
+(related chair2 brown has-colour)
+(instance coin2 centimidcoin)
+(related coin2 table1 has-location)
+(related coin2 silver has-colour)
+(instance dispenser1 dispenser)
+(related dispenser1 lounge has-location)
+(related dispenser1 red has-colour)
+(related dispenser1 white has-colour)
+(instance display1 display)
+(related dispenser1 display1 has-detail)
+(instance tray1 tray)
+(related dispenser1 tray1 has-detail)
+(instance pre-tray1 tray)
+(instance button1 button)
+(related dispenser1 button1 has-detail)
+(related button1 white has-colour)
+(instance button2 button)
+(related dispenser1 button2 has-detail)
+(related button2 white has-colour)
+(instance button3 button)
+(related dispenser1 button3 has-detail)
+(related button3 white has-colour)
+(instance button4 button)
+(related dispenser1 button4 has-detail)
+(related button4 white has-colour)
+(instance button5 button)
+(related dispenser1 button5 has-detail)
+(related button5 white has-colour)
+(instance button6 button)
+(related dispenser1 button6 has-detail)
+(related button6 white has-colour)
+(instance light1 light-on)
+(related dispenser1 light1 has-detail)
+(instance light2 light-on)
+(related dispenser1 light2 has-detail)
+(instance light3 light-off)
+(related dispenser1 light3 has-detail)
+(instance light4 light-off)
+(related dispenser1 light4 has-detail)
+(instance light5 light-off)
+(related dispenser1 light5 has-detail)
+(instance light6 light-off)
+(related dispenser1 light6 has-detail)
+(instance slot2 slot)
+(related dispenser1 slot2 has-detail)
+(instance colamonitor1 colamonitor)
+(related dispenser1 colamonitor1 has-detail)
+(instance cable1 cable)
+(related colamonitor1 cable1 has-detail)
+(instance coinstore1 coinstore)
+(related dispenser1 coinstore1 has-detail)
+(related coinstore1 silver has-colour)
+(instance zorkmidcoin1 zorkmidcoin)
+(related zorkmidcoin1 dispenser1 has-location)
+(related zorkmidcoin1 golden has-colour)
+(instance refundbutton1 refundbutton)
+(related dispenser1 refundbutton1 has-detail)
+(related refundbutton1 black has-colour)
+(instance standardcolacan1 (and standardcolacan full))
+(related standardcolacan1 red has-colour)
+(related standardcolacan1 dispenser1 has-location)
+(instance dietcolacan1 (and dietcolacan full))
+(related dietcolacan1 white has-colour)
+(related dietcolacan1 dispenser1 has-location)
+
+;;; Sick Bay
+
+(instance sickbay room)
+(related sickbay sickbay-hall-n-exit has-exit)
+(instance sickbay-hall-n-exit aft-exit)
+(related sickbay-hall-n-exit hall-n leads-to)
+(related sickbay-hall-n-exit sickbay has-location)
+(instance syringe1 syringe)
+(instance needle1 needle)
+(instance plunger1 plunger)
+(related syringe1 needle1 has-detail)
+(related syringe1 plunger1 has-detail)
+(related syringe1 sickbay has-location)
+(instance cage1 (and cage locked))
+(instance bar1 bar)
+(instance bar2 bar)
+(related cage1 sickbay has-location)
+(related cage1 silver has-colour)
+(related cage1 bar1 has-detail)
+(related cage1 bar2 has-detail)
+(related bar1 silver has-colour)
+(related bar2 silver has-colour)
+(instance fussbudget1 (and fussbudget alive))
+(related fussbudget1 cage1 has-location)
+
+;;; Station Control
+
+(instance stationcontrol room)
+(related stationcontrol stationcontrol-hall-k-exit has-exit)
+(instance stationcontrol-hall-k-exit fore-exit)
+(related stationcontrol-hall-k-exit hall-k leads-to)
+(related stationcontrol-hall-k-exit stationcontrol has-location)
+(instance monitor1 monitor)
+(related monitor1 stationcontrol has-location)
+
+(instance monitor2 monitor)
+(related monitor2 stationcontrol has-location)
+(instance monitor3 monitor)
+(related monitor3 stationcontrol has-location)
+(instance monitor4 monitor)
+(related monitor4 stationcontrol has-location)
+(instance monitor5 monitor)
+(related monitor5 stationcontrol has-location)
+(instance monitor6 monitor)
+(related monitor6 stationcontrol has-location)
+
+;;; Briefing Room
+
+(instance briefingroom room)
+(related briefingroom briefingroom-hall-k-exit has-exit)
+(instance briefingroom-hall-k-exit aft-exit)
+(related briefingroom-hall-k-exit hall-k leads-to)
+(related briefingroom-hall-k-exit briefingroom has-location)
+
+(instance photo1 photo)
+(related photo1 briefingroom has-location)
+(instance robot1 robot)
+(related photo1 robot1 shows)
+(instance table4 table)
+(related table4 briefingroom has-location)
+(related table4 black has-colour)
+(instance tag1 tag)
+(related tag1 table4 has-location)
+(related tag1 black has-colour)
+(instance tag2 tag)
+(related tag2 table4 has-location)
+(related tag2 black has-colour)
+(instance tag3 tag)
+(related tag3 table4 has-location)
+(related tag3 black has-colour)
+(instance tag4 tag)
+(related tag4 table4 has-location)
+(related tag4 black has-colour)
+(instance chair4 chair)
+(related chair4 briefingroom has-location)
+(related chair4 black has-colour)
+
+;;; Directors Office
+
+(instance directorsoffice room)
+(related directorsoffice directorsoffice-hall-l-exit has-exit)
+(instance directorsoffice-hall-l-exit fore-exit)
+(related directorsoffice-hall-l-exit hall-l leads-to)
+(related directorsoffice-hall-l-exit directorsoffice has-location)
+
+(instance desk1 desk)
+(related desk1 black has-colour)
+(related desk1 directorsoffice has-location)
+(instance cabinet1 (and cabinet closed))
+(related cabinet1 directorsoffice has-location)
+(instance key1 key)
+(related key1 silver has-colour)
+(related key1 cabinet1 has-location)
+(related key1 toolbox1 fits-in)
+(related key1 waitingroom-dentistroom-exit fits-in)
+(related key1 dentistroom-waitingroom-exit fits-in)
+(instance outlet1 outlet)
+(related outlet1 white has-colour)
+(related outlet1 directorsoffice has-location)
+(instance manual1 manual)
+(related manual1 white has-colour)
+(related manual1 cabinet1 has-location)
+(instance computer1 computer)
+(related computer1 black has-colour)
+(related computer1 desk1 has-location)
+(instance screen1 screen)
+(related computer1 screen1 has-detail)
+(instance cord1 cord)
+(related cord1 black has-colour)
+(related computer1 cord1 has-detail)  
+(instance plug1 plug)
+(related plug1 black has-colour)
+(related cord1 plug1 has-detail)
+(instance keyboard1 keyboard)
+(related keyboard1 black has-colour)
+(related computer1 keyboard1 has-detail)
+(instance paper1 paper)
+(related paper1 white has-colour)
+(related paper1 desk1 has-location)
+
+;;; Teleport Room
+
+(instance teleportroom room)
+(related teleportroom teleportroom-hall-j-exit has-exit)
+(instance teleportroom-hall-j-exit fore-exit)
+(related teleportroom-hall-j-exit hall-j leads-to)
+(related teleportroom-hall-j-exit teleportroom has-location)
+
+(instance teleporter1 teleporter)
+(related teleporter1 teleportroom has-location)
+(instance transporterpad1 transporterpad)
+(related teleporter1 transporterpad1 has-detail)
+(instance controlpanel1 controlpanel)
+(related teleporter1 controlpanel1 has-detail)
+(instance button7 button)
+(related button7 red has-colour)
+(related controlpanel1 button7 has-detail)
+
+;;; Map Room
+
+(instance maproom room)
+(related maproom maproom-hall-j-exit has-exit)
+(instance maproom-hall-j-exit aft-exit)
+(related maproom-hall-j-exit hall-j leads-to)
+(related maproom-hall-j-exit maproom has-location)
+
+(instance spacestationmap1 map)
+(instance colonymap1 map)
+(instance elevatormap1 map)
+(related spacestationmap1 maproom has-location)
+(related colonymap1 maproom has-location)
+(related elevatormap1 maproom has-location)
+
+;;; Store
+
+(instance store room)
+(related store store-hall-l-exit has-exit)
+(instance store-hall-l-exit (and aft-exit barrier locked))
+(related store-hall-l-exit hall-l leads-to)
+(related store-hall-l-exit store has-location)
+(related store-hall-l-exit hall-l-store-exit has-counterpart)
+(instance adapter1 adapter)
+(related adapter1 black has-colour)
+(related adapter1 store has-location)
+(instance fruit1 fruit)
+(related fruit1 crate1 has-location)
+(instance fruit2 fruit)
+(related fruit2 crate1 has-location)
+(instance fruit3 fruit)
+(related fruit3 crate1 has-location)
+(instance crate1 crate)
+(related crate1 brown has-colour)
+(related crate1 store has-location)
+(instance board1 board)
+(related board1 brown has-colour)
+(related crate1 board1 has-detail)
+(instance board2 board)
+(related board2 brown has-colour)
+(related crate2 board1 has-detail)
+(instance board3 board)
+(related board3 brown has-colour)
+(related crate3 board1 has-detail)
+
+;;; Computer Room
+
+(instance computerroom room)
+(related computerroom computerroom-bulkhead has-exit)
+(instance computerroom-bulkhead (and starboard-exit locked))
+(related computerroom-bulkhead hall-j leads-to)
+(related computerroom-bulkhead computerroom has-location)
+(related computerroom-bulkhead habitation-bulkhead has-counterpart)
+
+(instance kid1 (and kid alive))
+(related kid1 computerroom has-location)
+(instance kid2 (and kid alive))
+(related kid2 computerroom has-location)
+(instance terminal1 terminal)
+(related terminal1 computerroom has-location)
+
+(ensure-subsumption-based-query-answering)

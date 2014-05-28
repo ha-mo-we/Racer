@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ResponseMessage xmlns="http://www.owllink.org/owllink#"
+                 xmlns:owl="http://www.w3.org/2002/07/owl#">
+  <KB kb="http://www.owllink.org/ont/families"/>
+  <OK warning="((http://www.owllink.org/ontologies/primer.owl -->
+  http://www.owllink.org/ont/families))"/>
+  <SetOfObjectProperties>
+    <owl:ObjectProperty abbreviatedIRI="families:parentOf"/>
+    <owl:ObjectProperty abbreviatedIRI="families:hasHusband"/>
+    <owl:ObjectProperty abbreviatedIRI="families:hasDaughter"/>
+    <owl:ObjectProperty abbreviatedIRI="families:hasAncestor"/>
+    <owl:ObjectProperty abbreviatedIRI="families:hasRelative"/>
+    <owl:ObjectProperty abbreviatedIRI="families:hasGrandparent"/>
+    <owl:ObjectProperty abbreviatedIRI="families:hasUncle"/>
+    <owl:ObjectProperty abbreviatedIRI="families:hasSpouse"/>
+    <owl:ObjectProperty abbreviatedIRI="families:loves"/>
+    <owl:ObjectProperty abbreviatedIRI="families:hasFather"/>
+    <owl:ObjectProperty abbreviatedIRI="families:hasBrother"/>
+    <owl:ObjectProperty abbreviatedIRI="families:hasParent"/>
+    <owl:ObjectProperty abbreviatedIRI="families:hasWife"/>
+    <owl:ObjectProperty abbreviatedIRI="families:hasSon"/>
+    <owl:ObjectProperty abbreviatedIRI="families:hasChild"/>
+    <owl:ObjectProperty abbreviatedIRI="otherOnt:child"/>
+  </SetOfObjectProperties>
+  <SetOfIndividuals>
+    <owl:NamedIndividual abbreviatedIRI="families:Bill"/>
+    <owl:NamedIndividual abbreviatedIRI="families:Jim"/>
+    <owl:NamedIndividual abbreviatedIRI="families:Susan"/>
+    <owl:NamedIndividual abbreviatedIRI="families:Jack"/>
+    <owl:NamedIndividual abbreviatedIRI="families:Meg"/>
+    <owl:NamedIndividual abbreviatedIRI="families:Mary"/>
+    <owl:NamedIndividual abbreviatedIRI="families:Father"/>
+    <owl:NamedIndividual abbreviatedIRI="families:James"/>
+    <owl:NamedIndividual abbreviatedIRI="families:John"/>
+    <owl:NamedIndividual abbreviatedIRI="otherOnt:JohnBrown"/>
+    <owl:NamedIndividual abbreviatedIRI="otherOnt:MaryBrown"/>
+  </SetOfIndividuals>
+  <SetOfClasses>
+    <owl:Class abbreviatedIRI="families:Dead"/>
+    <owl:Class abbreviatedIRI="owl:Thing"/>
+    <owl:Class abbreviatedIRI="families:SocialRole"/>
+    <owl:Class abbreviatedIRI="families:Human"/>
+    <owl:Class abbreviatedIRI="families:Grandfather"/>
+    <owl:Class abbreviatedIRI="families:Adult"/>
+    <owl:Class abbreviatedIRI="families:JohnsChildren"/>
+    <owl:Class abbreviatedIRI="families:Teenager"/>
+    <owl:Class abbreviatedIRI="families:Orphan"/>
+    <owl:Class abbreviatedIRI="families:ChildlessPerson"/>
+    <owl:Class abbreviatedIRI="families:Mother"/>
+    <owl:Class abbreviatedIRI="families:NarcisticPerson"/>
+    <owl:Class abbreviatedIRI="families:Female"/>
+    <owl:Class abbreviatedIRI="families:MyBirthdayGuests"/>
+    <owl:Class abbreviatedIRI="families:Parent"/>
+    <owl:Class abbreviatedIRI="families:HappyPerson"/>
+    <owl:Class abbreviatedIRI="families:YoungChild"/>
+    <owl:Class abbreviatedIRI="families:Woman"/>
+    <owl:Class abbreviatedIRI="families:Man"/>
+    <owl:Class abbreviatedIRI="families:Father"/>
+    <owl:Class abbreviatedIRI="families:Person"/>
+    <owl:Class abbreviatedIRI="otherOnt:Grownup"/>
+  </SetOfClasses>
+  <SetOfAnnotationProperties>
+    <owl:AnnotationProperty abbreviatedIRI="rdfs:comment"/>
+  </SetOfAnnotationProperties>
+  <SetOfDatatypes>
+    <owl:Datatype abbreviatedIRI="families:majorAge"/>
+    <owl:Datatype abbreviatedIRI="xsd:integer"/>
+    <owl:Datatype abbreviatedIRI="families:personAge"/>
+    <owl:Datatype abbreviatedIRI="families:toddlerAge"/>
+    <owl:Datatype abbreviatedIRI="families:minorAge"/>
+    <owl:Datatype abbreviatedIRI="xsd:nonNegativeInteger"/>
+  </SetOfDatatypes>
+  <SetOfDataProperties>
+    <owl:DataProperty abbreviatedIRI="families:hasAge"/>
+    <owl:DataProperty abbreviatedIRI="families:hasSSN"/>
+    <owl:DataProperty abbreviatedIRI="otherOnt:age"/>
+  </SetOfDataProperties>
+  <OK/>
+</ResponseMessage>

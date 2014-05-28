@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RequestMessage xmlns="http://www.owllink.org/owllink#"
+    xml:base="http://www.owllink.org/examples/myOntology#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.owllink.org/owllink# 
+      http://www.owllink.org/owllink-20091116.xsd">
+    <CreateKB kb="http://www.owllink.org/examples/KB_1"/>
+    <CreateKB kb="http://www.owllink.org/examples/KB_2"/>
+    <Tell kb="http://www.owllink.org/examples/KB_2">
+        <owl:SubClassOf>
+            <owl:Class IRI="A"/>
+            <owl:Class abbreviatedIRI="owl:Thing"/>
+        </owl:SubClassOf>
+    </Tell>
+    <CreateKB kb="http://www.owllink.org/examples/KB_3"/>
+    <Tell kb="http://www.owllink.org/examples/KB_3">
+        <owl:SubClassOf>
+            <owl:Class IRI="A"/>
+            <owl:Class abbreviatedIRI="owl:Thing"/>
+        </owl:SubClassOf>
+        <owl:SubClassOf>
+            <owl:Class IRI="B"/>
+            <owl:Class IRI="A"/>
+        </owl:SubClassOf>
+        <owl:SubClassOf>
+            <owl:Class IRI="D"/>
+            <owl:Class IRI="A"/>
+        </owl:SubClassOf>
+    </Tell>
+    <CreateKB kb="http://www.owllink.org/examples/KB_4"/>
+    <Tell kb="http://www.owllink.org/examples/KB_4">
+        <owl:EquivalentClasses>
+            <owl:Class IRI="A"/>
+            <owl:Class abbreviatedIRI="owl:Thing"/>
+        </owl:EquivalentClasses>
+        <owl:EquivalentClasses>
+            <owl:Class IRI="C"/>
+            <owl:Class abbreviatedIRI="owl:Nothing"/>
+        </owl:EquivalentClasses>
+        <owl:SubClassOf>
+            <owl:Class IRI="B"/>
+            <owl:Class abbreviatedIRI="owl:Thing"/>
+        </owl:SubClassOf>
+    </Tell>
+    <GetSubClassHierarchy kb="http://www.owllink.org/examples/KB_1"/>
+    <GetSubClassHierarchy kb="http://www.owllink.org/examples/KB_2"/>
+    <GetSubClassHierarchy kb="http://www.owllink.org/examples/KB_3"/>
+    <GetSubClassHierarchy kb="http://www.owllink.org/examples/KB_4"/>
+    <ReleaseKB kb="http://www.owllink.org/examples/KB_1"/>
+    <ReleaseKB kb="http://www.owllink.org/examples/KB_2"/>
+    <ReleaseKB kb="http://www.owllink.org/examples/KB_3"/>
+    <ReleaseKB kb="http://www.owllink.org/examples/KB_4"/>
+</RequestMessage>

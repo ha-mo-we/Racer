@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ResponseMessage xmlns="http://www.owllink.org/owllink#"
+                 xmlns:owl="http://www.w3.org/2002/07/owl#">
+  <KB kb="http://www.owllink.org/ont/families"/>
+  <OK warning="((http://www.owllink.org/ontologies/primer.owl -->
+  http://www.owllink.org/ont/families))"/>
+  <BooleanResponse result="true"/>
+  <Error error="OWLlink request IsKBConsistentlyDeclared not yet implemented"/>
+  <StringResponse result="ALCRIQ(D)-"
+                  warning="But TBox language is: ALCRIN(D)-"/>
+  <OK/>
+</ResponseMessage>

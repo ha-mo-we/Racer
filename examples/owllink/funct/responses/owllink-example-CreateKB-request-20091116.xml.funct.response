@@ -1,0 +1,17 @@
+
+
+ResponseMessage(
+  
+  KB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_1> ))
+  
+  OK()
+  
+  BooleanResponse(
+    Attribute(
+      result 
+      "true" ))
+  
+  OK())

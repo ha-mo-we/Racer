@@ -1,0 +1,3169 @@
+<?xml version="1.0"?>
+<rdf:RDF
+    xmlns:protege="http://protege.stanford.edu/plugins/owl/protege#"
+    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+    xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    xmlns:owl="http://www.w3.org/2002/07/owl#"
+    xmlns:daml="http://www.daml.org/2001/03/daml+oil#"
+    xmlns="http://www.owl-ontologies.com/unnamed.owl#"
+    xmlns:dc="http://purl.org/dc/elements/1.1/"
+  xml:base="http://www.owl-ontologies.com/unnamed.owl">
+  <owl:Ontology rdf:about="">
+    <!--<owl:imports>
+      <owl:Ontology rdf:about="http://protege.stanford.edu/plugins/owl/protege"/>
+    </owl:imports>-->
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Double click on rdfs:comment at left                                       
+
+This is a demonstration ontology reconstructing much of the OpenGALEN Upper Ontology in OWL-DL.  Detailed comments are included with classes and properties along with demonstration notions preceded with the prefix "Probe_".
+
+The ontology is provided strictly "as is" and without guarantees.  It is still in progress and will be updated from time to time.
+
+The ontology is free for use with acknowledgement to OpenGALEN and the University of Manchester.
+
+All material copyright University of Manchester.
+
+A discussion is available in "Patterns, Properties and Minimizing Commitment:
+Reconstruction of the GALEN Upper Ontology in OWL" Alan L Rector and Jeremy Rogers, to be presented at the Workshop on Core Ontologies (CORONT) in conjunction with the European Knowledge Acquisition Workshop (EKAW-2004), Northampton, UK. 
+
+All material available from http://www.cs.man.ac.uk/~rector/ontologies/sample-top-bio/
+
+
+
+
+</rdfs:comment>
+  </owl:Ontology>
+  <owl:Class rdf:ID="Non_biological_entity">
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Biological_entity"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Self_standing_entity"/>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >See biological</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="Prokaryotic_cell">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Cell"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Eukaryotic_cell"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:ID="adequate_status">
+    <owl:disjointWith>
+      <owl:Class rdf:ID="super_adequate_status"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Level_adequacy_status"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="inadequate_status"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:ID="Urine">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Biological_substance"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Blood"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Bile"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Cerebral_spinal_fluid"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:ID="normal">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Normality_status"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="non_Normal"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:ID="Biological_physical_continuant">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:ID="Continuant_entity"/>
+          <owl:Class rdf:about="#Biological_entity"/>
+          <owl:Class rdf:ID="Physical_entity"/>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:ID="Probe-Strutural_part_of_Cell_2">
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ProbeClass:true</owl:versionInfo>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Probe"/>
+    </rdfs:subClassOf>
+    <owl:equivalentClass>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#Cell"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:TransitiveProperty rdf:ID="is_structural_part_of"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:ID="Probe_Stomach_pathology">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Pathology of stomach, analogous to Cardiac_pathology.
+
+Again both the syndrome and the physical structure are included for demonstration although a more practical  query would include only one or the other.</rdfs:comment>
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ProbeClass:true</owl:versionInfo>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Restriction>
+            <owl:someValuesFrom>
+              <owl:Class rdf:ID="pathological"/>
+            </owl:someValuesFrom>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:ID="has_normality_status"/>
+            </owl:onProperty>
+          </owl:Restriction>
+          <owl:Restriction>
+            <owl:someValuesFrom>
+              <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                  <owl:Class rdf:ID="Stomach"/>
+                  <owl:Restriction>
+                    <owl:someValuesFrom>
+                      <owl:Class rdf:about="#Stomach"/>
+                    </owl:someValuesFrom>
+                    <owl:onProperty>
+                      <owl:ObjectProperty rdf:ID="is_clinically_part_of"/>
+                    </owl:onProperty>
+                  </owl:Restriction>
+                </owl:unionOf>
+              </owl:Class>
+            </owl:someValuesFrom>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:ID="has_locus"/>
+            </owl:onProperty>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Probe"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Heart">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:ID="Cardiovascular_system"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="is_functional_part_of"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Lung"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Pericardium"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:ID="has_left_right_symmetry"/>
+        </owl:onProperty>
+        <owl:someValuesFrom>
+          <owl:Class rdf:ID="midline_symmetry"/>
+        </owl:someValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Liver"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Stomach"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Organ"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Brain"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:about="#Bile">
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Blood"/>
+    </owl:disjointWith>
+    <owl:disjointWith rdf:resource="#Urine"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Cerebral_spinal_fluid"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Biological_substance"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Ulcer_of_stomach_syndrome">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:ID="Syndrome"/>
+          <owl:Class>
+            <owl:intersectionOf rdf:parseType="Collection">
+              <owl:Restriction>
+                <owl:onProperty>
+                  <owl:ObjectProperty rdf:ID="includes_specifically"/>
+                </owl:onProperty>
+                <owl:someValuesFrom>
+                  <owl:Class rdf:ID="Ulceration_process"/>
+                </owl:someValuesFrom>
+              </owl:Restriction>
+              <owl:Restriction>
+                <owl:someValuesFrom>
+                  <owl:Class rdf:about="#Stomach"/>
+                </owl:someValuesFrom>
+                <owl:onProperty>
+                  <owl:ObjectProperty rdf:about="#has_locus"/>
+                </owl:onProperty>
+              </owl:Restriction>
+            </owl:intersectionOf>
+          </owl:Class>
+          <owl:Restriction>
+            <owl:someValuesFrom>
+              <owl:Class rdf:ID="Ulcer_of_stomach"/>
+            </owl:someValuesFrom>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#includes_specifically"/>
+            </owl:onProperty>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:ID="Non_nucleated_cell">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Cell"/>
+          <owl:Class>
+            <owl:complementOf>
+              <owl:Restriction>
+                <owl:onProperty>
+                  <owl:TransitiveProperty rdf:ID="has_structural_part"/>
+                </owl:onProperty>
+                <owl:someValuesFrom>
+                  <owl:Class rdf:ID="Nucleus"/>
+                </owl:someValuesFrom>
+              </owl:Restriction>
+            </owl:complementOf>
+          </owl:Class>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:ID="Pumping_gross_biological">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Physiologic_process"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Multiple_of_red_blood_cells">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#Blood"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:TransitiveProperty rdf:ID="is_portion_of"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:ID="Multiple"/>
+          <owl:Restriction>
+            <owl:allValuesFrom>
+              <owl:Class rdf:ID="Red_blood_cell"/>
+            </owl:allValuesFrom>
+            <owl:onProperty>
+              <owl:InverseFunctionalProperty rdf:ID="has_grain"/>
+            </owl:onProperty>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:ID="Biological_object">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Biological_entity"/>
+          <owl:Class rdf:ID="Discrete_entity"/>
+          <owl:Class rdf:ID="Material_entity"/>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:ID="right_laterality">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Laterality"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="left_laterality"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:ID="Ulcer_structure">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:ID="Lesion"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:ID="is_outcome_of"/>
+            </owl:onProperty>
+            <owl:someValuesFrom>
+              <owl:Class rdf:about="#Ulceration_process"/>
+            </owl:someValuesFrom>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:ID="Biologica_tissue_or_substance">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:ID="Biological_material_entity"/>
+          <owl:Class rdf:ID="Mass_entity"/>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#Laterality">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:unionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#left_laterality"/>
+          <owl:Class rdf:about="#right_laterality"/>
+        </owl:unionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Selector"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Probe">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Probes are tests inserted to check classification.   Tools are almost ready to have them visible or invisible as required.
+</rdfs:comment>
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ProbeClass:true</owl:versionInfo>
+  </owl:Class>
+  <owl:Class rdf:ID="Syndrome_including_pathology_axiom">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >An axiom that a Syndrome that includes anything pathological is itself pathological
+
+A good example of why we need to be able to make axioms either anonymous or at least invisible. </rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#pathological"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_normality_status"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Syndrome"/>
+          <owl:Restriction>
+            <owl:someValuesFrom>
+              <owl:Restriction>
+                <owl:onProperty>
+                  <owl:ObjectProperty rdf:about="#has_normality_status"/>
+                </owl:onProperty>
+                <owl:someValuesFrom>
+                  <owl:Class rdf:about="#pathological"/>
+                </owl:someValuesFrom>
+              </owl:Restriction>
+            </owl:someValuesFrom>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:ID="includes"/>
+            </owl:onProperty>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#Stomach">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Organ"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Lung"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Liver"/>
+    </owl:disjointWith>
+    <owl:disjointWith rdf:resource="#Heart"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Brain"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Pericardium"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#midline_symmetry"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:about="#has_left_right_symmetry"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="System">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Functional system</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Group"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Modifier">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Modifiers are the common modifiers which change the state of a quality or other aspect of a self-standing entity.  In many cases it is worth representing the "quality" as a class.  </rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Refining_entity"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Probe-Clinical_Part_of_heart">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Probes for the clinical parts of the heart.  This includes both functional and structural parthood. 
+
+This is what a doctor would expect to see, including Pericarditis - i.e. an inflammation of the covering of the heart.  Strictly speaking, the Pericardium is, however, a spearate organ, so according to the FMA view, it does not form part of the heart. </rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#Probe"/>
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ProbeClass:true</owl:versionInfo>
+    <owl:equivalentClass>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#is_clinically_part_of"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="#Heart"/>
+      </owl:Restriction>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:ID="Cardio_respiratory_system">
+    <rdfs:subClassOf rdf:resource="#System"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Continuant_entity">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Self_standing_entity"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Occurrent_entity"/>
+    </owl:disjointWith>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Continuant or Endurant.
+Entities that peresists in time but has parts in space.
+
+As opposed to Occurrent
+</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="Cardiac_valve">
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Cardiac_chamber"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Half_heart"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Cranium"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Trachea"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Lobe"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Organ_part"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Bronchus"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:ID="Thorax">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Subdivision_of_body_part"/>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#midline_symmetry"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:about="#has_left_right_symmetry"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Red_blood_cell">
+    <owl:disjointWith>
+      <owl:Class rdf:ID="epithelial_cell"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Eukaryotic_cell"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Cardiac_atrium">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Cardiac_chamber"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Cardiac_ventricle"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:about="#inadequate_status">
+    <owl:disjointWith>
+      <owl:Class rdf:about="#super_adequate_status"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Level_adequacy_status"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#adequate_status"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Diabetes_process">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Intrinsically_pathological_process"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Zebra_fish_organism">
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Drosophilia_organism"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Organism"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Human_organism"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Mouse_organism"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:about="#Biological_entity">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Self_standing_entity"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#Non_biological_entity"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Cell_membrane">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:TransitiveProperty rdf:about="#is_structural_part_of"/>
+        </owl:onProperty>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#Cell"/>
+        </owl:someValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The membrane enclosing the cell</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Cell_part"/>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:ID="hollow_topology"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:ID="has_topology"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Drosophilia_organism">
+    <owl:disjointWith rdf:resource="#Zebra_fish_organism"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Mouse_organism"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Organism"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Human_organism"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:ID="Physical_object">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Discrete_entity"/>
+          <owl:Class rdf:about="#Material_entity"/>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:ID="Neck">
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Head"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Body_part"/>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#midline_symmetry"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:about="#has_left_right_symmetry"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Limb"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Trunk"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:ID="Cardiac_pumping">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Pumping_gross_biological"/>
+          <owl:Restriction>
+            <owl:someValuesFrom rdf:resource="#Heart"/>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:ID="has_actor"/>
+            </owl:onProperty>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="has_outcome"/>
+        </owl:onProperty>
+        <owl:someValuesFrom>
+          <owl:Class rdf:ID="Circulation_of_blood"/>
+        </owl:someValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Inflammation_structure">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Lesion"/>
+          <owl:Restriction>
+            <owl:someValuesFrom>
+              <owl:Class rdf:ID="Inflammation_process"/>
+            </owl:someValuesFrom>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#is_outcome_of"/>
+            </owl:onProperty>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#Normality_status">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Normality_status is a special status for biomedical ontologies.  It has a much more complex structure than most other status, but is a good demonstration of the advantages of using "value partitions" rather than simple values.
+
+</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Status_partition"/>
+    </rdfs:subClassOf>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:unionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#normal"/>
+          <owl:Class rdf:about="#non_Normal"/>
+        </owl:unionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:ID="Probe_structural_part_of_heart">
+    <owl:equivalentClass>
+      <owl:Restriction>
+        <owl:someValuesFrom rdf:resource="#Heart"/>
+        <owl:onProperty>
+          <owl:TransitiveProperty rdf:about="#is_structural_part_of"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </owl:equivalentClass>
+    <rdfs:subClassOf rdf:resource="#Probe"/>
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ProbeClass:true</owl:versionInfo>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The structural parts of the heart.
+
+Essentially the FMA view of what should be part of the heart, excluding individual cardiac cells etc. which require the still broader is_part_of relation. </rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:about="#Circulation_of_blood">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:ID="Circulation"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:ID="acts_on"/>
+            </owl:onProperty>
+            <owl:someValuesFrom>
+              <owl:Class rdf:about="#Blood"/>
+            </owl:someValuesFrom>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:ID="Right_cardiac_ventricle">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Cardiac_ventricle"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Intrinsic_property_partition">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Refining_entity"/>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Intrinsic properties are those which are not "qualities" - laterality, topology, etc.  There is usually little point in reifying such properties. </rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="intrinsically_non_Normal">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#non_Normal"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Lung">
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Liver"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Organ"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#Stomach"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Brain"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Pericardium"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:ID="left_right_symmetry"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:about="#has_left_right_symmetry"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#Heart"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Domain_entity">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >See comment under Metadata tab for ontology documentation.  (double click on rdfs:comment)
+
+Domain_entity is the top proper entity in the ontology.  We recommend defining a top entity within the ontology because:
+
+a) It is often useful to define other entities either for debugging purposes (probes) or to simulate individuals, etc.
+
+b) Some tools treat the immediate children of owl:Thing peculirarly. 
+</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:about="#Brain">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class>
+            <owl:intersectionOf rdf:parseType="Collection">
+              <owl:Class rdf:ID="Cavity"/>
+              <owl:Restriction>
+                <owl:someValuesFrom>
+                  <owl:Class rdf:about="#Cranium"/>
+                </owl:someValuesFrom>
+                <owl:onProperty>
+                  <owl:ObjectProperty rdf:ID="is_defined_by"/>
+                </owl:onProperty>
+              </owl:Restriction>
+            </owl:intersectionOf>
+          </owl:Class>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="is_contained_in"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Pericardium"/>
+    </owl:disjointWith>
+    <owl:disjointWith rdf:resource="#Heart"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:about="#has_left_right_symmetry"/>
+        </owl:onProperty>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#midline_symmetry"/>
+        </owl:someValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#Stomach"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Liver"/>
+    </owl:disjointWith>
+    <owl:disjointWith rdf:resource="#Lung"/>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Organ"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Cardiac_ventricle">
+    <owl:disjointWith rdf:resource="#Cardiac_atrium"/>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Cardiac_chamber"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Probe_located_in_skull">
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ProbeClass:true</owl:versionInfo>
+    <owl:equivalentClass>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:ID="Skull"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:TransitiveProperty rdf:ID="has_location"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </owl:equivalentClass>
+    <rdfs:subClassOf rdf:resource="#Probe"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Everything located in the skull
+
+Includes the brain which is contained in the cranial cavity but not a part of the skull.</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="Pericarditis_syndrome">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Syndrome"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#includes_specifically"/>
+            </owl:onProperty>
+            <owl:someValuesFrom>
+              <owl:Class rdf:ID="Pericarditis_process"/>
+            </owl:someValuesFrom>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:ID="Line">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Biological_non_material_entity"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Cavity"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:ID="mirror_image_symmetry">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#left_right_symmetry"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Syndrome">
+    <rdfs:label>ClinicalSituation</rdfs:label>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >"Clinical Situation" in GALEN
+
+Effectively "Disease" as opposed to the simple process or lesion at the heart of the disease.  Hence we have both "Pericarditis_syndrome" and "Pericarditis_process"
+
+Likewise, both "Ulcer of stomach" and "Ulcer_of_stomach_syndrome" which includes the process and might include the pain and other things that go with it. 
+
+Note thatt his simplified version just has a single level of "includes" property for syndromes.  By rights, there should be two levels - one for the defining conditions and one for everything else. 
+
+See 'Nexus'</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Nexus"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Skull">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The skull is actually a set of bones. </rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Specified_set"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Physical_continuant">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Continuant_entity"/>
+          <owl:Class rdf:about="#Physical_entity"/>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#Organ_part">
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Organism"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Subdivision_of_body_part"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Cell_part"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf rdf:resource="#Biological_object"/>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Macro_molecule"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Organ"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Body_part"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Cell"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Lesion"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:about="#hollow_topology">
+    <owl:disjointWith>
+      <owl:Class rdf:ID="solid_topology"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Topology_value_partition"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="single_membrane_topology"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:ID="Pulmonary_valve">
+    <rdfs:subClassOf rdf:resource="#Cardiac_valve"/>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Mitral_valve"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Aortic_valve"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Tricuspid_valve"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:ID="Digestive_system">
+    <rdfs:subClassOf rdf:resource="#System"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Bronchus">
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Cardiac_chamber"/>
+    </owl:disjointWith>
+    <owl:disjointWith rdf:resource="#Cardiac_valve"/>
+    <rdfs:subClassOf rdf:resource="#Organ_part"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Trachea"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Cranium"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Lobe"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:ID="Left_right_symmetry"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:about="#has_left_right_symmetry"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Half_heart"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:ID="Heart_pathology">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Restriction>
+            <owl:someValuesFrom>
+              <owl:Class rdf:about="#pathological"/>
+            </owl:someValuesFrom>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#has_normality_status"/>
+            </owl:onProperty>
+          </owl:Restriction>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#has_locus"/>
+            </owl:onProperty>
+            <owl:someValuesFrom>
+              <owl:Class>
+                <owl:unionOf rdf:parseType="Collection">
+                  <owl:Class rdf:about="#Heart"/>
+                  <owl:Restriction>
+                    <owl:onProperty>
+                      <owl:TransitiveProperty rdf:ID="is_part_of"/>
+                    </owl:onProperty>
+                    <owl:someValuesFrom rdf:resource="#Heart"/>
+                  </owl:Restriction>
+                </owl:unionOf>
+              </owl:Class>
+            </owl:someValuesFrom>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Any pathology in the heart.  Includes both the processes and the syndromes. A sensible interface would ask for one or the other, but they are both included here for demonstration purposes. 
+
+Note that Circulatory_failure_due_to_heart_failure is included.  This is the reason for having has_actor imply has_locus.  This is a mild over-generalisation and will lead to some over inclusion. </rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#Probe"/>
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ProbeClass:true</owl:versionInfo>
+  </owl:Class>
+  <owl:Class rdf:about="#Liver">
+    <owl:disjointWith rdf:resource="#Brain"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Pericardium"/>
+    </owl:disjointWith>
+    <owl:disjointWith rdf:resource="#Lung"/>
+    <owl:disjointWith rdf:resource="#Heart"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#midline_symmetry"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:about="#has_left_right_symmetry"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Organ"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#Stomach"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Left_cardiac_ventricle">
+    <rdfs:subClassOf rdf:resource="#Cardiac_ventricle"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Ulcer_of_stomach">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Ulcer_structure"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#is_outcome_of"/>
+            </owl:onProperty>
+            <owl:someValuesFrom>
+              <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                  <owl:Class rdf:about="#Ulceration_process"/>
+                  <owl:Restriction>
+                    <owl:someValuesFrom rdf:resource="#Stomach"/>
+                    <owl:onProperty>
+                      <owl:ObjectProperty rdf:about="#has_locus"/>
+                    </owl:onProperty>
+                  </owl:Restriction>
+                </owl:intersectionOf>
+              </owl:Class>
+            </owl:someValuesFrom>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#Group">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Complex"/>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A discrete collection of things - flocks etc.
+Also includes </rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#Continuant_entity"/>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Discrete_entity"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Cavity_of_Cardiac_Chamber">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#Cardiac_chamber"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#is_defined_by"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Cavity"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Discrete_physical_continuant">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Discrete_entity"/>
+          <owl:Class rdf:about="#Physical_entity"/>
+          <owl:Class rdf:about="#Continuant_entity"/>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:ID="Organelle">
+    <rdfs:subClassOf rdf:resource="#Continuant_entity"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="is_grain_of"/>
+        </owl:onProperty>
+        <owl:someValuesFrom>
+          <owl:Class>
+            <owl:intersectionOf rdf:parseType="Collection">
+              <owl:Class rdf:ID="Bunch"/>
+              <owl:Restriction>
+                <owl:onProperty>
+                  <owl:InverseFunctionalProperty rdf:about="#has_grain"/>
+                </owl:onProperty>
+                <owl:allValuesFrom rdf:resource="#Organelle"/>
+              </owl:Restriction>
+              <owl:Restriction>
+                <owl:onProperty>
+                  <owl:ObjectProperty rdf:about="#is_functional_part_of"/>
+                </owl:onProperty>
+                <owl:someValuesFrom>
+                  <owl:Class rdf:about="#Cell"/>
+                </owl:someValuesFrom>
+              </owl:Restriction>
+            </owl:intersectionOf>
+          </owl:Class>
+        </owl:someValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Material_entity"/>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Discrete_entity"/>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Self_standing_entity"/>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Any of the various independent bodies in the cell - mitihorndria, chloroplasts etc.  There is some disagreement as to whether the nucleus should be classified as an organelle.  Here it is not. </rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#Biological_entity"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Pericarditis_process">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Inflammation_process"/>
+          <owl:Restriction>
+            <owl:someValuesFrom>
+              <owl:Class rdf:about="#Pericardium"/>
+            </owl:someValuesFrom>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:ID="affects"/>
+            </owl:onProperty>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#Circulation">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Physiologic_process"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Nexus">
+    <rdfs:subClassOf rdf:resource="#Group"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Specific complex lijnked by some fundamental principle as in Syndromes.   Also dualities such as ulcer and ulceration which are here not distinguished from other syndromes but might be in a more pedantic version. 
+
+Also this version does not distinguish arbitrary syndromes such as Tetrology of Falot from systematic syndromes, such as all the things that fit together around Diabetes. </rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="Biological_object_that_has_left_right_symmetry">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Biological_object"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:FunctionalProperty rdf:about="#has_left_right_symmetry"/>
+            </owl:onProperty>
+            <owl:someValuesFrom>
+              <owl:Class rdf:about="#left_right_symmetry"/>
+            </owl:someValuesFrom>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#Organism">
+    <rdfs:subClassOf rdf:resource="#Biological_object"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Cell"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Subdivision_of_body_part"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Body_part"/>
+    </owl:disjointWith>
+    <owl:disjointWith rdf:resource="#Organ_part"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Organ"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Cell_part"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Macro_molecule"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Lesion"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:about="#Physiologic_process">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Biological_physical_occurrent"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Cytoplasm">
+    <rdfs:subClassOf rdf:resource="#Continuant_entity"/>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Mass_entity"/>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Physical_entity"/>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf rdf:resource="#Biological_entity"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:ID="Intracellular_compartment"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#is_contained_in"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The stuff that fills the cell</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#Cell"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#is_functional_part_of"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Physical_entity">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Those things that are manifest physically - both occurrrents and continuants but not abstractions such as ideas, patterns, etc. 
+
+GALEN is specifically silent on whether "Agents" are physical or not in order to be able to fit in with ontologies which make either choice. </rdfs:comment>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Non_physical_entity"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Self_standing_entity"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Discrete_entity">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Countable entities - people, buildings, organs, etc. 
+</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Self_standing_entity"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Mass_entity"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:ID="Eukaryotic_cell_except_red_blood_cell">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Eukaryotic_cell"/>
+          <owl:Class>
+            <owl:complementOf rdf:resource="#Red_blood_cell"/>
+          </owl:Class>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#Nucleus"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:TransitiveProperty rdf:about="#has_structural_part"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Bunch_of_mitochondria">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Bunch"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:InverseFunctionalProperty rdf:about="#has_grain"/>
+            </owl:onProperty>
+            <owl:allValuesFrom>
+              <owl:Class rdf:ID="Mitochondrion"/>
+            </owl:allValuesFrom>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#Cell"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#is_functional_part_of"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="is_suspended_in"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="#Cytoplasm"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Cluster">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Ad hoc grouping - taken from FMA </rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#Group"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Occurrent_entity">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Things that happen - processes, events, and activities
+Occurents - have duration - have parts in time as well as space. 
+
+as opposed to Continuant</rdfs:comment>
+    <owl:disjointWith rdf:resource="#Continuant_entity"/>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Self_standing_entity"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Selector">
+    <rdfs:subClassOf rdf:resource="#Intrinsic_property_partition"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Left_right_symmetry"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Topology_value_partition"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:about="#Cardiovascular_system">
+    <rdfs:subClassOf rdf:resource="#System"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Mitral_valve">
+    <owl:disjointWith rdf:resource="#Pulmonary_valve"/>
+    <rdfs:subClassOf rdf:resource="#Cardiac_valve"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Tricuspid_valve"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Aortic_valve"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:ID="Human_red_blood_cell_mature">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Red_blood_cell_mature"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Actiovity_Level">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The level of activity of a process. 
+
+Amongst other statuses takes Level_adequacy_status</rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Quality"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Mouse_organism">
+    <rdfs:subClassOf rdf:resource="#Organism"/>
+    <owl:disjointWith rdf:resource="#Drosophilia_organism"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Human_organism"/>
+    </owl:disjointWith>
+    <owl:disjointWith rdf:resource="#Zebra_fish_organism"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Trunk">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Body_part"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Limb"/>
+    </owl:disjointWith>
+    <owl:disjointWith rdf:resource="#Neck"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:about="#has_left_right_symmetry"/>
+        </owl:onProperty>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#midline_symmetry"/>
+        </owl:someValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Head"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:about="#Inflammation_process">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Intrinsically_pathological_process"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Biological_substance">
+    <rdfs:subClassOf rdf:resource="#Biologica_tissue_or_substance"/>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Tissue"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:ID="Probe_Cliincal_part_of_Skull">
+    <rdfs:subClassOf rdf:resource="#Probe"/>
+    <owl:equivalentClass>
+      <owl:Restriction>
+        <owl:someValuesFrom rdf:resource="#Skull"/>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#is_clinically_part_of"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </owl:equivalentClass>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The major parts of the skull including structural and functional - in this case in demo only structural parts. 
+
+Excludes the Brain because the Brain is contained in rather than part of the skull.
+
+</rdfs:comment>
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ProbeClass:true</owl:versionInfo>
+  </owl:Class>
+  <owl:Class rdf:ID="Pathological_process">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Biological_physical_occurrent"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#has_normality_status"/>
+            </owl:onProperty>
+            <owl:someValuesFrom>
+              <owl:Class rdf:about="#pathological"/>
+            </owl:someValuesFrom>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#Refining_entity">
+    <rdfs:subClassOf rdf:resource="#Domain_entity"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >All entities which are dependent modifiers - roughly speaking value types and values.  (See SWBP note on value partitions)
+
+</rdfs:comment>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Self_standing_entity"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:about="#Status_partition">
+    <rdfs:subClassOf rdf:resource="#Modifier"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Probe-Part_of_Cell">
+    <rdfs:subClassOf rdf:resource="#Probe"/>
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ProbeClass:true</owl:versionInfo>
+    <owl:equivalentClass>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#Cell"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:TransitiveProperty rdf:about="#is_part_of"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#Cavity">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Biological_non_material_entity"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#Line"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Pericardium">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom rdf:resource="#Heart"/>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#is_clinically_part_of"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#Lung"/>
+    <owl:disjointWith rdf:resource="#Stomach"/>
+    <owl:disjointWith rdf:resource="#Brain"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:about="#has_left_right_symmetry"/>
+        </owl:onProperty>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#midline_symmetry"/>
+        </owl:someValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#Heart"/>
+    <owl:disjointWith rdf:resource="#Liver"/>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Organ"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Intrinsically_pathological_process">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Pathological_process"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#has_normality_status"/>
+            </owl:onProperty>
+            <owl:someValuesFrom>
+              <owl:Class rdf:ID="intrinsically_pathological"/>
+            </owl:someValuesFrom>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#Human_organism">
+    <rdfs:subClassOf rdf:resource="#Organism"/>
+    <owl:disjointWith rdf:resource="#Drosophilia_organism"/>
+    <owl:disjointWith rdf:resource="#Zebra_fish_organism"/>
+    <owl:disjointWith rdf:resource="#Mouse_organism"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Biologial_entity_with_pathological_quality_AXIOM">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Biological_entity"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:ID="has_quality"/>
+            </owl:onProperty>
+            <owl:someValuesFrom>
+              <owl:Restriction>
+                <owl:onProperty>
+                  <owl:ObjectProperty rdf:about="#has_normality_status"/>
+                </owl:onProperty>
+                <owl:someValuesFrom>
+                  <owl:Class rdf:about="#pathological"/>
+                </owl:someValuesFrom>
+              </owl:Restriction>
+            </owl:someValuesFrom>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_normality_status"/>
+        </owl:onProperty>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#pathological"/>
+        </owl:someValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ProbeClass:true</owl:versionInfo>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Axiom - A Biological Entity 
+
+Annotated as a Probe to make it disappear if needed</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:about="#Trachea">
+    <owl:disjointWith rdf:resource="#Bronchus"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Cardiac_chamber"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Lobe"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#midline_symmetry"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:about="#has_left_right_symmetry"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#Cardiac_valve"/>
+    <rdfs:subClassOf rdf:resource="#Organ_part"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Half_heart"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Cranium"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:about="#Lesion">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Biological_object"/>
+          <owl:Restriction>
+            <owl:someValuesFrom>
+              <owl:Class rdf:about="#intrinsically_pathological"/>
+            </owl:someValuesFrom>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#has_normality_status"/>
+            </owl:onProperty>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Subdivision_of_body_part"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Macro_molecule"/>
+    </owl:disjointWith>
+    <owl:disjointWith rdf:resource="#Organism"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Cell"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Cell_part"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Body_part"/>
+    </owl:disjointWith>
+    <owl:disjointWith rdf:resource="#Organ_part"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Organ"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:about="#Body_part">
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Cell"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Macro_molecule"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Cell_part"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Organ"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Subdivision_of_body_part"/>
+    </owl:disjointWith>
+    <owl:disjointWith rdf:resource="#Lesion"/>
+    <owl:disjointWith rdf:resource="#Organ_part"/>
+    <rdfs:subClassOf rdf:resource="#Biological_object"/>
+    <owl:disjointWith rdf:resource="#Organism"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Cardiac_chamber">
+    <owl:disjointWith rdf:resource="#Trachea"/>
+    <owl:disjointWith rdf:resource="#Cardiac_valve"/>
+    <owl:disjointWith rdf:resource="#Bronchus"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Cranium"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:about="#has_left_right_symmetry"/>
+        </owl:onProperty>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#left_right_symmetry"/>
+        </owl:someValuesFrom>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Lobe"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#Half_heart"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:TransitiveProperty rdf:ID="is_distinct_part_of"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Half_heart"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf rdf:resource="#Organ_part"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#Half_heart"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#is_functional_part_of"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Tissue">
+    <rdfs:subClassOf rdf:resource="#Biologica_tissue_or_substance"/>
+    <owl:disjointWith rdf:resource="#Biological_substance"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Blood">
+    <owl:disjointWith rdf:resource="#Urine"/>
+    <owl:disjointWith rdf:resource="#Bile"/>
+    <rdfs:subClassOf rdf:resource="#Biological_substance"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Cerebral_spinal_fluid"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:about="#Topology_value_partition">
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Left_right_symmetry"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf rdf:resource="#Intrinsic_property_partition"/>
+    <owl:disjointWith rdf:resource="#Selector"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Quality">
+    <rdfs:subClassOf>
+      <owl:Class rdf:ID="Relation"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Multiple">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A collection of grains at one level of granularity that make up a mass entity at the next - i.e. an entity where it is the behaviour of the collective of grains that is important rather than the behaviour of the individual grains is unimportant 
+
+In general, informally "multiple of" can be read as a pluraliser, i.e.
+"Multiple has_grain only Red_cell" = "Red cells"
+
+Note that multiples are always formed with universal restrictions rather than existential. IE multiples are homogeneous. </rdfs:comment>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Mass_entity"/>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Complex"/>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf rdf:resource="#Continuant_entity"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Mass_physical_continuant">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Mass_entity"/>
+          <owl:Class rdf:about="#Physical_entity"/>
+          <owl:Class rdf:about="#Continuant_entity"/>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#Material_entity">
+    <rdfs:subClassOf rdf:resource="#Physical_continuant"/>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Non_material_entity"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:about="#Cell">
+    <owl:disjointWith rdf:resource="#Organism"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Macro_molecule"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Organ"/>
+    </owl:disjointWith>
+    <owl:disjointWith rdf:resource="#Organ_part"/>
+    <rdfs:subClassOf rdf:resource="#Biological_object"/>
+    <owl:disjointWith rdf:resource="#Lesion"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Cell_part"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Subdivision_of_body_part"/>
+    </owl:disjointWith>
+    <owl:disjointWith rdf:resource="#Body_part"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Biological_material_entity">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Biological_entity"/>
+          <owl:Class rdf:about="#Material_entity"/>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:ID="Hollow_object">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Physical_object"/>
+          <owl:Restriction>
+            <owl:someValuesFrom rdf:resource="#hollow_topology"/>
+            <owl:onProperty>
+              <owl:FunctionalProperty rdf:about="#has_topology"/>
+            </owl:onProperty>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#Intracellular_compartment">
+    <rdfs:subClassOf rdf:resource="#Cavity"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom rdf:resource="#Cell_membrane"/>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#is_defined_by"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Cell_part">
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Organ"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Subdivision_of_body_part"/>
+    </owl:disjointWith>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >A primitive in the FMA.  Here defined.  There may still be case for distinguishing the primitive Cell_part_NAMED as in GALEN from the defined "Part of Cell". </rdfs:comment>
+    <owl:disjointWith rdf:resource="#Organ_part"/>
+    <owl:disjointWith rdf:resource="#Cell"/>
+    <owl:disjointWith rdf:resource="#Organism"/>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Biological_object"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:TransitiveProperty rdf:about="#is_part_of"/>
+            </owl:onProperty>
+            <owl:someValuesFrom rdf:resource="#Cell"/>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <owl:disjointWith rdf:resource="#Body_part"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Macro_molecule"/>
+    </owl:disjointWith>
+    <owl:disjointWith rdf:resource="#Lesion"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Tricuspid_valve">
+    <rdfs:subClassOf rdf:resource="#Cardiac_valve"/>
+    <owl:disjointWith rdf:resource="#Mitral_valve"/>
+    <owl:disjointWith rdf:resource="#Pulmonary_valve"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Aortic_valve"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:ID="closed_hollow_topology">
+    <rdfs:subClassOf rdf:resource="#hollow_topology"/>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="tubular_topology"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:about="#midline_symmetry">
+    <owl:disjointWith>
+      <owl:Class rdf:about="#left_right_symmetry"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Left_right_symmetry"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Head">
+    <owl:disjointWith rdf:resource="#Neck"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:about="#has_left_right_symmetry"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="#midline_symmetry"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Limb"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf rdf:resource="#Body_part"/>
+    <owl:disjointWith rdf:resource="#Trunk"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Lobe">
+    <owl:disjointWith rdf:resource="#Trachea"/>
+    <rdfs:subClassOf rdf:resource="#Organ_part"/>
+    <owl:disjointWith rdf:resource="#Bronchus"/>
+    <owl:disjointWith rdf:resource="#Cardiac_chamber"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Cranium"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Half_heart"/>
+    </owl:disjointWith>
+    <owl:disjointWith rdf:resource="#Cardiac_valve"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Thoracic_cavity">
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Cranial_cavity"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf rdf:resource="#Cavity"/>
+  </owl:Class>
+  <owl:Class rdf:about="#left_right_symmetry">
+    <owl:disjointWith rdf:resource="#midline_symmetry"/>
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Left_right_symmetry"/>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="non_pathological">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Normality_status"/>
+          <owl:Class>
+            <owl:complementOf>
+              <owl:Class rdf:about="#pathological"/>
+            </owl:complementOf>
+          </owl:Class>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#Cerebral_spinal_fluid">
+    <owl:disjointWith rdf:resource="#Urine"/>
+    <owl:disjointWith rdf:resource="#Bile"/>
+    <rdfs:subClassOf rdf:resource="#Biological_substance"/>
+    <owl:disjointWith rdf:resource="#Blood"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Biological_non_material_entity">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Non_material_entity"/>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf rdf:resource="#Biological_entity"/>
+  </owl:Class>
+  <owl:Class rdf:ID="acquired_pathological">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#pathological"/>
+          <owl:Class>
+            <owl:complementOf>
+              <owl:Class rdf:about="#intrinsically_pathological"/>
+            </owl:complementOf>
+          </owl:Class>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#Left_right_symmetry">
+    <owl:disjointWith rdf:resource="#Topology_value_partition"/>
+    <owl:disjointWith rdf:resource="#Selector"/>
+    <rdfs:subClassOf rdf:resource="#Intrinsic_property_partition"/>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:unionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#midline_symmetry"/>
+          <owl:Class rdf:about="#left_right_symmetry"/>
+        </owl:unionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#Cranium">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:TransitiveProperty rdf:about="#is_structural_part_of"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="#Skull"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#Cardiac_valve"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Half_heart"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf rdf:resource="#Organ_part"/>
+    <owl:disjointWith rdf:resource="#Lobe"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom rdf:resource="#midline_symmetry"/>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:about="#has_left_right_symmetry"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#Trachea"/>
+    <owl:disjointWith rdf:resource="#Cardiac_chamber"/>
+    <owl:disjointWith rdf:resource="#Bronchus"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Biological_continuant">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Continuant_entity"/>
+          <owl:Class rdf:about="#Biological_entity"/>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:ID="Probe-Clinical_part_of_Cell">
+    <owl:equivalentClass>
+      <owl:Restriction>
+        <owl:someValuesFrom rdf:resource="#Cell"/>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#is_clinically_part_of"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </owl:equivalentClass>
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >ProbeClass:true</owl:versionInfo>
+    <rdfs:subClassOf rdf:resource="#Probe"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Circulatory_failure_due_to_cardiac_failure">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Circulation_of_blood"/>
+          <owl:Class>
+            <owl:intersectionOf rdf:parseType="Collection">
+              <owl:Restriction>
+                <owl:onProperty>
+                  <owl:InverseFunctionalProperty rdf:ID="has_level_quality"/>
+                </owl:onProperty>
+                <owl:someValuesFrom>
+                  <owl:Class>
+                    <owl:intersectionOf rdf:parseType="Collection">
+                      <owl:Class rdf:about="#Actiovity_Level"/>
+                      <owl:Restriction>
+                        <owl:someValuesFrom rdf:resource="#inadequate_status"/>
+                        <owl:onProperty>
+                          <owl:ObjectProperty rdf:ID="has_status"/>
+                        </owl:onProperty>
+                      </owl:Restriction>
+                    </owl:intersectionOf>
+                  </owl:Class>
+                </owl:someValuesFrom>
+              </owl:Restriction>
+              <owl:Restriction>
+                <owl:onProperty>
+                  <owl:ObjectProperty rdf:about="#has_normality_status"/>
+                </owl:onProperty>
+                <owl:someValuesFrom>
+                  <owl:Class rdf:about="#pathological"/>
+                </owl:someValuesFrom>
+              </owl:Restriction>
+              <owl:Restriction>
+                <owl:onProperty>
+                  <owl:ObjectProperty rdf:about="#is_outcome_of"/>
+                </owl:onProperty>
+                <owl:someValuesFrom>
+                  <owl:Class rdf:ID="Cardiac_failure"/>
+                </owl:someValuesFrom>
+              </owl:Restriction>
+            </owl:intersectionOf>
+          </owl:Class>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#Specified_set">
+    <rdfs:subClassOf rdf:resource="#Group"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Set in FMA sense of a specified list with a specific number. 
+
+NOT a mathematical set. </rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="Quality_status_partition">
+    <rdfs:subClassOf rdf:resource="#Status_partition"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Quality_status_partitions are the vast majority of status partitions which go with qualities. 
+
+Only a single example, "Level" is given here, but most clinical features such as body temperature, height, weight, pulse rate, etc. would be treated as "qualities".  Each would have its own "Quality" defined under self-standing entities and a set of mutually exclusive statuses.</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:about="#Mass_entity">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Self_standing_entity"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#Discrete_entity"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Measurable entities - water, air,blood,  tissue, etc. 
+
+as opposed to Discrete_entities
+</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:about="#non_Normal">
+    <rdfs:subClassOf rdf:resource="#Normality_status"/>
+    <owl:disjointWith rdf:resource="#normal"/>
+  </owl:Class>
+  <owl:Class rdf:about="#pathological">
+    <rdfs:subClassOf rdf:resource="#non_Normal"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Pattern">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Non_physical_entity"/>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Patterns are general forms and scripts including 'oeuvres' - the abstractions for intellectual outputs.  These were not developed in GALEN and so are left undeveloped here. 
+
+There is also an argument, according to Barry Smith, for using pattern rather than complexes for Diseases/Clinical situations.   However, this leaves us with three entities at least for each disease. Furthermore, we talk of the duration etc. of a disaease which seems to apply more sensibly to the process. </rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#Continuant_entity"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Complex">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Self_standing_entity"/>
+    </rdfs:subClassOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Anything that is in any way aggregated</rdfs:comment>
+  </owl:Class>
+  <owl:Class rdf:ID="Ribosome">
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Nucleus"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf rdf:resource="#Cell_part"/>
+    <owl:disjointWith>
+      <owl:Class rdf:ID="Chromosome"/>
+    </owl:disjointWith>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Mitochondrion"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:ID="Process_having_pathological_outcome">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Biological_physical_occurrent"/>
+          <owl:Restriction>
+            <owl:someValuesFrom>
+              <owl:Restriction>
+                <owl:someValuesFrom rdf:resource="#pathological"/>
+                <owl:onProperty>
+                  <owl:ObjectProperty rdf:about="#has_normality_status"/>
+                </owl:onProperty>
+              </owl:Restriction>
+            </owl:someValuesFrom>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#has_outcome"/>
+            </owl:onProperty>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#has_normality_status"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="#pathological"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:ID="Physical_occurrent_entity">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Physical_entity"/>
+          <owl:Class rdf:about="#Occurrent_entity"/>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#Ulceration_process">
+    <rdfs:subClassOf rdf:resource="#Intrinsically_pathological_process"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Mitochondrion">
+    <owl:disjointWith rdf:resource="#Ribosome"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#is_grain_of"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="#Bunch_of_mitochondria"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Chromosome"/>
+    </owl:disjointWith>
+    <rdfs:subClassOf rdf:resource="#Cell_part"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Nucleus"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:about="#Bunch">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Fl.ocks of geese, schools of fish, etc. </rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#Group"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Self_standing_entity">
+    <owl:disjointWith rdf:resource="#Refining_entity"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Entities which can stand on their own.  
+
+Primitive self-standing entities in the upper ontology come in disjoint pairs.  In the domain ontology they form disjoint non-exhaustive trees.
+
+The pairs show up poorly because the windows are ordered alphabetically.  However, they can be identified by the disjoint axioms (lower right hand corner of this tab).  The disjoint pairs are deiberately not exhaustive - i.e. we defer the issue of whether everything must be either physical or non-physical etc.  This allows defering commitment on such issues as whether sets of physical things are themselves physical, etc.  This is a matter on which other ontologies differe. 
+
+Also no opposite for 'Complex' is provided, again to defer decisions.
+
+'Biological' is included for convenience in a BioMedical ontology. 
+
+In general it should be possible to classify a self-standing entity by asking questions about the basic dichotomies and subdichotomies </rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#Domain_entity"/>
+  </owl:Class>
+  <owl:Class rdf:about="#tubular_topology">
+    <rdfs:subClassOf rdf:resource="#hollow_topology"/>
+    <owl:disjointWith rdf:resource="#closed_hollow_topology"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Eukaryotic_cell">
+    <owl:disjointWith rdf:resource="#Prokaryotic_cell"/>
+    <rdfs:subClassOf rdf:resource="#Cell"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Organ">
+    <rdfs:subClassOf rdf:resource="#Biological_object"/>
+    <owl:disjointWith rdf:resource="#Cell_part"/>
+    <owl:disjointWith rdf:resource="#Organ_part"/>
+    <owl:disjointWith rdf:resource="#Body_part"/>
+    <owl:disjointWith rdf:resource="#Lesion"/>
+    <owl:disjointWith rdf:resource="#Organism"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Macro_molecule"/>
+    </owl:disjointWith>
+    <owl:disjointWith rdf:resource="#Cell"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Subdivision_of_body_part"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:ID="Subdivision_of_cavity">
+    <rdfs:subClassOf rdf:resource="#Biological_non_material_entity"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Relation">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Reified relations.  Primarily in biology "Qualities" but might also be other forms of relationship </rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#Complex"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Biological_physical_occurrent">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Biological_entity"/>
+          <owl:Class rdf:about="#Physical_entity"/>
+          <owl:Class rdf:about="#Occurrent_entity"/>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#epithelial_cell">
+    <owl:disjointWith rdf:resource="#Red_blood_cell"/>
+    <rdfs:subClassOf rdf:resource="#Eukaryotic_cell"/>
+  </owl:Class>
+  <owl:Class rdf:ID="Nucleated_cell">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:TransitiveProperty rdf:about="#has_structural_part"/>
+            </owl:onProperty>
+            <owl:someValuesFrom>
+              <owl:Class rdf:about="#Nucleus"/>
+            </owl:someValuesFrom>
+          </owl:Restriction>
+          <owl:Class rdf:about="#Cell"/>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom>
+          <owl:Class rdf:about="#Nucleus"/>
+        </owl:someValuesFrom>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:ID="has_functional_part"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf rdf:resource="#Eukaryotic_cell"/>
+  </owl:Class>
+  <owl:Class rdf:about="#left_laterality">
+    <owl:disjointWith rdf:resource="#right_laterality"/>
+    <rdfs:subClassOf rdf:resource="#Laterality"/>
+  </owl:Class>
+  <owl:Class rdf:about="#super_adequate_status">
+    <rdfs:subClassOf>
+      <owl:Class rdf:about="#Level_adequacy_status"/>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#inadequate_status"/>
+    <owl:disjointWith rdf:resource="#adequate_status"/>
+  </owl:Class>
+  <owl:Class rdf:about="#single_membrane_topology">
+    <rdfs:subClassOf rdf:resource="#Topology_value_partition"/>
+    <owl:disjointWith rdf:resource="#hollow_topology"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#solid_topology"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:about="#Chromosome">
+    <rdfs:subClassOf rdf:resource="#Cell_part"/>
+    <owl:disjointWith rdf:resource="#Ribosome"/>
+    <owl:disjointWith rdf:resource="#Mitochondrion"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Nucleus"/>
+    </owl:disjointWith>
+  </owl:Class>
+  <owl:Class rdf:about="#Cranial_cavity">
+    <owl:disjointWith rdf:resource="#Thoracic_cavity"/>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Cavity"/>
+          <owl:Restriction>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#is_defined_by"/>
+            </owl:onProperty>
+            <owl:someValuesFrom rdf:resource="#Cranium"/>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#Subdivision_of_body_part">
+    <owl:disjointWith rdf:resource="#Lesion"/>
+    <owl:disjointWith rdf:resource="#Organism"/>
+    <owl:disjointWith rdf:resource="#Body_part"/>
+    <owl:disjointWith rdf:resource="#Cell"/>
+    <owl:disjointWith rdf:resource="#Cell_part"/>
+    <owl:disjointWith>
+      <owl:Class rdf:about="#Macro_molecule"/>
+    </owl:disjointWith>
+    <owl:disjointWith rdf:resource="#Organ_part"/>
+    <rdfs:subClassOf rdf:resource="#Biological_object"/>
+    <owl:disjointWith rdf:resource="#Organ"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Macro_molecule">
+    <owl:disjointWith rdf:resource="#Body_part"/>
+    <owl:disjointWith rdf:resource="#Cell"/>
+    <owl:disjointWith rdf:resource="#Organ_part"/>
+    <owl:disjointWith rdf:resource="#Organism"/>
+    <owl:disjointWith rdf:resource="#Subdivision_of_body_part"/>
+    <owl:disjointWith rdf:resource="#Lesion"/>
+    <owl:disjointWith rdf:resource="#Organ"/>
+    <owl:disjointWith rdf:resource="#Cell_part"/>
+    <rdfs:subClassOf rdf:resource="#Biological_object"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Non_material_entity">
+    <rdfs:subClassOf rdf:resource="#Physical_continuant"/>
+    <owl:disjointWith rdf:resource="#Material_entity"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Aortic_valve">
+    <owl:disjointWith rdf:resource="#Mitral_valve"/>
+    <rdfs:subClassOf rdf:resource="#Cardiac_valve"/>
+    <owl:disjointWith rdf:resource="#Tricuspid_valve"/>
+    <owl:disjointWith rdf:resource="#Pulmonary_valve"/>
+  </owl:Class>
+  <owl:Class rdf:about="#intrinsically_pathological">
+    <rdfs:subClassOf rdf:resource="#intrinsically_non_Normal"/>
+    <rdfs:subClassOf rdf:resource="#pathological"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Red_blood_cell_mature">
+    <rdfs:subClassOf rdf:resource="#Red_blood_cell"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Cardiac_failure">
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:intersectionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Cardiac_pumping"/>
+          <owl:Restriction>
+            <owl:someValuesFrom>
+              <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                  <owl:Class rdf:about="#Circulation_of_blood"/>
+                  <owl:Restriction>
+                    <owl:onProperty>
+                      <owl:InverseFunctionalProperty rdf:about="#has_level_quality"/>
+                    </owl:onProperty>
+                    <owl:someValuesFrom>
+                      <owl:Class>
+                        <owl:intersectionOf rdf:parseType="Collection">
+                          <owl:Class rdf:about="#Actiovity_Level"/>
+                          <owl:Restriction>
+                            <owl:someValuesFrom rdf:resource="#inadequate_status"/>
+                            <owl:onProperty>
+                              <owl:ObjectProperty rdf:about="#has_status"/>
+                            </owl:onProperty>
+                          </owl:Restriction>
+                          <owl:Restriction>
+                            <owl:onProperty>
+                              <owl:ObjectProperty rdf:about="#has_normality_status"/>
+                            </owl:onProperty>
+                            <owl:someValuesFrom rdf:resource="#pathological"/>
+                          </owl:Restriction>
+                        </owl:intersectionOf>
+                      </owl:Class>
+                    </owl:someValuesFrom>
+                  </owl:Restriction>
+                </owl:intersectionOf>
+              </owl:Class>
+            </owl:someValuesFrom>
+            <owl:onProperty>
+              <owl:ObjectProperty rdf:about="#has_outcome"/>
+            </owl:onProperty>
+          </owl:Restriction>
+        </owl:intersectionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+  </owl:Class>
+  <owl:Class rdf:about="#Non_physical_entity">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >See Physical_entity
+</rdfs:comment>
+    <rdfs:subClassOf rdf:resource="#Self_standing_entity"/>
+    <owl:disjointWith rdf:resource="#Physical_entity"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Half_heart">
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:about="#has_left_right_symmetry"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="#left_right_symmetry"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <rdfs:subClassOf rdf:resource="#Organ_part"/>
+    <owl:disjointWith rdf:resource="#Cardiac_chamber"/>
+    <owl:disjointWith rdf:resource="#Lobe"/>
+    <owl:disjointWith rdf:resource="#Cranium"/>
+    <owl:disjointWith rdf:resource="#Cardiac_valve"/>
+    <owl:disjointWith rdf:resource="#Trachea"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom rdf:resource="#Heart"/>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#is_functional_part_of"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#Bronchus"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:TransitiveProperty rdf:about="#is_distinct_part_of"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="#Heart"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+  </owl:Class>
+  <owl:Class rdf:about="#Level_adequacy_status">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The level of a process.  Used in this demonstration to define Heart Failure. </rdfs:comment>
+    <owl:equivalentClass>
+      <owl:Class>
+        <owl:unionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#super_adequate_status"/>
+          <owl:Class rdf:about="#adequate_status"/>
+          <owl:Class rdf:about="#inadequate_status"/>
+        </owl:unionOf>
+      </owl:Class>
+    </owl:equivalentClass>
+    <rdfs:subClassOf rdf:resource="#Quality_status_partition"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Nucleus">
+    <rdfs:subClassOf rdf:resource="#Cell_part"/>
+    <owl:disjointWith rdf:resource="#Chromosome"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#is_functional_part_of"/>
+        </owl:onProperty>
+        <owl:someValuesFrom rdf:resource="#Cell"/>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#Mitochondrion"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom rdf:resource="#Intracellular_compartment"/>
+        <owl:onProperty>
+          <owl:ObjectProperty rdf:about="#is_contained_in"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#Ribosome"/>
+  </owl:Class>
+  <owl:Class rdf:about="#Limb">
+    <rdfs:subClassOf rdf:resource="#Body_part"/>
+    <owl:disjointWith rdf:resource="#Neck"/>
+    <rdfs:subClassOf>
+      <owl:Restriction>
+        <owl:someValuesFrom rdf:resource="#mirror_image_symmetry"/>
+        <owl:onProperty>
+          <owl:FunctionalProperty rdf:about="#has_left_right_symmetry"/>
+        </owl:onProperty>
+      </owl:Restriction>
+    </rdfs:subClassOf>
+    <owl:disjointWith rdf:resource="#Head"/>
+    <owl:disjointWith rdf:resource="#Trunk"/>
+  </owl:Class>
+  <owl:Class rdf:about="#solid_topology">
+    <owl:disjointWith rdf:resource="#single_membrane_topology"/>
+    <owl:disjointWith rdf:resource="#hollow_topology"/>
+    <rdfs:subClassOf rdf:resource="#Topology_value_partition"/>
+  </owl:Class>
+  <owl:ObjectProperty rdf:ID="has_member">
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:ID="is_member_of"/>
+    </owl:inverseOf>
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:ID="has_part"/>
+    </rdfs:subPropertyOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="is_quality_of">
+    <rdfs:range rdf:resource="#Self_standing_entity"/>
+    <rdfs:domain rdf:resource="#Quality"/>
+    <rdfs:subPropertyOf>
+      <owl:ObjectProperty rdf:ID="Relational_property"/>
+    </rdfs:subPropertyOf>
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:about="#has_quality"/>
+    </owl:inverseOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >GALEN isFeatureOf
+
+Children for each quality to control cardinality. 
+
+Links features to self-standing entities.
+Placed in this way around to make child of </rdfs:comment>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#InverseFunctionalProperty"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="is_participant_in">
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:ID="has_participant"/>
+    </owl:inverseOf>
+    <rdfs:subPropertyOf>
+      <owl:ObjectProperty rdf:ID="Inverse_Relational_property"/>
+    </rdfs:subPropertyOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="is_included_in">
+    <rdfs:subPropertyOf>
+      <owl:ObjectProperty rdf:about="#is_member_of"/>
+    </rdfs:subPropertyOf>
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:about="#includes"/>
+    </owl:inverseOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#includes">
+    <owl:inverseOf rdf:resource="#is_included_in"/>
+    <rdfs:subPropertyOf rdf:resource="#has_member"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >relation between syndrome and the different pathologies.
+
+The Subproperty includes_specifically is a sub of has_locus.  So in general a syndrome or "Clinical Situation" can include things which it is not a disease of - e.g. Diabetes should not be a renal or eye disease, although the total syndrome includes these things, at least as possibilities.
+
+However, in this version this broader version of includes is not used. </rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="is_actor_in">
+    <rdfs:domain rdf:resource="#Self_standing_entity"/>
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:about="#has_actor"/>
+    </owl:inverseOf>
+    <rdfs:subPropertyOf rdf:resource="#is_participant_in"/>
+    <rdfs:range rdf:resource="#Occurrent_entity"/>
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:ID="is_locus_of"/>
+    </rdfs:subPropertyOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="has_physical_location">
+    <owl:inverseOf>
+      <owl:TransitiveProperty rdf:ID="is_physical_location_of"/>
+    </owl:inverseOf>
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#has_location"/>
+    </rdfs:subPropertyOf>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Physical location</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#is_functional_part_of">
+    <rdfs:subPropertyOf>
+      <owl:ObjectProperty rdf:about="#is_clinically_part_of"/>
+    </rdfs:subPropertyOf>
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:about="#has_functional_part"/>
+    </owl:inverseOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="is_acted_on_by">
+    <rdfs:subPropertyOf rdf:resource="#is_participant_in"/>
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:about="#acts_on"/>
+    </owl:inverseOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="Modifier_property">
+    <rdfs:subPropertyOf>
+      <owl:ObjectProperty rdf:ID="Refining_property"/>
+    </rdfs:subPropertyOf>
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:ID="Inverse_modifier_property"/>
+    </owl:inverseOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="has_connection_to">
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:ID="is_connected_to"/>
+    </owl:inverseOf>
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#is_physical_location_of"/>
+    </rdfs:subPropertyOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="Inverse_Refining_property">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >See Refining Property</rdfs:comment>
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:about="#Refining_property"/>
+    </owl:inverseOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="has_clinical_part">
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:about="#is_clinically_part_of"/>
+    </owl:inverseOf>
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#has_part"/>
+    </rdfs:subPropertyOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#is_clinically_part_of">
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#is_part_of"/>
+    </rdfs:subPropertyOf>
+    <owl:inverseOf rdf:resource="#has_clinical_part"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The usual clinical meaning of partonomy - including functional and physical partonomy but excluding membership - which effectively excludes malfufunction of individual cells but not of multiples of cells. </rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#is_defined_by">
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:ID="defines"/>
+    </owl:inverseOf>
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#is_structural_part_of"/>
+    </rdfs:subPropertyOf>
+    <rdfs:range rdf:resource="#Material_entity"/>
+    <rdfs:domain rdf:resource="#Non_material_entity"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="is_constituent_of">
+    <rdfs:range rdf:resource="#Discrete_physical_continuant"/>
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#is_structural_part_of"/>
+    </rdfs:subPropertyOf>
+    <rdfs:domain rdf:resource="#Mass_physical_continuant"/>
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:ID="has_constituent"/>
+    </owl:inverseOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="has_group_member">
+    <rdfs:subPropertyOf rdf:resource="#has_member"/>
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:ID="is_in_group_of"/>
+    </owl:inverseOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#has_functional_part">
+    <rdfs:subPropertyOf rdf:resource="#has_clinical_part"/>
+    <owl:inverseOf rdf:resource="#is_functional_part_of"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#has_constituent">
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#has_structural_part"/>
+    </rdfs:subPropertyOf>
+    <owl:inverseOf rdf:resource="#is_constituent_of"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="Inverse_selector_property">
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:ID="Selector_property"/>
+    </owl:inverseOf>
+    <rdfs:subPropertyOf>
+      <owl:ObjectProperty rdf:ID="Inverse_intrinsic_property"/>
+    </rdfs:subPropertyOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#is_outcome_of">
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:about="#has_outcome"/>
+    </owl:inverseOf>
+    <rdfs:subPropertyOf>
+      <owl:ObjectProperty rdf:about="#has_locus"/>
+    </rdfs:subPropertyOf>
+    <rdfs:domain rdf:resource="#Self_standing_entity"/>
+    <rdfs:range rdf:resource="#Occurrent_entity"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Outcome of process.  
+Has additional parent has_locus to get reasoning right in absence of more sophisticated rules.
+</rdfs:comment>
+    <rdfs:subPropertyOf rdf:resource="#is_acted_on_by"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#has_actor">
+    <rdfs:subPropertyOf>
+      <owl:ObjectProperty rdf:about="#has_locus"/>
+    </rdfs:subPropertyOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The actor in a process.  If the Heart is the actor in a pathological process then it is a locus of the pathology - see Circulatory_failure_due_to_cardiac_failure</rdfs:comment>
+    <rdfs:domain rdf:resource="#Occurrent_entity"/>
+    <rdfs:subPropertyOf>
+      <owl:ObjectProperty rdf:about="#has_participant"/>
+    </rdfs:subPropertyOf>
+    <owl:inverseOf rdf:resource="#is_actor_in"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#has_participant">
+    <owl:inverseOf rdf:resource="#is_participant_in"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Relation betwen occurrents and either continuants or other occurrents.</rdfs:comment>
+    <rdfs:subPropertyOf>
+      <owl:ObjectProperty rdf:about="#Relational_property"/>
+    </rdfs:subPropertyOf>
+    <rdfs:domain rdf:resource="#Occurrent_entity"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#is_suspended_in">
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:ID="inverse_of_Mini-bio-3-05-13_Slot_0"/>
+    </owl:inverseOf>
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#is_structural_part_of"/>
+    </rdfs:subPropertyOf>
+    <rdfs:domain rdf:resource="#Physical_continuant"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#has_outcome">
+    <owl:inverseOf rdf:resource="#is_outcome_of"/>
+    <rdfs:domain rdf:resource="#Occurrent_entity"/>
+    <owl:versionInfo rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >TODO: Consider whether to place under affects.  should has_outcome be a child of has_locus.</owl:versionInfo>
+    <rdfs:subPropertyOf>
+      <owl:ObjectProperty rdf:about="#acts_on"/>
+    </rdfs:subPropertyOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >has_outcome 
+
+The general outcome of an act.
+Should probably be a sub of affects.  
+
+Still being chased. </rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#is_grain_of">
+    <rdfs:domain rdf:resource="#Discrete_physical_continuant"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+    <rdfs:subPropertyOf>
+      <owl:ObjectProperty rdf:about="#is_member_of"/>
+    </rdfs:subPropertyOf>
+    <owl:inverseOf>
+      <owl:InverseFunctionalProperty rdf:about="#has_grain"/>
+    </owl:inverseOf>
+    <rdfs:range>
+      <owl:Class>
+        <owl:unionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Multiple"/>
+          <owl:Class rdf:about="#Bunch"/>
+        </owl:unionOf>
+      </owl:Class>
+    </rdfs:range>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#Inverse_Relational_property">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >See Relational Property</rdfs:comment>
+    <rdfs:range rdf:resource="#Self_standing_entity"/>
+    <rdfs:domain rdf:resource="#Self_standing_entity"/>
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:about="#Relational_property"/>
+    </owl:inverseOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="has_subdivision">
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#has_structural_part"/>
+    </rdfs:subPropertyOf>
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:ID="is_subdivision_of"/>
+    </owl:inverseOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#is_member_of">
+    <rdfs:range rdf:resource="#Complex"/>
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#is_part_of"/>
+    </rdfs:subPropertyOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Membership - not standard partonomy and not included in clinical partonomy</rdfs:comment>
+    <owl:inverseOf rdf:resource="#has_member"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#is_contained_in">
+    <rdfs:domain rdf:resource="#Material_entity"/>
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:ID="contains"/>
+    </owl:inverseOf>
+    <rdfs:range>
+      <owl:Class>
+        <owl:unionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Cavity"/>
+          <owl:Class rdf:about="#Hollow_object"/>
+        </owl:unionOf>
+      </owl:Class>
+    </rdfs:range>
+    <rdfs:subPropertyOf rdf:resource="#has_physical_location"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Containment.  In this veresion must be contained in a cavity.
+This is more pedantic than GALEN.
+
+Note containment implies location but not partonomy</rdfs:comment>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#Relational_property">
+    <owl:inverseOf rdf:resource="#Inverse_Relational_property"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Properties linking self-standing entities</rdfs:comment>
+    <rdfs:domain rdf:resource="#Self_standing_entity"/>
+    <rdfs:range rdf:resource="#Self_standing_entity"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#contains">
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#is_physical_location_of"/>
+    </rdfs:subPropertyOf>
+    <owl:inverseOf rdf:resource="#is_contained_in"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#has_normality_status">
+    <rdfs:range rdf:resource="#Normality_status"/>
+    <rdfs:domain rdf:resource="#Biological_entity"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+    <rdfs:subPropertyOf rdf:resource="#Modifier_property"/>
+    <owl:inverseOf>
+      <owl:InverseFunctionalProperty rdf:ID="is_normality_status_of"/>
+    </owl:inverseOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#has_status">
+    <owl:inverseOf>
+      <owl:InverseFunctionalProperty rdf:ID="is_status_of"/>
+    </owl:inverseOf>
+    <rdfs:range rdf:resource="#Quality_status_partition"/>
+    <rdfs:domain rdf:resource="#Quality"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+    <rdfs:subPropertyOf rdf:resource="#Modifier_property"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#defines">
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#has_structural_part"/>
+    </rdfs:subPropertyOf>
+    <owl:inverseOf rdf:resource="#is_defined_by"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:ID="is_affected_by">
+    <rdfs:subPropertyOf rdf:resource="#is_participant_in"/>
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:about="#affects"/>
+    </owl:inverseOf>
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#is_locus_of"/>
+    </rdfs:subPropertyOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#affects">
+    <owl:inverseOf rdf:resource="#is_affected_by"/>
+    <rdfs:subPropertyOf>
+      <owl:ObjectProperty rdf:about="#acts_on"/>
+    </rdfs:subPropertyOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Subvariety of acts_on which indicates actual effect on the thing acted on - creation, modification, etc.  A sub of has_locus.  Otherwise, everything acted on by the process would become the locus. Counterexample - heart failure.  The pumping acts on blood but is adequate.  It affects circulation. 
+
+This is a variant of the GALEN version which achieved many of the same effects via the propagates_via axiom. </rdfs:comment>
+    <rdfs:subPropertyOf>
+      <owl:ObjectProperty rdf:about="#has_locus"/>
+    </rdfs:subPropertyOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#has_locus">
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#has_location"/>
+    </rdfs:subPropertyOf>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#TransitiveProperty"/>
+    <owl:inverseOf>
+      <owl:TransitiveProperty rdf:about="#is_locus_of"/>
+    </owl:inverseOf>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >GALEN 'hasLocation' - locus of pathology.
+NB because of differences between sanctioning and domain/range constraints, must always ask for has_normality pathological &amp; hasLocus...
+</rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#includes_specifically">
+    <rdfs:subPropertyOf rdf:resource="#includes"/>
+    <rdfs:subPropertyOf rdf:resource="#has_locus"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >The specific version of includes which points to the causative or key pathology. 
+
+Follows GALEN naming conventions.  Alternatives welcome. </rdfs:comment>
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:ID="is_included_in_specifically"/>
+    </owl:inverseOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#Selector_property">
+    <rdfs:subPropertyOf>
+      <owl:ObjectProperty rdf:ID="Instrinsic_property"/>
+    </rdfs:subPropertyOf>
+    <owl:inverseOf rdf:resource="#Inverse_selector_property"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#acts_on">
+    <owl:inverseOf rdf:resource="#is_acted_on_by"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Acts on substrate
+Pumping acts_on blood.</rdfs:comment>
+    <rdfs:subPropertyOf rdf:resource="#has_participant"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#is_in_group_of">
+    <rdfs:subPropertyOf rdf:resource="#is_member_of"/>
+    <owl:inverseOf rdf:resource="#has_group_member"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#Instrinsic_property">
+    <rdfs:subPropertyOf>
+      <owl:ObjectProperty rdf:about="#Refining_property"/>
+    </rdfs:subPropertyOf>
+    <owl:inverseOf>
+      <owl:ObjectProperty rdf:about="#Inverse_intrinsic_property"/>
+    </owl:inverseOf>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#Refining_property">
+    <rdfs:domain rdf:resource="#Domain_entity"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Properties linking self-standing entities to refining entities or refining entities to each other.</rdfs:comment>
+    <owl:inverseOf rdf:resource="#Inverse_Refining_property"/>
+    <rdfs:range rdf:resource="#Refining_entity"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#is_included_in_specifically">
+    <rdfs:subPropertyOf rdf:resource="#is_included_in"/>
+    <owl:inverseOf rdf:resource="#includes_specifically"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#inverse_of_Mini-bio-3-05-13_Slot_0">
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#has_structural_part"/>
+    </rdfs:subPropertyOf>
+    <owl:inverseOf rdf:resource="#is_suspended_in"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#Inverse_modifier_property">
+    <rdfs:subPropertyOf rdf:resource="#Inverse_Refining_property"/>
+    <owl:inverseOf rdf:resource="#Modifier_property"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#has_quality">
+    <rdfs:subPropertyOf rdf:resource="#Inverse_Relational_property"/>
+    <owl:inverseOf rdf:resource="#is_quality_of"/>
+    <rdfs:range rdf:resource="#Quality"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#Inverse_intrinsic_property">
+    <owl:inverseOf rdf:resource="#Instrinsic_property"/>
+    <rdfs:subPropertyOf rdf:resource="#Inverse_Refining_property"/>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#is_connected_to">
+    <owl:inverseOf rdf:resource="#has_connection_to"/>
+    <rdfs:subPropertyOf rdf:resource="#has_physical_location"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Connection.  Not symmetric in GALEN because GALEN handled symmetric properties badly.  </rdfs:comment>
+  </owl:ObjectProperty>
+  <owl:ObjectProperty rdf:about="#is_subdivision_of">
+    <rdfs:domain rdf:resource="#Discrete_physical_continuant"/>
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#is_structural_part_of"/>
+    </rdfs:subPropertyOf>
+    <owl:inverseOf rdf:resource="#has_subdivision"/>
+    <rdfs:range rdf:resource="#Discrete_physical_continuant"/>
+  </owl:ObjectProperty>
+  <owl:TransitiveProperty rdf:ID="has_portion">
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#has_structural_part"/>
+    </rdfs:subPropertyOf>
+    <owl:inverseOf>
+      <owl:TransitiveProperty rdf:about="#is_portion_of"/>
+    </owl:inverseOf>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+  </owl:TransitiveProperty>
+  <owl:TransitiveProperty rdf:about="#has_part">
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#is_physical_location_of"/>
+    </rdfs:subPropertyOf>
+    <owl:inverseOf>
+      <owl:TransitiveProperty rdf:about="#is_part_of"/>
+    </owl:inverseOf>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+  </owl:TransitiveProperty>
+  <owl:TransitiveProperty rdf:about="#has_structural_part">
+    <rdfs:subPropertyOf rdf:resource="#has_clinical_part"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <owl:inverseOf>
+      <owl:TransitiveProperty rdf:about="#is_structural_part_of"/>
+    </owl:inverseOf>
+  </owl:TransitiveProperty>
+  <owl:TransitiveProperty rdf:about="#is_physical_location_of">
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:ID="is_location_of"/>
+    </rdfs:subPropertyOf>
+    <owl:inverseOf rdf:resource="#has_physical_location"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+  </owl:TransitiveProperty>
+  <owl:TransitiveProperty rdf:about="#is_distinct_part_of">
+    <rdfs:domain>
+      <owl:Class>
+        <owl:unionOf rdf:parseType="Collection">
+          <owl:Class rdf:about="#Discrete_physical_continuant"/>
+          <owl:Class rdf:about="#Half_heart"/>
+        </owl:unionOf>
+      </owl:Class>
+    </rdfs:domain>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#is_structural_part_of"/>
+    </rdfs:subPropertyOf>
+    <owl:inverseOf>
+      <owl:TransitiveProperty rdf:ID="has_distinct_part"/>
+    </owl:inverseOf>
+    <rdfs:range rdf:resource="#Discrete_physical_continuant"/>
+  </owl:TransitiveProperty>
+  <owl:TransitiveProperty rdf:about="#is_part_of">
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Generic partonomy including  membership.</rdfs:comment>
+    <rdfs:domain rdf:resource="#Self_standing_entity"/>
+    <rdfs:subPropertyOf rdf:resource="#has_physical_location"/>
+    <owl:inverseOf rdf:resource="#has_part"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+  </owl:TransitiveProperty>
+  <owl:TransitiveProperty rdf:about="#is_portion_of">
+    <rdfs:range rdf:resource="#Mass_physical_continuant"/>
+    <owl:inverseOf rdf:resource="#has_portion"/>
+    <rdfs:domain rdf:resource="#Mass_physical_continuant"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:subPropertyOf>
+      <owl:TransitiveProperty rdf:about="#is_structural_part_of"/>
+    </rdfs:subPropertyOf>
+  </owl:TransitiveProperty>
+  <owl:TransitiveProperty rdf:about="#is_location_of">
+    <owl:inverseOf>
+      <owl:TransitiveProperty rdf:about="#has_location"/>
+    </owl:inverseOf>
+    <rdfs:subPropertyOf rdf:resource="#Inverse_Relational_property"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+  </owl:TransitiveProperty>
+  <owl:TransitiveProperty rdf:about="#is_structural_part_of">
+    <rdfs:domain rdf:resource="#Physical_continuant"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Structural partonomy not including membership. Structural partonomy in GALEN does not cross scales. </rdfs:comment>
+    <owl:inverseOf rdf:resource="#has_structural_part"/>
+    <rdfs:range rdf:resource="#Physical_continuant"/>
+    <rdfs:subPropertyOf rdf:resource="#is_clinically_part_of"/>
+  </owl:TransitiveProperty>
+  <owl:TransitiveProperty rdf:about="#is_locus_of">
+    <owl:inverseOf rdf:resource="#has_locus"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:subPropertyOf rdf:resource="#is_location_of"/>
+  </owl:TransitiveProperty>
+  <owl:TransitiveProperty rdf:about="#has_location">
+    <owl:inverseOf rdf:resource="#is_location_of"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:comment rdf:datatype="http://www.w3.org/2001/XMLSchema#string"
+    >Most general notion of location.  Not necessarily physical
+
+ NOT GALEN "hasLocation"
+</rdfs:comment>
+    <rdfs:subPropertyOf rdf:resource="#Relational_property"/>
+  </owl:TransitiveProperty>
+  <owl:TransitiveProperty rdf:about="#has_distinct_part">
+    <owl:inverseOf rdf:resource="#is_distinct_part_of"/>
+    <rdfs:subPropertyOf rdf:resource="#has_structural_part"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+  </owl:TransitiveProperty>
+  <owl:FunctionalProperty rdf:about="#has_topology">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:domain rdf:resource="#Physical_object"/>
+    <rdfs:range rdf:resource="#Topology_value_partition"/>
+    <rdfs:subPropertyOf rdf:resource="#Instrinsic_property"/>
+    <owl:inverseOf>
+      <owl:InverseFunctionalProperty rdf:ID="is_topology_of"/>
+    </owl:inverseOf>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:ID="has_laterality">
+    <owl:inverseOf>
+      <owl:InverseFunctionalProperty rdf:ID="is_laterality_of"/>
+    </owl:inverseOf>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:range rdf:resource="#Laterality"/>
+    <rdfs:subPropertyOf rdf:resource="#Selector_property"/>
+    <rdfs:domain rdf:resource="#Biological_object_that_has_left_right_symmetry"/>
+  </owl:FunctionalProperty>
+  <owl:FunctionalProperty rdf:about="#has_left_right_symmetry">
+    <rdfs:domain rdf:resource="#Biological_object"/>
+    <rdfs:subPropertyOf rdf:resource="#Instrinsic_property"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:range rdf:resource="#Left_right_symmetry"/>
+  </owl:FunctionalProperty>
+  <owl:InverseFunctionalProperty rdf:ID="is_level_quality_of">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+    <rdfs:subPropertyOf rdf:resource="#is_quality_of"/>
+    <owl:inverseOf>
+      <owl:InverseFunctionalProperty rdf:about="#has_level_quality"/>
+    </owl:inverseOf>
+  </owl:InverseFunctionalProperty>
+  <owl:InverseFunctionalProperty rdf:about="#has_level_quality">
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#FunctionalProperty"/>
+    <rdfs:subPropertyOf rdf:resource="#has_quality"/>
+    <owl:inverseOf rdf:resource="#is_level_quality_of"/>
+    <rdfs:range rdf:resource="#Actiovity_Level"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+  </owl:InverseFunctionalProperty>
+  <owl:InverseFunctionalProperty rdf:about="#is_topology_of">
+    <owl:inverseOf rdf:resource="#has_topology"/>
+    <rdfs:subPropertyOf rdf:resource="#Inverse_intrinsic_property"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+  </owl:InverseFunctionalProperty>
+  <owl:InverseFunctionalProperty rdf:about="#is_laterality_of">
+    <owl:inverseOf rdf:resource="#has_laterality"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+    <rdfs:subPropertyOf rdf:resource="#Inverse_selector_property"/>
+  </owl:InverseFunctionalProperty>
+  <owl:InverseFunctionalProperty rdf:about="#has_grain">
+    <owl:inverseOf rdf:resource="#is_grain_of"/>
+    <rdfs:subPropertyOf rdf:resource="#has_member"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+  </owl:InverseFunctionalProperty>
+  <owl:InverseFunctionalProperty rdf:about="#is_normality_status_of">
+    <rdfs:subPropertyOf rdf:resource="#Inverse_modifier_property"/>
+    <owl:inverseOf rdf:resource="#has_normality_status"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+  </owl:InverseFunctionalProperty>
+  <owl:InverseFunctionalProperty rdf:about="#is_status_of">
+    <rdfs:subPropertyOf rdf:resource="#Inverse_modifier_property"/>
+    <owl:inverseOf rdf:resource="#has_status"/>
+    <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#ObjectProperty"/>
+  </owl:InverseFunctionalProperty>
+</rdf:RDF>
+
+<!-- Created with Protege (with OWL Plugin 1.3, Build 188)  http://protege.stanford.edu -->

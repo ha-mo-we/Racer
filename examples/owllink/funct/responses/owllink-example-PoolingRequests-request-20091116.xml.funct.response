@@ -1,0 +1,46 @@
+
+
+ResponseMessage(
+  
+  KB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_1> ))
+  
+  OK()
+  
+  SetOfClasses(
+    D 
+    B 
+    E 
+    C 
+    A )
+  
+  SetOfClasses(
+    E 
+    D )
+  
+  BooleanResponse(
+    Attribute(
+      result 
+      "false" ))
+  
+  SetOfClassSynsets(
+    ClassSynset(
+      owl:Nothing ))
+  
+  KB(
+    Attribute(
+      kb 
+      <http://www.owllink.org/examples/KB_2> ))
+  
+  OK()
+  
+  OK()
+  
+  OK()
+  
+  KBError(
+    Attribute(
+      error 
+      "KB http://www.owllink.org/examples/KB_1 not found. Request denied" )))

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ResponseMessage xmlns="http://www.owllink.org/owllink#"
+                 xmlns:owl="http://www.w3.org/2002/07/owl#">
+  <KB kb="http://www.owllink.org/ont/families"/>
+  <OK warning="((http://www.owllink.org/ontologies/primer.owl -->
+  http://www.owllink.org/ont/families))"/>
+  <BooleanResponse result="true"/>
+  <BooleanResponse result="true"/>
+  <BooleanResponse result="true"/>
+  <BooleanResponse result="true"/>
+  <BooleanResponse result="false"/>
+  <BooleanResponse result="true"/>
+  <BooleanResponse result="false"/>
+  <BooleanResponse result="true"/>
+  <OK/>
+</ResponseMessage>

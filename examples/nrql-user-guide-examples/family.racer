@@ -1,0 +1,73 @@
+
+(in-knowledge-base family smith-family)
+
+(signature :atomic-concepts (human person female male woman man
+                                   parent mother father
+                                   grandmother aunt uncle
+                                   sister brother)				   
+           :roles ((has-descendant :transitive t)
+                   (has-child :parent has-descendant
+		              :inverse has-parent 
+                              :domain parent
+                              :range person)
+                   has-sibling
+                   (has-sister :parent has-sibling)
+                   (has-brother :parent has-sibling))
+           :features ((has-gender :feature t))
+           :individuals (alice betty charles doris eve)
+	   :attributes ((cardinal age)))
+
+(implies *top* (all has-child person))
+(implies (some has-child *top*) parent)
+
+(implies (some has-sibling *top*) (or sister brother))
+(implies *top* (all has-sibling (or sister brother)))
+(implies *top* (all has-sister (some has-gender female)))
+(implies *top* (all has-brother (some has-gender male)))
+
+(implies person (and human (some has-gender (or female male))))
+(disjoint female male)
+(implies woman (and person (some has-gender female)))
+(implies man (and person (some has-gender male)))
+
+(equivalent parent (and person (some has-child person)))
+(equivalent mother (and woman parent)) 
+(equivalent father (and man parent))
+
+(equivalent grandmother 
+	    (and mother 
+		 (some has-child 
+		       (some has-child person))))
+(equivalent aunt (and woman (some has-sibling parent)))
+(equivalent uncle (and man (some has-sibling parent)))
+
+(equivalent brother (and man (some has-sibling person)))
+(equivalent sister (and woman (some has-sibling person)))
+
+(instance alice mother)
+
+(related alice betty has-child)
+(related alice charles has-child)
+
+(instance betty mother)
+
+(related betty doris has-child)
+(related betty eve has-child)
+
+(instance charles brother)
+(related charles betty has-sibling)
+
+(related doris eve has-sister)
+
+(related eve doris has-sister)
+
+(instance alice (= age 80))
+
+(instance betty (= age 50))
+
+(instance charles (= age 55))
+
+(instance eve (= age 18))
+
+(instance doris (= age 24))
+

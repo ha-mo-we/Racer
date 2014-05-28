@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ResponseMessage xmlns="http://www.owllink.org/owllink#"
+                 xmlns:owl="http://www.w3.org/2002/07/owl#">
+  <KB kb="http://www.owllink.org/ont/families"/>
+  <OK warning="((http://www.owllink.org/ontologies/primer.owl -->
+  http://www.owllink.org/ont/families))"/>
+  <BooleanResponse result="true"/>
+  <SetOfObjectPropertySynsets>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="owl:bottomObjectProperty"/>
+    </ObjectPropertySynset>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="families:hasFather"/>
+    </ObjectPropertySynset>
+  </SetOfObjectPropertySynsets>
+  <SetOfObjectPropertySynsets>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="owl:topObjectProperty"/>
+    </ObjectPropertySynset>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="families:hasSpouse"/>
+    </ObjectPropertySynset>
+  </SetOfObjectPropertySynsets>
+  <SetOfObjectProperties>
+    <owl:ObjectProperty abbreviatedIRI="families:hasChild"/>
+    <owl:ObjectProperty abbreviatedIRI="otherOnt:child"/>
+  </SetOfObjectProperties>
+  <Error error="OWLlink request GetDisjointObjectProperties not yet implemented"/>
+  <ObjectPropertyHierarchy>
+    <ObjectPropertySynset>
+      <owl:ObjectProperty abbreviatedIRI="owl:bottomObjectProperty"/>
+    </ObjectPropertySynset>
+    <ObjectPropertySubObjectPropertiesPair>
+      <ObjectPropertySynset>
+        <owl:ObjectProperty abbreviatedIRI="owl:topObjectProperty"/>
+      </ObjectPropertySynset>
+      <SubObjectPropertySynsets>
+        <ObjectPropertySynset>
+          <owl:ObjectProperty abbreviatedIRI="families:hasParent"/>
+        </ObjectPropertySynset>
+        <ObjectPropertySynset>
+          <owl:ObjectProperty abbreviatedIRI="families:hasSpouse"/>
+        </ObjectPropertySynset>
+        <ObjectPropertySynset>
+          <owl:ObjectProperty abbreviatedIRI="families:hasSon"/>
+        </ObjectPropertySynset>
+        <ObjectPropertySynset>
+          <owl:ObjectProperty abbreviatedIRI="families:hasRelative"/>
+        </ObjectPropertySynset>
+        <ObjectPropertySynset>
+          <owl:ObjectProperty abbreviatedIRI="families:parentOf"/>
+        </ObjectPropertySynset>
+        <ObjectPropertySynset>
+          <owl:ObjectProperty abbreviatedIRI="families:hasHusband"/>
+        </ObjectPropertySynset>
+        <ObjectPropertySynset>
+          <owl:ObjectProperty abbreviatedIRI="families:hasAncestor"/>
+        </ObjectPropertySynset>
+        <ObjectPropertySynset>
+          <owl:ObjectProperty abbreviatedIRI="families:hasGrandparent"/>
+        </ObjectPropertySynset>
+        <ObjectPropertySynset>
+          <owl:ObjectProperty abbreviatedIRI="families:hasUncle"/>
+        </ObjectPropertySynset>
+        <ObjectPropertySynset>
+          <owl:ObjectProperty abbreviatedIRI="families:hasBrother"/>
+        </ObjectPropertySynset>
+        <ObjectPropertySynset>
+          <owl:ObjectProperty abbreviatedIRI="families:loves"/>
+        </ObjectPropertySynset>
+        <ObjectPropertySynset>
+          <owl:ObjectProperty abbreviatedIRI="families:hasDaughter"/>
+        </ObjectPropertySynset>
+        <ObjectPropertySynset>
+          <owl:ObjectProperty abbreviatedIRI="families:hasChild"/>
+          <owl:ObjectProperty abbreviatedIRI="otherOnt:child"/>
+        </ObjectPropertySynset>
+      </SubObjectPropertySynsets>
+    </ObjectPropertySubObjectPropertiesPair>
+    <ObjectPropertySubObjectPropertiesPair>
+      <ObjectPropertySynset>
+        <owl:ObjectProperty abbreviatedIRI="families:hasParent"/>
+      </ObjectPropertySynset>
+      <SubObjectPropertySynsets>
+        <ObjectPropertySynset>
+          <owl:ObjectProperty abbreviatedIRI="families:hasFather"/>
+        </ObjectPropertySynset>
+      </SubObjectPropertySynsets>
+    </ObjectPropertySubObjectPropertiesPair>
+    <ObjectPropertySubObjectPropertiesPair>
+      <ObjectPropertySynset>
+        <owl:ObjectProperty abbreviatedIRI="families:hasSpouse"/>
+      </ObjectPropertySynset>
+      <SubObjectPropertySynsets>
+        <ObjectPropertySynset>
+          <owl:ObjectProperty abbreviatedIRI="families:hasWife"/>
+        </ObjectPropertySynset>
+      </SubObjectPropertySynsets>
+    </ObjectPropertySubObjectPropertiesPair>
+  </ObjectPropertyHierarchy>
+  <BooleanResponse result="true"/>
+  <SetOfDataPropertySynsets>
+    <DataPropertySynset>
+      <owl:DataProperty abbreviatedIRI="owl:bottomDataProperty"/>
+    </DataPropertySynset>
+  </SetOfDataPropertySynsets>
+  <SetOfDataPropertySynsets>
+    <DataPropertySynset>
+      <owl:DataProperty abbreviatedIRI="owl:topDataProperty"/>
+    </DataPropertySynset>
+  </SetOfDataPropertySynsets>
+  <DataPropertySynonyms>
+    <owl:DataProperty abbreviatedIRI="families:hasAge"/>
+    <owl:DataProperty abbreviatedIRI="otherOnt:age"/>
+  </DataPropertySynonyms>
+  <Error error="OWLlink request GetDisjointDataProperties not yet implemented"/>
+  <DataPropertyHierarchy>
+    <DataPropertySynset>
+      <owl:DataProperty abbreviatedIRI="owl:bottomDataProperty"/>
+    </DataPropertySynset>
+    <DataPropertySubDataPropertiesPair>
+      <DataPropertySynset>
+        <owl:DataProperty abbreviatedIRI="owl:topDataProperty"/>
+      </DataPropertySynset>
+      <SubDataPropertySynsets>
+        <DataPropertySynset>
+          <owl:DataProperty abbreviatedIRI="families:hasSSN"/>
+        </DataPropertySynset>
+        <DataPropertySynset>
+          <owl:DataProperty abbreviatedIRI="families:hasAge"/>
+          <owl:DataProperty abbreviatedIRI="otherOnt:age"/>
+        </DataPropertySynset>
+      </SubDataPropertySynsets>
+    </DataPropertySubDataPropertiesPair>
+  </DataPropertyHierarchy>
+  <OK/>
+</ResponseMessage>

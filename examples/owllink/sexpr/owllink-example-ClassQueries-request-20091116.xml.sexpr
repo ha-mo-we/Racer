@@ -1,0 +1,39 @@
+
+
+(NamespacePrefix () 
+  NIL 
+  |http://www.owllink.org/owllink#| )
+
+(NamespacePrefix () 
+  owl 
+  |http://www.w3.org/2002/07/owl#| )
+
+(NamespacePrefix () 
+  xsi 
+  |http://www.w3.org/2001/XMLSchema-instance| )
+
+(RequestMessage () 
+  
+  (CreateKB (:kb |http://www.owllink.org/ont/families| ) 
+    (Prefix (:name "families" :fullIRI |http://example.com/owl/families/| ) )
+    (Prefix (:name "otherOnt" :fullIRI |http://example.org/otherOntologies/families/| ) ))
+  
+  (LoadOntologies (:kb |http://www.owllink.org/ont/families| ) 
+    (OntologyIRI (:IRI |http://www.owllink.org/ontologies/primer.owl| ) ))
+  
+  (IsClassSatisfiable (:kb |http://www.owllink.org/ont/families| ) 
+    |families:Man| )
+  
+  (GetDisjointClasses (:kb |http://www.owllink.org/ont/families| ) 
+    |families:Father| )
+  
+  (GetSubClasses (:kb |http://www.owllink.org/ont/families| :direct "true" ) 
+    |families:Parent| )
+  
+  (GetSuperClasses (:kb |http://www.owllink.org/ont/families| :direct "true" ) 
+    |families:Grandfather| )
+  
+  (GetSubClasses (:kb |http://www.owllink.org/ont/families| :direct "false" ) 
+    |owl:Nothing| )
+  
+  (ReleaseKB (:kb |http://www.owllink.org/ont/families| ) ))

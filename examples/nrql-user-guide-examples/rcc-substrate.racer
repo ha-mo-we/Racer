@@ -1,0 +1,79 @@
+(full-reset) 
+(in-tbox geo-example)
+
+(define-concrete-domain-attribute inhabitants :type cardinal)
+(define-concrete-domain-attribute has-name :type string)
+(define-primitive-attribute has-language)
+  
+(in-abox geo-example)  
+
+;;; Create an RCC5 substrate which is associated with the ABox
+;;; geo-example
+
+(in-rcc-box geo-example :rcc5)
+
+;;; Create some RCC substrate nodes. 
+;;; Note that "data-node" can be used
+;;; as well. 
+
+(rcc-instance europe)
+
+(rcc-instance germany
+              (country germany)                 
+              (and country
+                   (string= has-name "Germany")
+                   (all has-language german) 
+                   (some has-language language)
+                   (= inhabitants 82600000)))
+
+
+(rcc-instance france
+              (country france)                 
+              (and country
+                   (string= has-name "France")
+                   (all has-language french) 
+                   (some has-language language)
+                   (= inhabitants 60656178)))
+
+(rcc-instance hamburg
+              (city hamburg)
+              (and city 
+                   (some in-country germany)
+                   (string= has-name "Hamburg")))
+
+(rcc-instance paris
+              (city paris)
+              (and city 
+                   (some in-country france)
+                   (string= has-name "Paris")))
+
+
+;;; Create some RCC substrate edges. 
+;;; Note that "data-edge" can be used
+;;; as well. 
+
+;;; Europe contains Germany
+
+(rcc-related europe germany :ppi)
+
+;;; Europe contains France
+
+(rcc-related europe france :ppi)
+
+;;; Germany contains (= PPI) Hamburg: 
+
+(rcc-related germany hamburg :ppi)
+
+;;; France contains Paris: 
+
+(rcc-related france paris :ppi)
+
+;;; Germany and France do not overlap: 
+
+(rcc-related germany france :dr)
+
+;;;
+
+(retrieve (?*x ?*y) (?*x ?*y :pp))
+
+(retrieve (?*x ?*y) (?*x ?*y :dr))

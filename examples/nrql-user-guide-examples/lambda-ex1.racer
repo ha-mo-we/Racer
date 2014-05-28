@@ -1,0 +1,9 @@
+(full-reset)
+
+(define-concrete-domain-attribute width :type integer)
+
+(define-concrete-domain-attribute length :type integer)
+
+(instance i (and (equal width 10) (equal length 20)))
+
+

@@ -1,0 +1,11 @@
+
+
+(ResponseMessage () 
+  
+  (KB (:kb |http://www.owllink.org/examples/KB_1| ) )
+  
+  (OK () )
+  
+  (BooleanResponse (:result "true" ) )
+  
+  (OK () ))
