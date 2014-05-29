@@ -6,7 +6,8 @@ Racer is a knowledge representation system that implements a highly optimized ta
 In order to compile and load Racer inside Common Lisp use
 Quicklisp or ASDF directly. Make sure ASDF finds the file racer.asd, e.g., with by evaluating something like `(pushnew #P"~/Downloads/racer-master/" asdf:*central-registry*)` and execute `(asdf:load-system "racer")`. With Quicklisp you can use `(ql:quickload "racer")`. 
 
-All Racer forms are available from the package racer. See the doc directory for a User's Guide and a Reference Manual. In order to start the Racer server, just execute `(racer:racer-toplevel)`
+Racer has been tested with ACL 8.2, CCL 1.9, LW 6.1, and SBCL 1.1.8.
+All Racer forms are available from the package racer. See the doc directory for a User's Guide and a Reference Manual. In order to start the Racer server using ACL, CCL, or LW, just execute `(racer:racer-toplevel)`
 
 ? (racer:racer-toplevel)
 
