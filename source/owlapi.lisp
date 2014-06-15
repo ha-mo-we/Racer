@@ -60,16 +60,8 @@
 #+:racer-server
 (declaim (special ts::*really-warn-p*))
 
-#-:sbcl
 (declaim (special *server-request* *one-simple-output*
-                  *multiprocessing-server*))
-
-#+:sbcl ; For SBCL the file racer-server.lisp, in which the following symbols are defined, is not loaded.
-(progn
-  (defparameter *server-request* nil)
-  (defparameter *one-simple-output* nil)
-  (defparameter *multiprocessing-server* nil))
-  
+                  *multiprocessing-server*))  
 
 ;;;
 ;;;

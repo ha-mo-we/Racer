@@ -2360,11 +2360,11 @@
 
                    (max (1 nil) nil ,(lambda (list &key (key 'identity))
                                        (let ((fn (process-fun-arg key)))
-                                         (max (mapcar fn list)))))
+                                         (apply 'max (mapcar fn list)))))
 
                    (min (1 nil) nil ,(lambda (list &key (key 'identity))
                                        (let ((fn (process-fun-arg key)))
-                                         (min (mapcar fn list)))))
+                                         (apply 'min (mapcar fn list)))))
                    
                    (maximum (1 nil) nil ,(lambda (list &key (key 'identity))
                                            (let ((fn (process-fun-arg key)))

@@ -308,7 +308,7 @@
 
                                 (when tk
                                   (return-from nil tk))))
-          
+
                              ((and (char= char #\") 
                                    reading-string-p)
 
@@ -340,7 +340,7 @@
                                   (setf last-was-whitespace-p nil)
                                   (when tk 
                                     (return-from nil tk)))))
-                                 
+
                              ((and (char= char #\<) 
                                    (not reading-uri-p)
                                    (not reading-string-p))

@@ -204,8 +204,9 @@
               (open (without-file-prefix ,url)
                     :direction :input)))
          ,@body)
-     (let ((string 
+     #|(let ((string 
             (s-http-client:do-http-request ,url)))
        ;; (pprint string)
        (with-input-from-string (,stream string)
-         ,@body))))
+         ,@body))|#
+       (error "Cannot access a URL from this Lisp.")))

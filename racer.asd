@@ -158,7 +158,7 @@
   :license "BSD 3"
   :pathname #P"racer:source;"
   :serial t
-  :depends-on ((:require "aserve") 
+  :depends-on (#-:abcl (:require "aserve") 
                #-:allegro (:require "flexi-streams")
                #-:allegro (:require "deflate")
                #+:allegro (:require "uri")
@@ -348,6 +348,8 @@
                ;; sirius
                #+(or :ccl :lispworks :allegro)
                (:file "racer-server")
+	       #+(or :abcl :sbcl)
+	       (:file "ersatz-racer-server")
                #+(or :ccl :lispworks :allegro)
                (:file "nrql-server-case")
                (:file "racer-interface")
@@ -365,7 +367,7 @@
                         :pathname #P"racer:source;"
                         :components ((:file "http-stream")
                                      (:file "owl-import")
-                                     (:file "owl-functional")
+                                     #-:abcl (:file "owl-functional") ; It seems the ABCL compiler has a bug, it cannot compile this file.
                                      (:file "functional-renderer")
                                      (:file "owllink-parsers")
                                      (:file "owllink-functional")

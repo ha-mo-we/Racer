@@ -850,14 +850,12 @@
         :racer)
 
 
-#|
+(defun use-racer-in-cl-user ()
+  (dolist (package '(racer nrql-symbols))
+    (loop for sym being the external-symbols of (find-package package) do
+	 (shadowing-import sym 'cl-user))))
 
-#+:racer
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (defun use-racer-in-cl-user ()
-    (dolist (package '(racer nrql-symbols))
-      (loop for sym being the external-symbols of (find-package package) do
-	    (shadowing-import sym 'cl-user)))))
+#|
 
 The old version was:
 (eval-when (:compile-toplevel :load-toplevel :execute)
