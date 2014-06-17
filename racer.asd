@@ -150,6 +150,15 @@
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (require :smputil))
 
+#+:lispworks
+(require "asdf")
+
+#-:asdf3
+(when (< (read-from-string (asdf:asdf-version)) 2.32)
+  (error "Racer needs at least ASDF 2.32"))
+
+#+:lispworks 
+(setf asdf::*default-encoding* :default)
 
 ;;; ========================================================================================
 
