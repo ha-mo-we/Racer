@@ -688,7 +688,9 @@ if their ids, terms, and negation flags match."
                 (when (and (null (constraint-or-dependencies new-constraint))
                            (constraint-or-dependencies matched-constraint-1)
                            (eq (constraint-term matched-constraint-1)
-                               (constraint-term new-constraint)))
+                               (constraint-term new-constraint))
+                           (concept-constraint-p new-constraint)
+                           (not (constraint-ignore-determinism-p new-constraint)))
                   (race-trace ("Removing or-dependencies of old constraint ~S ~
                               due to duplicate ~S. Old dep= ~S, new dep=NIL"
                                matched-constraint-1

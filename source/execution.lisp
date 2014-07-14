@@ -221,8 +221,8 @@
       (progn 
         (warn-tbox-has-changed)
         (if (is-rule-p query)
-            (reexecute-rule query)
-          (reexecute-query query)))
+            (apply #'reexecute-rule query args)
+          (apply #'reexecute-query query args)))
     
     (progn
 
@@ -475,8 +475,8 @@
       (progn 
         (warn-tbox-has-changed)
         (if (is-rule-p query)
-            (reexecute-rule query)
-          (reexecute-query query)))
+            (apply #'reexecute-rule query args)
+          (apply #'reexecute-query query args)))
 
     (progn
       

@@ -49,9 +49,7 @@
 ;;;===========================================================================
 
 (defparameter *server-timeout* nil)
-(defparameter *unsafe-mode* 
-  #+:racer-with-sirius t
-  #-:racer-with-sirius nil)
+(defparameter *unsafe-mode* t)
 
 (defconstant +dig-1-1+ :dig-1-1)
 (defconstant +dig-1-1-racer+ :dig-1-1-racer)

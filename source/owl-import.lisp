@@ -64,14 +64,6 @@
 
 (defvar *import-level* 0)
 
-#+:racer-server
-(defun get-syntax-from-document (uri &rest args)
-  (declare (ignorable args))
-  (get-syntax-from-document 
-   uri
-   #+:aserve (getf args ':verbose)))
-
-#-:racer-server
 (defun get-syntax-from-document (uri &rest args)
   (declare (ignorable args))
   (with-input-from-url (stream uri)

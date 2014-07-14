@@ -43,6 +43,14 @@
   (sum-of-neg-entries 0)
   )
 
+(defmethod print-object ((object select-disjunct-record) stream)
+  (print-unreadable-object (object stream :type t :identity nil)
+    (format stream "no(pos=~S,neg=~D), sum(pos=~S,neg=~D)"
+            (select-disjunct-record-no-of-pos-entries object)
+            (select-disjunct-record-no-of-neg-entries object)
+            (select-disjunct-record-sum-of-pos-entries object)
+            (select-disjunct-record-sum-of-neg-entries object))))
+
 #+:debug
 (defun copy-select-disjunct-record-slots (to from)
   (setf (select-disjunct-record-no-of-pos-entries to) (select-disjunct-record-no-of-pos-entries from))
@@ -209,6 +217,21 @@
        (if (eql ,no-sym 0)
            0
          (/ (select-disjunct-total-sum ,table-sym) ,no-sym)))))
+
+(defmethod print-object ((object select-disjunct) stream)
+  (let* ((current-index (and object (select-disjunct-current-history-entry object)))
+         (current (and current-index (svref (select-disjunct-history object) current-index))))
+    (print-unreadable-object (object stream :type t :identity nil)
+      (format stream "entries(pos=~D,neg=~D), sum-rate = ~,2F, total-ave= ~,2F, total-sum = ~D"
+              (if current
+                  (select-disjunct-record-no-of-pos-entries current)
+                0)
+              (if current
+                  (select-disjunct-record-no-of-neg-entries current)
+                0)
+              (select-disjunct-last-sum-rate object)
+              (select-disjunct-total-average object)
+              (select-disjunct-total-sum object)))))
 
 (defun increment-disjunct-table-entry (concept table increment)
   (incf (select-disjunct-no-of-table-changes table))

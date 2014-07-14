@@ -176,6 +176,7 @@
   #+:debug (assert (consp store))
   (if (rest store)
     (progn
+      #+:debug
       (assert (loop for c-store in store
                     for table = (cs-table c-store)
                     never (eql (hash-table-count table) 0)))

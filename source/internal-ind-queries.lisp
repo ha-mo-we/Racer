@@ -113,10 +113,11 @@
                           (if (if *use-abox-precompletion*
                                   (test-abox-satisfiable
                                    abox
-                                   (mapcar #'encode-constraint
-                                           (list (list (first ind-predecessor-name-set)
-                                                       query-concept-1) 
-                                                 (list (first ind-filler-name-set) query-concept-2)))
+                                   (nconc (mapcar #'encode-constraint
+                                                  (list (list (first ind-predecessor-name-set)
+                                                              query-concept-1) 
+                                                        (list (first ind-filler-name-set) query-concept-2)))
+                                          (subgraph-pending-new-parents subgraph))
                                    nil
                                    nil
                                    nil
@@ -241,7 +242,9 @@
                                    visited-flag)
                                 (when (or axiom-found-p individuals-possibly-transitively-related-p)
                                   (return-from role-axiom-or-implied-transitive-role-found
-                                    (values nil t)))))))))
+                                    (if (and axiom-found-p (role-transitive-p role))
+                                        t
+                                      (values nil t))))))))))
               (or (loop for assertion in (individual-outgoing-role-assertions current-ind)
                         for ind-2 = (constraint-ind-2 assertion)
                         do
@@ -261,7 +264,9 @@
                                                                                visited-flag)
                                 (when (or axiom-found-p individuals-possibly-transitively-related-p)
                                   (return-from role-axiom-or-implied-transitive-role-found
-                                    (values nil t))))))))
+                                    (if (and axiom-found-p (role-transitive-p role))
+                                        t
+                                      (values nil t)))))))))
                   (loop for assertion in (individual-incoming-role-assertions current-ind)
                         for ind-1 = (constraint-ind-1 assertion)
                         do
@@ -281,7 +286,9 @@
                                                                                visited-flag)
                                 (when (or axiom-found-p individuals-possibly-transitively-related-p)
                                   (return-from role-axiom-or-implied-transitive-role-found
-                                    (values nil t))))))))
+                                    (if (and axiom-found-p (role-transitive-p role))
+                                        t
+                                      (values nil t)))))))))
                   (when transitive-subrole-p
                     (unless visited-flag
                       (setf visited-flag (incf *individual-set-mark*)))
@@ -326,7 +333,8 @@
                                                (or axiom-found-p
                                                    individuals-possibly-transitively-related-p))))))
                             (return-from role-axiom-or-implied-transitive-role-found
-                              (values nil t)))))))))))))
+                              (or (role-transitive-p role)
+                                  (values nil t))))))))))))))
 
 (defun internal-retrieve-individual-filled-roles (ind-predecessor ind-filler abox)
   (check-type ind-predecessor symbol)

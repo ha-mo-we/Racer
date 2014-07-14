@@ -39,6 +39,7 @@
 ;;;===========================================================================
 
 (defvar *use-tbox* nil)                 ; is TBox available?
+(defvar *use-abox* nil)                 ; is ABox available?
 
 (defconstant +top-symbol+ '*top*
   "Used as unique id for symbol-name of the top concept")

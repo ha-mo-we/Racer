@@ -112,22 +112,6 @@
   (timenet-assertions 'empty-stream)
   (el+-transformed-table nil))
 
-(defstruct subgraph
-  (individuals nil)
-  (encoded-individual-axioms nil)
-  (encoded-role-axioms nil)
-  (individual-names nil)
-  (alc-language-p t)
-  (with-single-distinguished-individual-p nil)
-  (last-cdr-individuals nil)
-  (last-cdr-encoded-role-axioms nil)
-  (precompletion nil)
-  (precompletions-from-merger nil)
-  (completion nil)
-  (synonym-candidates 'unknown)
-  (last-cdr-individual-names nil)
-  )
-
 (defun abox-coherence-checked-p (abox)
   (or (eq (abox-una-coherent-p abox) t)
       (not (eq (abox-coherent-p abox) ':dont-know))))
@@ -3730,6 +3714,21 @@
           (loop for concept-1 in (concept-parents-internal concept)
                 nconc (compute-individual-ancestors-1 concept-1)))))
 
+(defun update-ind-pseudo-model-det-pos-literals (ind concept)
+  (let ((model (individual-model ind)))
+    (when (model-info-p model)
+      #+:debug (assert (atomic-concept-p concept))
+      (push concept (model-det-positive-literals model))
+      (when (full-model-info-p model)
+        (multiple-value-bind (new-pos-literals removed-p)
+            (racer-remove concept (model-positive-literals model))
+          (if removed-p
+              (setf (model-positive-literals model) new-pos-literals)
+            (multiple-value-bind (new-neg-literals removed-p)
+                (racer-remove concept (model-negative-literals model))
+              (when removed-p
+                (setf (model-negative-literals model) new-neg-literals)))))))))
+
 (defparameter *use-et-ind-model* nil)
 
 (defun get-cached-individual-model (ind abox)
@@ -3934,6 +3933,13 @@
 		  (incf-statistics *ind-unmergable-det-models*)))
 	      (values mergable partial))))))))
 
+(defun non-deterministic-clash-dependencies-p (dependencies)
+  (when dependencies
+    (or (loop for constraint in dependencies
+              thereis (or (or-constraint-p constraint)
+                          (qualified-role-signature-p constraint)))
+        (collect-dependencies dependencies))))
+
 (defun test-ind-subsumes (ind concept abox)
   (with-race-trace-sublevel ("test-ind-subsumes"
                              :arguments (list ind concept abox)
@@ -3946,93 +3952,108 @@
           (classified-p (tbox-classified-p-internal (abox-tbox abox)))
           (start (when *debug*
                    (get-internal-run-time))))
-      (cond
-       ((and atomic-p
-             (loop for subsumer in (individual-told-subsumers ind)
-		 thereis (or (eq concept subsumer)
-			     (and classified-p
-				  (member concept (get-concept-ancestors subsumer))))))
-        t)
-       ((and atomic-p
-	     (if classified-p
-		 (lists-not-disjoint-p (get-concept-ancestors concept)
-                                       (individual-told-non-subsumers ind))
-	       (member concept (individual-told-non-subsumers ind))))
-        nil)
-       ((and atomic-p
-             (member concept (model-det-positive-literals (get-cached-individual-model ind abox))))
-        t)
-       (t
-        (multiple-value-bind (not-subsumes-p unknown-p)
-                             (if (and *model-merging* contraction-useful-p *abox-model-merging*)
-                               (obviously-ind-not-subsumes ind concept abox)
-                               (values nil t))
-          (let* ((result-1
-                  (cond
-                   (not-subsumes-p nil)
-                   ((not unknown-p) t)
-                   (t 'unknown)))
-                 (result-2
-                  (if (eq result-1 'unknown)
+      (when atomic-p
+        (cond
+         ((member concept (model-det-positive-literals (get-cached-individual-model ind abox)))
+          (when *debug*
+            (format t "~S~%" t))
+          (return-from test-ind-subsumes t))
+         ((loop for subsumer in (individual-told-subsumers ind)
+                thereis (or (eq concept subsumer)
+                            (and classified-p
+                                 (member concept (get-concept-ancestors subsumer)))))
+          (when *debug*
+            (format t "~S~%" t))
+          (return-from test-ind-subsumes t))
+         ((or (member concept (individual-told-non-subsumers ind))
+              (and classified-p
+                   (lists-not-disjoint-p (get-concept-ancestors concept)
+                                         (individual-told-non-subsumers ind))))
+          (when *debug*
+            (format t "~S~%" nil))
+          (return-from test-ind-subsumes nil))))
+      (multiple-value-bind (not-subsumes-p unknown-p)
+          (if (and *model-merging* contraction-useful-p *abox-model-merging*)
+              (obviously-ind-not-subsumes ind concept abox)
+            (values nil t))
+        (let* ((result-1
+                (cond
+                 (not-subsumes-p nil)
+                 ((not unknown-p) t)
+                 (t 'unknown)))
+               (result-2
+                (if (eq result-1 'unknown)
                     (let ((individual-concept 
                            (when (and contraction-useful-p
 				      (not classified-p)
 				      (null (tbox-meta-constraint-concepts (abox-tbox abox))))
-                                (get-individual-concept ind))))
-		      (cond
-                       ((and individual-concept
-                             (or (eq concept individual-concept)
-                                 (progn
-                                   (incf-statistics *ind-concept-subsumption-tests*)
-                                   (test-subsumes concept individual-concept))))
-                        (incf-statistics *ind-concept-subsumptions-found*)
-                        t)
-		       ((and *use-abox-completion*
-                             (let* ((subgraph (individual-subgraph ind))
-                                    (completion (subgraph-completion subgraph)))
-                               (when completion
-                                 (incf-statistics *ind-abox-completion-tests*)
-                                 (test-abox-satisfiable 
-                                  abox
-                                  (list (encode-constraint (list (first (individual-name-set ind))
-                                                                 `(not ,concept))))
-                                  nil
-                                  nil
-                                  nil
-                                  nil
-                                  completion))))
-                      (progn
-                        (incf-statistics *ind-abox-completion-non-subsumption*)
-                        nil))
-                      (t 'unknown)))
-                    result-1))
-                 (result-3
-                  (if (eq result-2 'unknown)
+                             (get-individual-concept ind))))
+                      (if (and individual-concept
+                               (or (eq concept individual-concept)
+                                   (and (null (tbox-meta-constraint-concepts (abox-tbox abox)))
+                                      ; test might be very expensive with meta constraints
+                                        (progn
+                                          (incf-statistics *ind-concept-subsumption-tests*)
+                                          (test-subsumes concept individual-concept)))))
+                          (progn
+                            (when (and (not (eq concept individual-concept)) (atomic-concept-p concept))
+                              (update-ind-pseudo-model-det-pos-literals ind concept))
+                            (incf-statistics *ind-concept-subsumptions-found*)
+                            t)
+                        (if *use-abox-completion*
+                            (let* ((subgraph (individual-subgraph ind))
+                                   (completion (subgraph-completion subgraph)))
+                              (if completion
+                                  (let ((result
+                                         (test-abox-satisfiable 
+                                          abox
+                                          (list* (with-constraint-ignore-determinism
+                                                  (encode-constraint (list (first (individual-name-set ind))
+                                                                           `(not ,concept))))
+                                                 (subgraph-all-new-parents subgraph))
+                                          nil
+                                          nil
+                                          nil
+                                          nil
+                                          completion)))
+                                    (incf-statistics *ind-abox-completion-tests*)
+                                    (if result
+                                        (progn
+                                          (incf-statistics *ind-abox-completion-non-subsumption*)
+                                          nil)
+                                      (if (non-deterministic-clash-dependencies-p *catching-clash-dependencies*)
+                                          'unknown
+                                        t)))
+                                'unknown))
+                          'unknown)))
+                  result-1))
+               (result-3
+                (if (eq result-2 'unknown)
                     (test-ind-subsumes-1 ind concept abox)
-                    result-2))
-                 (time (when *debug*
-                         (/ (- (get-internal-run-time) start)
-                            internal-time-units-per-second))))
-            (when-print-statistics
-              (print-sat-local-statistics))
-            (when-collect-statistics
-              (collect-statistics-data))
-            (cond ((not (eq result-1 'unknown))
-                   (when *debug*
-                     (format t "~S (~,3F secs)~%" result-1 time))
-                   result-1)
-                  ((not (eq result-2 'unknown))
-                   (when-statistics (and *model-merging* contraction-useful-p *abox-model-merging*)
-                     (if result-2
+                  result-2))
+               (time (when *debug*
+                       (/ (- (get-internal-run-time) start)
+                          internal-time-units-per-second))))
+          (when-print-statistics
+            (print-sat-local-statistics))
+          (when-collect-statistics
+            (collect-statistics-data))
+          (cond ((not (eq result-1 'unknown))
+                 (when *debug*
+                   (format t "~S (~,3F secs)~%" result-1 time))
+                 result-1)
+                ((not (eq result-2 'unknown))
+                 (when-statistics (and *model-merging* contraction-useful-p *abox-model-merging*)
+                   (if result-2
                        (incf-statistics *ind-unmergable-models-unsatisfiable*)
-                       (incf-statistics *ind-unmergable-models-satisfiable*)))
-                   (when *debug*
-                     (format t "~S (~,3F secs)~%" result-2 time))
-                   result-2)
-                  (t 
-                   (when *debug*
-                     (format t "~S (~,3F secs)~%" result-3 time))
-                   result-3)))))))))
+                     (incf-statistics *ind-unmergable-models-satisfiable*)))
+                 (when *debug*
+                   (format t "~S (~,3F secs)~%" result-2 time))
+                 result-2)
+                (t 
+                 (when *debug*
+                   (format t "~S (~,3F secs)~%" result-3 time))
+                 result-3)))))))
 
 
 (defvar *new-attribute-constraints*)
@@ -4298,15 +4319,21 @@
 			     (and classified-p
 				  (member concept (get-concept-ancestors subsumer))))))
         ;(princ "+")
+        (when *debug*
+          (format t "~S~%" t))
         t)
        ((and atomic-p
 	     (if classified-p
 		 (lists-not-disjoint-p (get-concept-ancestors concept) (individual-told-non-subsumers ind))
 	       (member concept (individual-told-non-subsumers ind))))
         ;(princ "-")
+        (when *debug*
+          (format t "~S~%" nil))
         nil)
        ((and atomic-p
              (member concept (model-det-positive-literals (get-cached-individual-model ind abox))))
+        (when *debug*
+          (format t "~S~%" t))
         t)
        (t
         (multiple-value-bind (not-subsumes-p unknown-p)
@@ -4320,42 +4347,49 @@
                    (t 'unknown)))
                  (result-2
                   (if (eq result-1 'unknown)
-                    (let ((individual-concept 
-                           (when (and (not classified-p)
-				      contraction-useful-p
-				      (null (tbox-meta-constraint-concepts (abox-tbox abox))))
-			     (get-individual-concept ind))))
-                      (cond
-                       ((and individual-concept
-                             (or (eq concept individual-concept)
-                                 (and (null (tbox-meta-constraint-concepts (abox-tbox abox)))
+                      (let ((individual-concept 
+                             (when (and (not classified-p)
+                                        contraction-useful-p
+                                        (null (tbox-meta-constraint-concepts (abox-tbox abox))))
+                               (get-individual-concept ind))))
+                        (if (and individual-concept
+                                 (or (eq concept individual-concept)
+                                     (and (null (tbox-meta-constraint-concepts (abox-tbox abox)))
                                       ; test might be very expensive with meta constraints
-                                      (progn
-                                        (incf-statistics *ind-concept-subsumption-tests*)
-                                        (test-subsumes concept individual-concept)))))
-                        (incf-statistics *ind-concept-subsumptions-found*)
-			;(princ "1")
-                        t)
-		       ((and *use-abox-completion*
-                             (let* ((subgraph (individual-subgraph ind))
-                                    (completion (subgraph-completion subgraph)))
-                               (when completion
-                                 (incf-statistics *ind-abox-completion-tests*)
-                                 ;(break "2")
-                                 (test-abox-satisfiable 
-                                  abox
-                                  (list (encode-constraint (list (first (individual-name-set ind))
-                                                                 `(not ,concept))))
-                                  nil
-                                  nil
-                                  nil
-                                  nil
-                                  completion))))
-                      (progn
-                        (incf-statistics *ind-abox-completion-non-subsumption*)
-                        ;(princ "2")
-                        nil))
-		       (t 'unknown)))
+                                          (progn
+                                            (incf-statistics *ind-concept-subsumption-tests*)
+                                            (test-subsumes concept individual-concept)))))
+                            (progn
+                              (when (and (not (eq concept individual-concept)) (atomic-concept-p concept))
+                                (update-ind-pseudo-model-det-pos-literals ind concept))
+                              (incf-statistics *ind-concept-subsumptions-found*)
+                              t)
+                          (if *use-abox-completion*
+                              (let* ((subgraph (individual-subgraph ind))
+                                     (completion (subgraph-completion subgraph)))
+                                (if completion
+                                    (let ((result-3
+                                           (test-abox-satisfiable 
+                                            abox
+                                            (list* (with-constraint-ignore-determinism
+                                                    (encode-constraint (list (first (individual-name-set ind))
+                                                                             `(not ,concept))))
+                                                   (subgraph-all-new-parents subgraph))
+                                            nil
+                                            nil
+                                            nil
+                                            nil
+                                            completion)))
+                                      (incf-statistics *ind-abox-completion-tests*)
+                                      (if result-3
+                                          (progn
+                                            (incf-statistics *ind-abox-completion-non-subsumption*)
+                                            nil)
+                                        (if (non-deterministic-clash-dependencies-p *catching-clash-dependencies*)
+                                            'unknown
+                                          t)))
+                                  'unknown))
+                            'unknown)))
                     result-1))
                  (time (when *debug*
                          (/ (- (get-internal-run-time) start)
@@ -4380,33 +4414,40 @@
                    'unknown)))))))))
 
 (defun test-ind-subsumes-1 (ind concept abox)
-  (let* ((subgraph (individual-subgraph ind))
+  (let* ((ind-name (first (individual-name-set ind)))
+         (subgraph (individual-subgraph ind))
          (result 
           (if (and *use-abox-precompletion*
                    (subgraph-precompletion subgraph))
-            (test-abox-satisfiable 
-             abox
-             (list (encode-constraint (list (first (individual-name-set ind))
-                                            `(not ,concept))))
-             nil
-             nil
-             nil
-             nil
-             (subgraph-precompletion subgraph))
+              (let ((satisfiable
+                     (test-abox-satisfiable 
+                      abox
+                      (list* (encode-constraint (list ind-name `(not ,concept)))
+                             (subgraph-pending-new-parents subgraph))
+                      nil
+                      nil
+                      nil
+                      nil
+                      (subgraph-precompletion subgraph))))
+                (unless satisfiable
+                  (push (encode-constraint (list ind-name concept))
+                        (subgraph-pending-new-parents subgraph))
+                  (when (atomic-concept-p concept)
+                    (update-ind-pseudo-model-det-pos-literals ind concept)))
+                satisfiable)
             (test-abox-satisfiable
              abox
-             (cons (encode-constraint (list (first (individual-name-set ind))
-                                            `(not ,concept)))
-                   (loop for axiom in (subgraph-encoded-individual-axioms
-                                       subgraph)
-                         collect (encode-constraint axiom)))
+             (list* (encode-constraint (list ind-name `(not ,concept)))
+                    (loop for axiom in (subgraph-encoded-individual-axioms
+                                        subgraph)
+                          collect (encode-constraint axiom)))
              (subgraph-encoded-role-axioms subgraph)
              (subgraph-individual-names subgraph)
              (abox-attribute-constraints abox)
              (copy-solver-state (abox-initial-constraint-state abox))))))
     (incf-statistics *ind-subsumption-tests*)
     (if result
-      (incf-statistics *ind-unmergable-models-satisfiable*)
+        (incf-statistics *ind-unmergable-models-satisfiable*)
       (progn
         (incf-statistics *ind-unmergable-models-unsatisfiable*)
         (incf-statistics *ind-subsumptions-found*)))
@@ -4435,7 +4476,7 @@
                           (subgraph-precompletion subgraph))
                    (test-abox-satisfiable 
                     abox
-                    new-constraints
+                    (append new-constraints (subgraph-pending-new-parents subgraph))
                     nil
                     nil
                     nil

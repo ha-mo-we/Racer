@@ -1,4 +1,4 @@
-;;; -*- Mode: Liwsp; Syntax: Ansi-Common-Lisp; Package: CL-USER; Base: 10 -*-
+;;; -*- Mode: Lisp; Syntax: Ansi-Common-Lisp; Package: CL-USER; Base: 10 -*-
 
 ;;; Copyright (c) 1998-2014, 
 ;;; Volker Haarslev, Ralf Moeller, Michael Wessel.  

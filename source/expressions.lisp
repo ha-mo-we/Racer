@@ -219,8 +219,32 @@
         #'(lambda (&rest args)
             (apply #'call-function op1 args))))))
 
+#|
+
+(defun the-abox-name (abox)
+  (if (symbolp abox)
+      abox
+    (racer::abox-name abox)))
+
+(defun the-tbox-name (tbox)
+  (if (symbolp tbox)
+      tbox
+    (racer::tbox-name tbox)))
+
+|#
+
 (defconstant +racer-functions+ (quote
-                                ("DIG"
+                                ("MOST-SPECIFIC-INSTANTIATORS"
+				 "INSTANTIATORS"
+				 
+				 "CL-EVALUATE"
+				 "CL-EVALUATE-UNQUOTED"
+				 
+				 ;;;
+				 ;;;
+				 ;;;
+				 
+				 "DIG"
                                  "REMOTE-CONNECTIONS"
                                  "TOPLEVEL"
                                  "OWLAPI-ADD-AXIOM"
@@ -1747,9 +1771,8 @@
                  ;;; daher: geborgte CL-Funktionen, die Funktionsargumente akzeptieren, 
                  ;;; werden umhuellt, s. Z.B. member
 
-           
-                 `(
-                 
+		 `(
+
                    ;;;
                    ;;; Racer 
                    ;;; 
@@ -2456,7 +2479,7 @@
 
   (unless (member (to-keyword-big (first entry))
                   '(:DEFINE :DEFINE1 :DEFCON :DEFCON1 :DEFPAR :DEFPAR1 
-                    :EVALUATE 
+                    :EVALUATE :CL-EVALUATE :CL-EVALUATE-UNQUOTED
                     ;;; muss sonderbehandelt werden! 
                     ;;; wg. (evaluate (let ((x '(evaluate x))) (evaluate x))) -> Endlosschleife! 
                     ))
@@ -2612,6 +2635,34 @@
 
                         (cond 
 
+			 ;;;
+			 ;;; COMMON LISP LOOPHOLE EVALUATE
+			 ;;; 
+			 
+			 ((eq op :CL-EVALUATE)
+			  (let ((*package* (find-package :racer-user)))
+			    (let ((cbindings bindings)
+				  (cexpr (copy-tree (cons 'progn (cdr expr)))))
+			      (loop while cbindings do
+				    (let* ((var-val (pop cbindings))
+					   (var (first var-val))
+					   (val (second var-val)))
+				      (setf cexpr
+					(ts:tree-substitute cexpr var `(quote ,val)))))
+			      (eval cexpr))))
+			 
+			  ((eq op :CL-EVALUATE-UNQUOTED)
+			  (let ((*package* (find-package :racer-user)))
+			    (let ((cbindings bindings)
+				  (cexpr (copy-tree (cons 'progn (cdr expr)))))
+			      (loop while cbindings do
+				    (let* ((var-val (pop cbindings))
+					   (var (first var-val))
+					   (val (second var-val)))
+				      (setf cexpr
+					(ts:tree-substitute cexpr var val))))
+			      (eval cexpr))))
+                         
                          ;;;
                          ;;; EVALUATE - only 1 level
                          ;;; 

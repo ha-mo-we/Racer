@@ -131,6 +131,7 @@
   (role-range-concepts nil)
   (el+-transformed-table nil)
   (el+-environment nil)
+  (role-characteristics-checked-p nil)
   )
 
 (defun make-set-vector ()

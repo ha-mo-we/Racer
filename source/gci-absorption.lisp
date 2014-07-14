@@ -655,6 +655,7 @@
         (setf new-gcis (race-time (split-rhs-complex-some-concept-conjunction new-gcis)))
         until (eq old-gcis new-gcis)
         finally (return new-gcis)))
+
 (defun absorb-el+-axioms (tbox gci-pairs)
   (loop with nary-unfolding-table = (tbox-nary-absorption-table tbox)
         for (lhs rhs) in gci-pairs
@@ -1365,6 +1366,7 @@
           ,(make-inverse-role-all-concept-1 (rest role-list) qualification))))
 
 (defun collect-inverse-roles (all-concept level role-list)
+  #+:debug (assert (numberp level))
   (if (eql level 0)
       role-list
     (collect-inverse-roles (concept-term all-concept)
@@ -1381,12 +1383,13 @@
                      (list concept))))
     (multiple-value-bind (foundp level term all-concept)
         (loop for elem in term-list do
-              (multiple-value-bind (foundp level term)
+              (multiple-value-bind (foundp llevel term)
                   (proper-inverse-role-all-concept elem)
                 (when foundp
-                  #+:debug (assert (numberp level))
-                  (return (values t level term elem)))))
+                  #+:debug (assert (numberp llevel))
+                  (return (values t llevel term elem)))))
       (when foundp
+	#+:allegro (assert (numberp level)) ;needed to avoid a compiler bug in ACL
         (let* ((new-term-list (racer-remove all-concept term-list))
                (atomic-or-other-concept (or (find-if #'atomic-concept-p new-term-list)
                                             (first new-term-list)))
@@ -2176,11 +2179,13 @@
                       reflexivity-added
                       irreflexivity-added))))))))
 
-(defun contains-not-p (definition language)
-  (and (dl-atomic-not language)
-       (or (negated-concept-p definition)
-           (and (and-concept-p definition)
-                (some #'negated-concept-p (concept-term definition))))))
+(defun contains-not-p (definition)
+  (let ((language (concept-language definition)))
+    (and (dl-atomic-not language)
+         (or (negated-concept-p definition)
+             (some-concept-p definition)
+             (and (and-concept-p definition)
+                  (some #'negated-concept-p (concept-term definition)))))))
 
 (defun tbox-el+-p (tbox gci-pairs)
   (flet ((reject (culprit &optional explanation)
@@ -2201,7 +2206,7 @@
               (when (or (not (subset-el++-p language))
                         (and (not (concept-primitive-p concept))
                              (or (is-top-concept-p definition)
-                                 (contains-not-p definition language))))
+                                 (contains-not-p definition))))
                 (reject concept 'subset-el++-p-2))
               (when l-p
                 (setf l-p (subset-l-p language))))
@@ -2242,7 +2247,7 @@
               (let ((domain (role-domain-restriction role)))
                 (when domain
                   (let ((language (concept-language domain)))
-                    (unless (and (subset-el++-p language) (not (contains-not-p domain language)))
+                    (unless (and (subset-el++-p language) (not (contains-not-p domain)))
                       (reject role 'domain-not-el++))
                     (when l-p
                       (setf l-p (subset-l-p language))))))))
@@ -2266,17 +2271,18 @@
                                        (and (or-concept-p rhs)
                                             (proper-el+-gci rhs))))
                         (reject pair 'axiom-rhs-not-proper-some))
-                    (let ((language (concept-language lhs)))
-                      (unless (and (subset-el++-p language) (not (contains-not-p lhs language)))
-                        (reject pair 'axiom-lhs-not-el++))
-                      (when l-p
-                        (setf l-p (subset-l-p language)))
-                      (setf language (concept-language rhs))
-                      (unless (and (subset-el++-p language) 
-                                   (or (atomic-concept-p lhs) (not (contains-not-p rhs language))))
-                        (reject pair 'axiom-rhs-not-el++))
-                      (when l-p
-                        (setf l-p (subset-l-p language)))))))
+                    (progn
+                      (let ((language (concept-language lhs)))
+                        (unless (and (subset-el++-p language) (not (contains-not-p lhs)))
+                          (reject pair 'axiom-lhs-not-el++))
+                        (when l-p
+                          (setf l-p (subset-l-p language))))
+                      (let ((language (concept-language rhs)))
+                        (unless (and (subset-el++-p language) 
+                                     (or (atomic-concept-p lhs) (not (contains-not-p rhs))))
+                          (reject pair 'axiom-rhs-not-el++))
+                        (when l-p
+                          (setf l-p (subset-l-p language))))))))
         (reject (first gci-pairs) 'not-elh-transformation))
       (values t l-p))))
 

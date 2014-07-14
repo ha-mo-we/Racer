@@ -811,6 +811,7 @@ Return the selected element."
           finally (return min-exists))))
 |#
 
+#|
 (defun find-min-or-element-1 (list)
   (if (null (rest list))
     (first list)
@@ -825,12 +826,48 @@ Return the selected element."
                     (setf min-key elem-key))
           until (> count max-or-list-threshold)
           finally (return min-elem))))
+|#
+
+(defun find-min-or-element-1 (list)
+  (if (null (rest list))
+      (first list)
+    (loop with abox = *use-abox*
+          with min-elem = (first list)
+          with min-ind-name = (constraint-ind min-elem)
+          with min-prover-p = (prover-individual-p min-ind-name)
+          with min-ind = (when (and abox (not min-prover-p))
+                           (find-individual abox min-ind-name))
+          with min-key = (most-recent-dependencies min-elem)
+          with max-or-list-threshold = *max-or-list-threshold*
+          with inverse-roles = *inverse-roles*
+          for elem in (rest list)
+          for elem-ind-name = (constraint-ind elem)
+          for elem-prover-p = (prover-individual-p elem-ind-name)
+          for elem-key = (most-recent-dependencies elem)
+          for count from 0
+          for lessp = (cond ((or (not abox) (and min-prover-p elem-prover-p))
+                             (< elem-key min-key)) ;;; changing < to <= makes big difference !!!
+                            ((and abox (not (or min-prover-p elem-prover-p)))
+                             (<= (individual-has-fillers (find-individual abox elem-ind-name))
+                                 (length (individual-incoming-role-assertions min-ind))))
+                            (inverse-roles (< elem-key min-key))
+                            (elem-prover-p nil))
+          when lessp
+          do
+          (setf min-elem elem)
+          (setf min-prover-p elem-prover-p)
+          (setf min-ind-name elem-ind-name)
+          (when (and abox (not min-prover-p))
+            (setf min-ind (find-individual abox min-ind-name)))
+          (setf min-key elem-key)
+          until (> count max-or-list-threshold)
+          finally (return min-elem))))
 
 (defun find-min-or-element-2 (list)
   (first (last list)))
 
 (defun find-min-or-element (list)
-  (if t ;*use-unique-name-assumption*
+  (if *use-abox* ; better option for Aboxes
     (find-min-or-element-1 (reverse list))
     (find-min-or-element-2 list)))
 
@@ -838,8 +875,25 @@ Return the selected element."
 (defun find-min-or-element-1 (list)
   (first list))
 
+(defparameter *foo* nil)
 (defun find-min-or-element-1 (list)
-  (nth (random (length list)) list))
+  (let ((selected (nth (random (length list)) list)))
+    (push selected *foo*)
+    selected))
+
+(defun find-min-or-element-1 (list)
+  (let ((selected (first (sort (copy-list list)
+                               (lambda (i1 i2)
+                                 (cond ((and (symbolp i1) (symbolp i2))
+                                        (string-greaterp i1 i2)
+                                        )
+                                       ((symbolp i1)
+                                        t)
+                                       ((symbolp i2)
+                                        nil)))
+                               :key #'constraint-ind))))
+    ;(push selected *foo*)
+    selected))
 |#
 
 (defun find-min-or-element-in-unexpanded-disjunctive-store (state
@@ -1480,9 +1534,7 @@ Return the selected element."
 			  (if completion-p
 			      (race-trace ("~&Saving completion state ~S~%" *precompletion*))
 			    (race-trace ("~&Saving precompletion state ~S~%" *precompletion*))))
-					;(break)
-	      new-state
-	      )
+	      new-state)
 	  new-state)))))
 
 (defun compute-individual-synonyms (state)
@@ -2095,14 +2147,16 @@ Return the selected element."
                           ind-role-domain-table
                           new-state)))))
 
-(defun optimize-datatype-role-fillers (constraint abox table dl-prover-language)
+(defun optimize-datatype-role-fillers (constraint abox table-list dl-prover-language)
   (and (exists-as-datatype-constraint-p constraint)
        (not (role-has-feature-ancestors-p (concept-role (constraint-term constraint))))
        (dl-true-simple-datatype-concrete-domains dl-prover-language)
        (let ((ind (constraint-ind constraint)))
          (or (not (true-old-individual-p ind))
              (dl-true-simple-datatype-concrete-domains
-              (or (gethash ind table) (individual-language (find-individual abox ind))))))))
+              (or (loop for table in table-list 
+                        thereis (and table (gethash ind table)))
+                  (individual-language (find-individual abox ind))))))))
 
 (defun distribute-new-constraints-2-2 (state
                                              expand-role-domain-p
@@ -2713,8 +2767,11 @@ Return the selected element."
               (or (constraint-derived-from precondition-concept-constraint)
                   (list precondition-concept-constraint))))
       (if (concept-constraint-p precondition-concept-constraint)
-        (setf (constraint-backpropagated-p new-constraint)
-              (constraint-backpropagated-p precondition-concept-constraint))
+          (progn
+            (setf (constraint-backpropagated-p new-constraint)
+                  (constraint-backpropagated-p precondition-concept-constraint))
+            (setf (constraint-ignore-determinism-p new-constraint)
+                  (constraint-ignore-determinism-p precondition-concept-constraint)))
         (when (and inverse-roles
                    (not (true-old-individual-p new-ind))
                    (loop for other-precondition-constraint in other-precondition-constraints
@@ -2734,8 +2791,11 @@ Return the selected element."
             (when (and *model-merging* (or *use-alternate-models* *use-alternate-ind-models*))
               (pushnew other-precondition-constraint (constraint-derived-from new-constraint)))
             (if (concept-constraint-p other-precondition-constraint)
-              (setf (constraint-backpropagated-p new-constraint)
-                    (constraint-backpropagated-p other-precondition-constraint))
+                (progn
+                  (setf (constraint-backpropagated-p new-constraint)
+                        (constraint-backpropagated-p other-precondition-constraint))
+                  (setf (constraint-ignore-determinism-p new-constraint)
+                        (constraint-ignore-determinism-p other-precondition-constraint)))
               (when (and inverse-roles
                          (not (constraint-backpropagated-p new-constraint))
                          (not (true-old-individual-p new-ind))
@@ -3773,10 +3833,13 @@ Return 3 values: selected clause, positive weight, negative weight."
 
 (race-inline (old-individual-p true-old-individual-p older-individual-p
                                root-individual-p shiq-blocking-required
-                               new-individual-p))
+                               new-individual-p prover-individual-p))
 
 (defun new-individual-p (ind)
   (and (numberp ind) (not (zerop ind))))
+
+(defun prover-individual-p (ind)
+  (numberp ind))
 
 (defun old-individual-p (ind)
   (or (symbolp ind) (zerop ind)))
@@ -8272,7 +8335,7 @@ provided externally."
            (precompletion-state (and precompletion (precompletion-state precompletion)))
            (use-precompletion (and *use-abox-precompletion*
                                    precompletion-state
-                                   (not return-precompletion-p)))
+                                   #|(not return-precompletion-p)|#))
            (use-completion (and *use-abox-completion*
                                 (not use-precompletion)
                                 precompletion-state
@@ -8311,7 +8374,10 @@ provided externally."
                           (state-relation-store precompletion-state))
                          (null (state-relation-constraints precompletion-state)))
                   (null relation-constraints))))
-           (use-unique-name-assumption *use-unique-name-assumption*))
+           (use-unique-name-assumption *use-unique-name-assumption*)
+           (*use-abox* abox))
+
+
       (values
        (labels ((test-abox-satisfiable-continuation-1 (sat-p state unused-1 unused-2 unused-3)
                   (declare (ignore unused-1 unused-2 unused-3))
@@ -8525,37 +8591,37 @@ provided externally."
         else collect constraint))
 
 (defun compute-individual-language-table (abox
-                                                use-precompletion
-                                                use-completion
-                                                precompletion-state
-                                                concept-constraints)
+                                          use-precompletion
+                                          use-completion
+                                          precompletion-state
+                                          concept-constraints)
   (let ((old-table
          (when (or use-precompletion use-completion)
-           (state-old-individuals-dl-language-table precompletion-state))))
+           (first (state-old-individuals-dl-language-table precompletion-state)))))
     (if concept-constraints
-      (loop with table = (racer-make-hash-table)
-            with modified-p = nil
-            for constraint in concept-constraints
-            for ind-name = (constraint-ind constraint)
-            for old-language = (or (gethash ind-name table)
-                                   (when old-table
-                                     (gethash ind-name old-table))
-                                   (individual-language (find-individual abox ind-name)))
-            for term-language = (concept-language (constraint-term constraint))
-            unless (eq old-language term-language)
-            do
-            (let ((new-language (union-dl-descriptors term-language old-language)))
-              (unless (eq old-language new-language)
-                (setf (gethash ind-name table) new-language)
-                (unless modified-p
-                  (setf modified-p t))))
-            finally
-            (if modified-p
-              (if old-table
-                (return (merge-hash-tables old-table table 0 #'identity))
-                (return table))
-              (return (or old-table (racer-make-hash-table)))))
-      (or old-table (racer-make-hash-table)))))
+        (loop with table = (racer-make-hash-table)
+              with modified-p = nil
+              for constraint in concept-constraints
+              for ind-name = (constraint-ind constraint)
+              for old-language = (or (gethash ind-name table)
+                                     (when old-table
+                                       (gethash ind-name old-table))
+                                     (individual-language (find-individual abox ind-name)))
+              for term-language = (concept-language (constraint-term constraint))
+              unless (eq old-language term-language)
+              do
+              (let ((new-language (union-dl-descriptors term-language old-language)))
+                (unless (eq old-language new-language)
+                  (setf (gethash ind-name table) new-language)
+                  (unless modified-p
+                    (setf modified-p t))))
+              finally
+              (if modified-p
+                  (if old-table
+                      (return (list table old-table))
+                    (return (list old-table)))
+                (return (list (or old-table (racer-make-hash-table))))))
+      (list (or old-table (racer-make-hash-table))))))
 
 ;;;===========================================================================
 ;;; Main functions for testing subsumption and satisfiability of concept terms
@@ -8728,7 +8794,10 @@ constraints."
     (let ((blocking-used nil))
       (multiple-value-prog1
         (let* ((tbox *use-tbox*)
-               (*in-precompletion* (and use-constraint-store-p (null precompletion)))
+               (*in-precompletion* 
+                (and use-constraint-store-p 
+                     (or (null precompletion)
+                         save-precompletion)))
                (*save-precompletion* save-precompletion)
                (encode-roles-as-transitive *encode-roles-as-transitive*)
                (meta-constraint-concepts
@@ -8995,7 +9064,6 @@ and add it to the list of established constraints."
                   unexpanded-defined-det-constraints
                   unexpanded-deterministic-constraints
                   unprocessed-constraints))
-        ;(break "1")
         (when (and *in-precompletion* *save-precompletion*)
           (commit-precompletion state nil))
         (if (state-save-completion state)
@@ -9034,7 +9102,6 @@ and add it to the list of established constraints."
                (not (and (exists-constraint-p new-constraint)
                          (constraint-merging-trigger-p new-constraint))))
           (race-trace ("~&Duplicate ~S ignored~%" new-constraint))
-          ;(break "~&Duplicate ~S ignored~%" new-constraint)
           (multiple-value-bind
             (new-unexpanded-exists-constraints
              new-unexpanded-exists-constraints-store)

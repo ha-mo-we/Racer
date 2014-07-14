@@ -48,7 +48,6 @@
 
 (defvar *exit-server-requested* nil)
 
-
 ;;; ======================================================================
 
 (defun output-stream ()
@@ -128,6 +127,9 @@
 (defvar *server-control-process* nil)
 
 (defvar *master-listener* nil)
+
+(defvar *case-sensitive* 
+    (not (string= (symbol-name 'foo) (symbol-name 'Foo))))
 
 ;;;
 ;;;
@@ -606,7 +608,8 @@
 		    
 				  (owlapi-abort-request 
 				   (let* ((*package* *racer-user-package*)
-					  (reasoner (read-from-string (subseq line length))))
+					  (reasoner 
+					   (read-from-string (subseq line length))))
 				     (owlapi-abort-toplevel reasoner stream output-string-stream n)))
 		    
 				  ;; 
@@ -615,7 +618,8 @@
 
 				  (owlapi-get-progress
 				   (let* ((*package* *racer-user-package*)
-					  (reasoner (read-from-string (subseq line length)))
+					  (reasoner 
+					   (read-from-string (subseq line length)))
 					  (res 
 					   (owlapi-get-progress reasoner stream output-string-stream n)))
 				       
@@ -628,7 +632,8 @@
 		    
 				  (owlapi-progress-certain?
 				   (let* ((*package* *racer-user-package*)
-					  (reasoner (read-from-string (subseq line length)))
+					  (reasoner 
+					   (read-from-string (subseq line length)))
 					  (res
 					   (owlapi-progress-certain-p reasoner stream output-string-stream n)))
 				       
@@ -641,7 +646,8 @@
 		    
 				  (owlapi-get-current-request 
 				   (let* ((*package* *racer-user-package*)
-					  (reasoner (read-from-string (subseq line length)))
+					  (reasoner 
+					   (read-from-string (subseq line length)))
 					  (res
 					   (owlapi-get-current-request reasoner stream output-string-stream n)))
 				       
@@ -772,8 +778,9 @@
 		   :external-format *file-external-format*
 		   )
     (let* ((*read-file-line-counter* 0)
-           (read-case-sensitive (and case-sensitive 
-                                     (not (string= (symbol-name 'foo) (symbol-name 'Foo)))))
+           (read-case-sensitive
+	    (and case-sensitive 
+		 (not (string= (symbol-name 'foo) (symbol-name 'Foo)))))
            (new-read-table (when read-case-sensitive
                              (copy-readtable nil))))
       (when read-case-sensitive
@@ -2180,14 +2187,30 @@
 (defun process-racer-string (stream string n package output-string-stream)
   (let* ((*package* package)
 	 (*server-request* string)
-         (expr (read-from-string string)))
+         (expr
+	  (read-from-string string)))
     (new-request string ) 
     (process-racer-expr expr stream n nil output-string-stream)))
 
 (defun process-racer-owlapi-string (stream string n package output-string-stream)
   (let* ((*package* package)
 	 (*server-request* string)
-         (expr (read-from-string string)))
+	 (pos1 (position #\( string))
+	 (pos (position #\space string :start pos1))
+	 (pos2 (position #\) string :start pos1))
+	 (op 
+	  (if pos
+	      (subseq string (1+ pos1) pos)
+	    (subseq string (1+ pos1) pos2)))
+	 (expr
+	  (read-from-string string)))
+
+    (unless *case-sensitive*
+      
+      (unless (char= (elt op 0) #\|)
+	(setf (first expr) 
+	  (intern op))))
+    
     (process-racer-expr expr stream n nil output-string-stream)))
 
 #|

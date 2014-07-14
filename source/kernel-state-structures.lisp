@@ -72,7 +72,7 @@
 (defmethod print-object ((object basic-kernel-state) stream)
   (print-unreadable-object (object stream :type t :identity t)))
 
-#-(and :debug)
+#-:debug
 (defmacro set-new-kernel-state (state
                                   &key
 			          (unexpanded-deterministic-constraints nil unexp-det-p)
@@ -220,7 +220,7 @@
         `(setf (state-old-individuals-dl-language-table ,state) nil))
      ,state))
 
-#+(and :debug)
+#+:debug
 (defun set-new-kernel-state (state
                                   &key
 			          (unexpanded-deterministic-constraints nil unexp-det-p)
@@ -337,7 +337,7 @@
     (setf (state-old-individuals-dl-language-table state) nil))
   state)
 
-#+(and :debug)
+#+:debug
 (defun make-basic-kernel-state (&rest params)
   (if *recycle-kernel-states*
     (let ((state (recycle-basic-kernel-state)))
@@ -348,7 +348,7 @@
       state)
     (apply #'make-basic-kernel-state-internal params)))
 
-#-(and :debug)
+#-:debug
 (defmacro make-basic-kernel-state (&rest params)
   (let ((state-sym (gensym)))
     `(if *recycle-kernel-states*
@@ -492,7 +492,7 @@
             ))
     new-params))
 
-#+(and :debug)
+#+:debug
 (defun changed-kernel-state (state
                                   &key
                                   (unexpanded-deterministic-constraints nil unexp-det-p)
@@ -587,7 +587,7 @@
       (setf (state-old-individuals-dl-language-table new-state) old-individuals-dl-language-table))
     new-state))
 
-#-(and :debug)
+#-:debug
 (defmacro changed-kernel-state (state
                                  &key
                                  (unexpanded-deterministic-constraints nil unexp-det-p)

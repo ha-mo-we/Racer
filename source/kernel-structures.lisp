@@ -75,6 +75,8 @@
   (merging-trigger-p nil)               ; used as trigger for merging: cannot be treated
                                         ; as all-constraint in case of features
   (ind-synonyms nil)                    ; list of synonym individuals
+  (ignore-determinism-p nil)            ; if T the constraint cannot be used to remove or-dependencies
+                                        ; needed in case an ABox completion is used to test individual subsumption
   )
 
 (defmethod print-object ((object concept-constraint) stream)
@@ -107,7 +109,8 @@
   (setf (constraint-successor-ind constraint) nil)
   (setf (constraint-backpropagated-p constraint) nil)
   (setf (constraint-merging-trigger-p constraint) nil)
-  (setf (constraint-ind-synonyms constraint) nil))
+  (setf (constraint-ind-synonyms constraint) nil)
+  (setf (constraint-ignore-determinism-p constraint) nil))
 
 (defun set-new-concept-constraint (constraint ind term negated-p or-level)
   (setf (constraint-term constraint) term)
@@ -130,7 +133,8 @@
   (setf (constraint-successor-ind new) (constraint-successor-ind old))
   (setf (constraint-backpropagated-p new) (constraint-backpropagated-p old))
   (setf (constraint-merging-trigger-p new) (constraint-merging-trigger-p old))
-  (setf (constraint-ind-synonyms new) (constraint-ind-synonyms old)))
+  (setf (constraint-ind-synonyms new) (constraint-ind-synonyms old))
+  (setf (constraint-ignore-determinism-p new) (constraint-ignore-determinism-p old)))
 
 (defvar *obsolete-concept-constraints* nil)
 
@@ -536,3 +540,16 @@ The slot term contains the role name."
                (concept-nary-unfold-sets term)
                (concept-elh-role-domain-qualifications term))))))
 
+#+:debug
+(defun with-constraint-ignore-determinism (constraint)
+  (when (concept-constraint-p constraint)
+    (setf (constraint-ignore-determinism-p constraint) t))
+  constraint)
+
+#-:debug
+(defmacro with-constraint-ignore-determinism (constraint)
+  (let ((sym (gensym)))
+  `(let ((,sym ,constraint))
+     (when (concept-constraint-p ,sym)
+       (setf (constraint-ignore-determinism-p ,sym) t))
+     ,sym)))
