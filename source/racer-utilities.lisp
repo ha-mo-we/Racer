@@ -646,27 +646,29 @@ provided both list elements are totally ordered"
 
 (defun racer-remove-rel-constraint-duplicates (list)
   (when list
-    (let ((list-length (length list)))
-      (if (> list-length 50)
-        (loop with table = (smart-clrhash *racer-remove-constraint-duplicates-table*
-                                          list
-                                          '*racer-remove-constraint-duplicates-table*
-                                          list-length)
-              for elem in list
-              for key = (list (constraint-ind-1 elem)
-                              (constraint-ind-2 elem)
-                              (role-name (constraint-term elem)))
-              unless (gethash key table)
-              do (setf (gethash key table) t)
-              and collect elem)
-        (remove-duplicates list
-                           :test (lambda (elem-1 elem-2)
-                                   (and (eql (constraint-ind-1 elem-1)
-                                             (constraint-ind-1 elem-2))
-                                        (eql (constraint-ind-2 elem-1)
-                                             (constraint-ind-2 elem-2))
-                                        (eq (constraint-term elem-1)
-                                            (constraint-term elem-2)))))))))
+    (if (rest list)
+        (let ((list-length (length list)))
+          (if (> list-length 50)
+              (loop with table = (smart-clrhash *racer-remove-constraint-duplicates-table*
+                                                list
+                                                '*racer-remove-constraint-duplicates-table*
+                                                list-length)
+                    for elem in list
+                    for key = (list (constraint-ind-1 elem)
+                                    (constraint-ind-2 elem)
+                                    (role-name (constraint-term elem)))
+                    unless (gethash key table)
+                    do (setf (gethash key table) t)
+                    and collect elem)
+            (remove-duplicates list
+                               :test (lambda (elem-1 elem-2)
+                                       (and (eql (constraint-ind-1 elem-1)
+                                                 (constraint-ind-1 elem-2))
+                                            (eql (constraint-ind-2 elem-1)
+                                                 (constraint-ind-2 elem-2))
+                                            (eq (constraint-term elem-1)
+                                                (constraint-term elem-2)))))))
+      list)))
 
 (defun racer-merge-remove-rel-constraint-duplicates (list)
   (when list

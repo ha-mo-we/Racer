@@ -41,7 +41,7 @@
                                                    &optional
                                                    copy-concrete-domain-state
                                                    new-or-dependencies)
-  #-(and :debug :lispworks)
+  #-:debug
   (declare (ignore new-or-dependencies))
   (with-race-trace-sublevel ("added-string-cd-predicate-satisfiable-p"
                              :arguments (list cd-constraint state copy-concrete-domain-state new-or-dependencies)

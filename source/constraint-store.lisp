@@ -397,7 +397,7 @@
                                             type))))))
 
 (defun compact-constraint-stores-1 (store average reversed-store type)
-  #-(and :debug :lispworks) (declare (ignore store type))
+  #-:debug (declare (ignore store type))
   (loop for elems on (rest reversed-store)
         for elem = (first elems)
         unless (second elems)

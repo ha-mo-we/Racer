@@ -504,6 +504,23 @@
                 (return (racer-remove-duplicates inds))
               (return inds))))))
 
+(defun relation-predecessor-relation-constraints (ind role store)
+  (when store
+    (unless (and (true-old-individual-p ind)
+                 (member ind (relation-store-removed-individuals store)))
+      #+:debug (assert (not (member ind (relation-store-removed-individuals store))))
+      (loop for filler in (get-kernel-ind-fillers ind (relation-store-right-table store))
+            when (member role (role-ancestors-internal (kernel-filler-role filler)))
+            append (kernel-filler-elements filler) into relation-constraints
+	    finally 
+            (loop for constraint in (relation-store-added-relation-constraints store)
+	          when (and (eql ind (constraint-ind-2 constraint))
+			    (member role (role-ancestors-internal (constraint-term constraint))))
+	          do (push constraint relation-constraints))
+            (if (rest relation-constraints)
+                (return (racer-remove-rel-constraint-duplicates relation-constraints))
+              (return relation-constraints))))))
+
 (defun predecessor-individuals (ind store)
   (when store
     #+:debug (assert (not (member ind (relation-store-removed-individuals store))))

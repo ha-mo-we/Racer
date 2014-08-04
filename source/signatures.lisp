@@ -2649,8 +2649,8 @@
         when (older-individual-p (constraint-ind constraint) ind)
         collect constraint))
 
-(defun compute-new-labels-violated-blocks (retry-labels-2 labels #+(and :debug :lispworks) new-labels-2)
-  (let (#+(and :debug :lispworks) (broken-blocks nil))
+(defun compute-new-labels-violated-blocks (retry-labels-2 labels #+:debug new-labels-2)
+  (let (#+:debug (broken-blocks nil))
     (loop for label in retry-labels-2
           for blocked-constraints = (label-info-blocked-constraints label)
           when blocked-constraints
@@ -2658,7 +2658,7 @@
           and collect
           (cons label
                 (let ((new-label (copy-label-info label)))
-                  #+(and :debug :lispworks) (push new-label broken-blocks)
+                  #+:debug (push new-label broken-blocks)
                   (setf (label-info-blocked-constraints new-label) nil)
                   (when (label-info-blocked-labels new-label)
                     (loop for blocked-label in (label-info-blocked-labels new-label) do
@@ -2667,7 +2667,7 @@
                   new-label))
           into new-labels
           finally
-          #+(and :debug :lispworks)
+          #+:debug
           (when broken-blocks
             (race-trace ("~&Sig-unblocking blocked labels ~S, labels=~S~%"
                          broken-blocks new-labels-2)))
@@ -2731,7 +2731,7 @@
             (multiple-value-bind
               (new-labels-3 violated-blocks)
               (if retry-labels-2
-                (compute-new-labels-violated-blocks retry-labels-2 labels #+(and :debug :lispworks) new-labels-2)
+                (compute-new-labels-violated-blocks retry-labels-2 labels #+:debug new-labels-2)
                 new-labels-2)
               (when-debug new-indirectly-blocked-individuals-1
                 (race-trace ("~&Indirectly blocked inds=~S, blocked labels=~S~%"

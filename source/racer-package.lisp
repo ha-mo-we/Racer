@@ -836,9 +836,9 @@
                         #:transform-data-specification
 
                         #:*test-assert-timeout*
-                        #:*race-trace*
-                        #:trace-race
-                        #:untrace-race
+                        #:*racer-trace*
+                        #:trace-racer
+                        #:untrace-racer
 
                         #:racer-toplevel
 

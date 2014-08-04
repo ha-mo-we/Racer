@@ -188,7 +188,7 @@
                "SHIQ"
                "SHI")
              "SUBS"))))
-    #-(and :debug :lispworks)
+    #-:debug
     (declare (ignore block-status))
     (race-trace ("~&Language settings: ~S, inv=~S, block=~A, deep-mm=~S, t-cach=~S, sorted=~S, una=~S~%"
                  *dl-prover-language* *inverse-roles* block-status 
@@ -828,6 +828,7 @@ Return the selected element."
           finally (return min-elem))))
 |#
 
+#|
 (defun find-min-or-element-1 (list)
   (if (null (rest list))
       (first list)
@@ -849,7 +850,7 @@ Return the selected element."
                              (< elem-key min-key)) ;;; changing < to <= makes big difference !!!
                             ((and abox (not (or min-prover-p elem-prover-p)))
                              (<= (individual-has-fillers (find-individual abox elem-ind-name))
-                                 (length (individual-incoming-role-assertions min-ind))))
+                                (individual-used-as-filler min-ind)))
                             (inverse-roles (< elem-key min-key))
                             (elem-prover-p nil))
           when lessp
@@ -862,13 +863,15 @@ Return the selected element."
           (setf min-key elem-key)
           until (> count max-or-list-threshold)
           finally (return min-elem))))
+|#
 
 (defun find-min-or-element-2 (list)
   (first (last list)))
 
 (defun find-min-or-element (list)
   (if *use-abox* ; better option for Aboxes
-    (find-min-or-element-1 (reverse list))
+    (find-min-or-element-1 list)
+    ;(find-min-or-element-1 (reverse list))
     (find-min-or-element-2 list)))
 
 #|
@@ -878,14 +881,17 @@ Return the selected element."
 (defparameter *foo* nil)
 (defun find-min-or-element-1 (list)
   (let ((selected (nth (random (length list)) list)))
-    (push selected *foo*)
+    ;(push selected *foo*)
     selected))
 
 (defun find-min-or-element-1 (list)
   (let ((selected (first (sort (copy-list list)
                                (lambda (i1 i2)
                                  (cond ((and (symbolp i1) (symbolp i2))
-                                        (string-greaterp i1 i2)
+                                        ;(string-lessp i1 i2)
+                                        (if (eql (length (symbol-name i1)) (length (symbol-name i2)))
+                                            (string-lessp i1 i2)
+                                          (> (length (symbol-name i1)) (length (symbol-name i2))))
                                         )
                                        ((symbolp i1)
                                         t)
@@ -894,6 +900,61 @@ Return the selected element."
                                :key #'constraint-ind))))
     ;(push selected *foo*)
     selected))
+|#
+
+(defun find-min-or-element-1 (list)
+  (if (null (rest list))
+      (first list)
+    (loop with selected = (first list)
+          with selected-ind = (constraint-ind selected)
+          with selected-key = (most-recent-dependencies selected)
+          for candidate in (rest list)
+          for candidate-ind = (constraint-ind candidate)
+          for lessp = (cond ((and (symbolp candidate-ind) (symbolp selected-ind))
+                             (string-not-greaterp candidate-ind selected-ind)
+                             )
+                            ((symbolp candidate-ind)
+                             t)
+                            ((symbolp selected-ind)
+                             nil)
+                            (t
+                             (< (most-recent-dependencies candidate) selected-key)
+                             ))
+          when lessp do
+          (setf selected candidate)
+          (setf selected-ind candidate-ind)
+          (setf selected-key (most-recent-dependencies selected))
+          finally (return selected))))
+
+#|
+(defun find-min-or-element-1 (list)
+  (if (null (rest list))
+      (first list)
+    (loop with selected = (first list)
+          with selected-ind = (constraint-ind selected)
+          with selected-key = (most-recent-dependencies selected)
+          for candidate in (rest list)
+          for candidate-ind = (constraint-ind candidate)
+          for lessp = (cond ((and (symbolp candidate-ind) (symbolp selected-ind))
+                             (or (< (most-recent-dependencies candidate) selected-key)
+                                 (when (eql (most-recent-dependencies candidate) selected-key)
+                                   (string-greaterp candidate-ind selected-ind)))
+                             )
+                            ((symbolp candidate-ind)
+                             t)
+                            ((symbolp selected-ind)
+                             nil)
+                            (t
+                             (< (most-recent-dependencies candidate) selected-key)
+                             ))
+          when lessp do
+          (setf selected candidate)
+          (setf selected-ind candidate-ind)
+          (setf selected-key (most-recent-dependencies selected))
+          finally
+          '(when (symbolp selected-ind)
+            (push selected *foo*))
+          (return selected))))
 |#
 
 (defun find-min-or-element-in-unexpanded-disjunctive-store (state
@@ -1424,9 +1485,9 @@ Return the selected element."
                                   constraint-or-list
                                   &optional
                                   (completion-p nil))
-  #-(and :debug :lispworks)
+  #-:debug
   (declare (ignore constraint-or-list))
-  #+(and :debug :lispworks)
+  #+:debug
   (when-debug t
     (if (or-constraint-p constraint-or-list)
       (race-trace ("~&End of precompletion due to disjunctive constraint ~S, state=~S"
@@ -2927,7 +2988,7 @@ Return the selected element."
                                  (progn
                                    #+:debug
                                    (assert (qualified-role-signature-p dependency))
-                                   (constraint-or-level dependency)))
+                                   (signature-or-level dependency)))
                 when (< max-or-level or-level)
                 do (setf max-or-level or-level)
                 finally (let ((value (+ (* 100 (1+ max-or-level))
@@ -2938,9 +2999,7 @@ Return the selected element."
 (defun most-recent-dependencies-2 (constraint)
   "Compute the maximal or level of all constraint dependencies"
   (let ((key (constraint-dependency-key constraint)))
-    (if key
-        (progn
-          (+ key (* 10000000000 (1+ (constraint-or-level constraint)))))
+    (unless key
       (let ((dependencies (constraint-or-dependencies constraint)))
         (let* ((max-or-level
                 (loop for dependency in dependencies
@@ -2948,13 +3007,16 @@ Return the selected element."
                       (if (constraint-common-p dependency)
                           (constraint-or-level dependency)
                         (progn
-                          #+:debug (assert (qualified-role-signature-p dependency))
+                          #+:debug
+                          (assert (qualified-role-signature-p dependency))
                           (signature-or-level dependency)))))
                (value (+ (* 10000000 (1+ max-or-level))
-                         (* 100000 (length dependencies))
-                         #|(concept-age (constraint-term constraint))|#)))
+                         (* 100000 (length dependencies)))))
           (setf (constraint-dependency-key constraint) value)
-          (+ value (* 10000000000 (1+ (constraint-or-level constraint)))))))))
+          (setf key value))))
+    (+ key 
+       (* 10000000000 (1+ (constraint-or-level constraint)))
+       (constraint-open-clauses-counter constraint))))
 
 (defun most-recent-dependencies (constraint)
   (if *use-unique-name-assumption*
@@ -4156,7 +4218,7 @@ Return 3 values: selected clause, positive weight, negative weight."
           (state-unexpanded-exists-constraints-store state))
          (unexpanded-disjunctive-constraints-store
           (state-unexpanded-disjunctive-constraints-store state))
-         #+(and :debug :lispworks)
+         #+:debug
          (relation-constraints (state-relation-constraints state)))
     (multiple-value-bind
       (new-unexpanded-exists-constraints new-unexpanded-exists-constraints-store)
@@ -4247,13 +4309,13 @@ Return 3 values: selected clause, positive weight, negative weight."
   (let ((unexpanded-deterministic-constraints (state-unexpanded-deterministic-constraints state))
         (unexpanded-defined-det-constraints (state-unexpanded-defined-det-constraints state))
         (unexpanded-exists-constraints (state-unexpanded-exists-constraints state))
-        #+(and :debug :lispworks) 
+        #+:debug 
         (unexpanded-disjunctive-constraints (state-unexpanded-disjunctive-constraints state))
         (expanded-constraints (state-expanded-constraints state))
         (relation-constraints (state-relation-constraints state))
-        #+(and :debug :lispworks) 
+        #+:debug 
         (attribute-constraints (state-attribute-constraints state))
-        #+(and :debug :lispworks) 
+        #+:debug 
         (concrete-domain-state (state-concrete-domain-state state))
         (labels (state-labels state))
         (indirectly-blocked-individuals (state-indirectly-blocked-individuals state))
@@ -6974,11 +7036,7 @@ Return 3 values: selected clause, positive weight, negative weight."
 (defun unfold-symbol-constraints (state)
   (loop with concluded-constraints = nil
         with tbox = (state-tbox (state-parameters state))
-        with tbox-elh-p = (subset-el+-p (tbox-language tbox))
-        with in-abox-p = (and tbox-elh-p
-                              (if *use-relation-store*
-                                (not (relation-store-empty-p (state-relation-store state)))
-                                (state-relation-constraints state)))
+        with abox = *use-abox*
         with known-symbol-sets = nil
         with expanded-constraints = (state-expanded-constraints state)
         with expanded-store = (state-expanded-store state)
@@ -6986,6 +7044,7 @@ Return 3 values: selected clause, positive weight, negative weight."
         with symbol-constraints = (state-unexpanded-defined-det-constraints state)
         for symbol-constraint in symbol-constraints
         for constraint-term = (constraint-term symbol-constraint)
+        for concept-encoded-definition = (concept-encoded-definition constraint-term)
         do
         (if (constraint-negated-p symbol-constraint)
             (if (concept-primitive-p constraint-term)
@@ -6997,34 +7056,31 @@ Return 3 values: selected clause, positive weight, negative weight."
                                                           symbol-constraint)
                             concluded-constraints)
                     ;; constraint-term was EL+ transformed and originally defined => unfold as negated defined
-                    (push (concluded-concept-constraint (constraint-ind symbol-constraint)
-                                                        (concept-negated-concept
-                                                         (concept-encoded-definition constraint-term))
-                                                        symbol-constraint)
-                          concluded-constraints)))
+                    (when concept-encoded-definition
+                      (push (concluded-concept-constraint (constraint-ind symbol-constraint)
+                                                          (concept-negated-concept concept-encoded-definition)
+                                                          symbol-constraint)
+                            concluded-constraints))))
               (push (concluded-concept-constraint (constraint-ind symbol-constraint)
-                                                  (concept-negated-concept
-                                                   (concept-encoded-definition constraint-term))
+                                                  (concept-negated-concept concept-encoded-definition)
                                                   symbol-constraint)
                     concluded-constraints))
           (let ((ind (constraint-ind symbol-constraint)))
-            (when (concept-encoded-definition constraint-term)
+            (when concept-encoded-definition
               (push (concluded-concept-constraint ind
-                                                  (concept-encoded-definition constraint-term)
+                                                  concept-encoded-definition
                                                   symbol-constraint)
                     concluded-constraints))
-            (when (and in-abox-p (true-old-individual-p ind))
-              (let ((elh-role-domain-qualifications
-                     (concept-elh-role-domain-qualifications constraint-term)))
-                (loop for (role . domain-qualifications) in elh-role-domain-qualifications
-                      for predecessors = (get-role-predecessors ind role state)
-                      do
-                      (loop for ind in predecessors do
-                            (loop for concept in domain-qualifications do
-                                  (push (concluded-concept-constraint ind
-                                                                      concept
-                                                                      symbol-constraint)
-                                        concluded-constraints))))))
+            (when (and abox (true-old-individual-p ind))
+              (loop for (role . domain-qualifications) in (concept-elh-role-domain-qualifications constraint-term)
+                    do
+                    (loop for constraint in (get-role-predecessor-relation-constraints ind role state) do
+                          (loop for concept in domain-qualifications do
+                                (push (concluded-concept-constraint (constraint-ind-1 constraint)
+                                                                    concept
+                                                                    symbol-constraint
+                                                                    constraint)
+                                      concluded-constraints)))))
             (when (and tbox
                        (concept-primitive-p constraint-term)
                        (concept-nary-unfold-sets constraint-term))
@@ -7033,9 +7089,9 @@ Return 3 values: selected clause, positive weight, negative weight."
               (let* ((ind (constraint-ind symbol-constraint))
                      (entry (gethash ind known-symbol-sets)))
                 (if entry
-                  (progn
-                    (push constraint-term (symbolset-entry-concept-set entry))
-                    (push symbol-constraint (symbolset-entry-constraint-set entry)))
+                    (progn
+                      (push constraint-term (symbolset-entry-concept-set entry))
+                      (push symbol-constraint (symbolset-entry-constraint-set entry)))
                   (let ((constraints
                           (collect-selected-constraints ind
                                                         (lambda (constraint)
@@ -7087,20 +7143,22 @@ Return 3 values: selected clause, positive weight, negative weight."
                                        (first concluded-constraints))))))))
         (return (nreverse concluded-constraints))))
 
-(defun get-role-predecessors (ind role state)
+(defun get-role-predecessor-relation-constraints (ind role state)
   (if *use-relation-store*
-    (relation-predecessor-individuals ind role (state-relation-store state))
-    (loop for rel-constraint in (state-relation-constraints state)
-          when (and (eql (constraint-ind-2 rel-constraint) ind)
-                    (eq role (constraint-term rel-constraint)))
-          collect (constraint-ind-1 rel-constraint))))
+      (relation-predecessor-relation-constraints ind role (state-relation-store state))
+    (racer-remove-rel-constraint-duplicates
+     (loop for rel-constraint in (state-relation-constraints state)
+           when (and (eql (constraint-ind-2 rel-constraint) ind)
+                     (eq role (constraint-term rel-constraint)))
+           collect rel-constraint))))
 
 (defun unfolded-symbols-satisfiable (state unused-1 unused-2 unused-3 unused-4)
   (declare (ignore unused-1 unused-2 unused-3 unused-4))
   (let ((conclusion-concept-constraints (unfold-symbol-constraints state)))
-    (race-trace ("~&unfolding ~S to ~S~%"
-                 (state-unexpanded-defined-det-constraints state)
-                 conclusion-concept-constraints))
+    (when conclusion-concept-constraints
+      (race-trace ("~&unfolding ~S to ~S~%"
+                   (state-unexpanded-defined-det-constraints state)
+                   conclusion-concept-constraints)))
     (let ((new-state (changed-kernel-state state :unexpanded-defined-det-constraints nil)))
       (added-constraints-satisfiable conclusion-concept-constraints
                                      nil ; no new relation constraint
@@ -7138,9 +7196,9 @@ Return 3 values: selected clause, positive weight, negative weight."
         (unexpanded-disjunctive-constraints (state-unexpanded-disjunctive-constraints state))
         (expanded-constraints (state-expanded-constraints state))
         (relation-constraints (state-relation-constraints state))
-        #+(and :debug :lispworks) 
+        #+:debug 
         (attribute-constraints (state-attribute-constraints state))
-        #+(and :debug :lispworks) 
+        #+:debug 
         (concrete-domain-state (state-concrete-domain-state state))
         (labels (state-labels state))
         (indirectly-blocked-individuals (state-indirectly-blocked-individuals state))

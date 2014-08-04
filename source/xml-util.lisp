@@ -151,9 +151,16 @@
   initializer 
   destructor)
 
-#+(or (and :lispworks :lispworks6))
-(defvar *resource-pool-lock* (mp:make-lock :name "NOX Resource Pool"))
+(defvar *resource-pool-lock* 
+  #+(and :lispworks :lispworks6)
+  (mp:make-lock :name "NOX Resource Pool")
+  #+(and :allegro :smp-macros)
+  (mp:make-sharable-lock :name "NOX Resource Pool")
+  #+:ccl
+  (ccl:make-read-write-lock))
 
+
+#|
 #-(or :ccl :excl :sbcl (and :lispworks (not :lispworks6)))
 (defmacro without-interrupts (&body body)
   (warn "No working WITHOUT-INTERRUPTS in this implementation")
@@ -162,22 +169,39 @@
 #+(and :lispworks (not :lispworks6))
 (defmacro without-interrupts (&body forms)
   `(lw:without-interrupts .,forms))
+|#
 
 #-:ccl
 (defmacro nox-atomic-push (thing place)
-  #+:lispworks6
+  #+(and :lispworks :lispworks6)
   `(mp:with-lock (*resource-pool-lock*)
      (push ,thing ,place))
-  #-:lispworks6
-  `(without-interrupts (push ,thing ,place)))
+  #+(and :allegro :smp-macros :allegro-v8.2)
+  (let ((sym (gensym)))
+    `(let ((,sym nil))
+       (racer-with-exclusive-lock (*resource-pool-lock* ,sym)
+         (setf ,sym (push ,thing ,place)))))
+  #+(and :allegro :smp-macros (not :allegro-v8.2))
+  `(push-atomic ,thing ,place)
+  #-(or :lispworks (and :allegro :smp-macros))
+  `(racer-without-interrupts
+    (push ,thing ,place)))
 
 #-:ccl
 (defmacro nox-atomic-pop (place)
-  #+:lispworks6
+  #+(and :lispworks :lispworks6)
   `(mp:with-lock (*resource-pool-lock*)
      (pop ,place))
-  #-:lispworks6
-  `(without-interrupts (pop ,place))
+  #+(and :allegro :smp-macros :allegro-v8.2)
+  (let ((sym (gensym)))
+    `(let ((,sym nil))
+       (racer-with-exclusive-lock (*resource-pool-lock* ,sym)
+         (setf ,sym (pop ,place)))))
+  #+(and :allegro :smp-macros (not :allegro-v8.2))
+  `(pop-atomic ,place)
+  #-(or :lispworks (and :allegro :smp-macros))
+  `(racer-without-interrupts
+    (pop ,place))
   )
 
 (defun allocate-resource-from-pool (pool &rest args)

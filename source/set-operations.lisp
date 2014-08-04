@@ -86,15 +86,21 @@
 
 ;;; ======================================================================
 
-(race-inline (mark-racer-set))
+(defun mark-racer-set-count (list mark)
+  (loop for elem in list
+        for length from 1
+        do (setf (racer-set-flag elem) mark)
+        finally (return length)))
 
+#+:debug
 (defun mark-racer-set (list mark)
-  (if list
-    (loop for elem in list
-          for length from 1
-          do (setf (racer-set-flag elem) mark)
-          finally (return length))
-    0))
+  (loop for elem in list do
+	(setf (racer-set-flag elem) mark)))
+
+#-:debug
+(defmacro mark-racer-set (list mark)
+  `(loop for elem in ,list do
+         (setf (racer-set-flag elem) ,mark)))
 
 (defmacro inc-marker-variable (variable-symbol)
   `(set ,variable-symbol (1+ (symbol-value ,variable-symbol))))
@@ -131,46 +137,49 @@
 
 (defun racer-set-difference (list1 list2 variable)
   (if (or (null list2) (null list1))
-    list1
-    (if (null (rest list2))
-      (racer-remove (first list2) list1)
-      (loop with mark = (inc-marker-variable variable)
-            with count = (mark-racer-set list2 mark)
-            with rest = count
-	    with set-vector = *set-vector*
-	    initially (setf (fill-pointer set-vector) 0)
-            for rest-list on list1
-            for elem = (first rest-list)
-            if (eql (racer-set-flag elem) mark)
-            do (decf rest)
-            else
-	    do
-	    (vector-push-extend elem set-vector 5000)
-            until (eql rest 0)
-            finally
-            (cond ((eql rest 0)
-		   (return (values (nconc-vector set-vector (rest rest-list)) t)))
-                  ((not (eql count rest))
-                   (return (values (coerce set-vector 'list) t)))
-                  (t (return list1)))))))
+      list1
+    (if (rest list2)
+        (loop with mark = (inc-marker-variable variable)
+              with count = (mark-racer-set-count list2 mark)
+              with rest = count
+              with set-vector = *set-vector*
+              initially (setf (fill-pointer set-vector) 0)
+              for rest-list on list1
+              for elem = (first rest-list)
+              if (eql (racer-set-flag elem) mark)
+              do (decf rest)
+              else
+              do
+              (vector-push-extend elem set-vector 5000)
+              until (eql rest 0)
+              finally
+              (cond ((eql count rest)
+                     (return list1))
+                    ((eql rest 0)
+                     (if (eql (fill-pointer set-vector) 0)
+                         (return (values (rest rest-list) t))
+                       (return (values (nconc-vector set-vector (rest rest-list)) t))))
+                    (t
+                     (return (values (coerce set-vector 'list) t)))))
+      (racer-remove (first list2) list1))))
 
 (defun nconc-vector (vector list)
-  (loop with last-cdr = nil
-      with result = nil
-      for elem across vector do
-      (if result
-	  (progn
-	    (setf (cdr last-cdr) (list elem))
-	    (setf last-cdr (cdr last-cdr)))
-	(progn
-	  (setf result (list elem))
-	  (setf last-cdr result)))
-      finally
-	(if result
-	    (progn
-	      (setf (cdr last-cdr) list)
-	      (return result))
-	  (return list))))
+  (if (<= (fill-pointer vector) 10000)
+      (nconc (coerce vector 'list) list)
+    (loop with last-cdr = nil
+          with result = nil
+          for elem across vector do
+          (if result
+              (progn
+                (setf (cdr last-cdr) (list elem))
+                (setf last-cdr (cdr last-cdr)))
+            (progn
+              (setf result (list elem))
+              (setf last-cdr result)))
+          finally
+          #+:debug (assert result)
+          (setf (cdr last-cdr) list)
+          (return result))))
       
 (defun racer-set-subsetp (list1 list2 variable)
   (or (null list1)
@@ -188,7 +197,7 @@
         ((null list2) (null list1))
         ((rest list1)
          (let* ((mark (inc-marker-variable variable))
-                (length-list2 (mark-racer-set list2 mark)))
+                (length-list2 (mark-racer-set-count list2 mark)))
            (loop for elem in list1
                  for length-list1 from 1
                  when (or (> length-list1 length-list2)

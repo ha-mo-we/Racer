@@ -36,16 +36,14 @@
 
 (in-package :racer)
 
-(defparameter *race-trace* nil
-  "enables trace output to value of *race-trace* as stream, if not nil")
+(defparameter *racer-trace* nil
+  "enables trace output to value of *racer-trace* as stream, if not nil")
 
-(defparameter *show-race-trace* t)
+(defun trace-racer ()
+  (setf *racer-trace* t))
 
-(defun trace-race ()
-  (setf *race-trace* t))
-
-(defun untrace-race ()
-  (setf *race-trace* nil))
+(defun untrace-racer ()
+  (setf *racer-trace* nil))
 
 (defmacro race-inline (inline-fn-list)
   #+:debug `(declaim (notinline . ,inline-fn-list))
@@ -53,10 +51,10 @@
   )
 
 (defmacro when-debug (condition &body body)
-  #+(and :debug :lispworks)
+  #+:debug
   `(when ,condition
      (progn . ,body))
-  #-(and :debug :lispworks)
+  #-:debug
   (declare (ignore condition body))
   )
 
@@ -74,7 +72,7 @@
         (title-arguments (rest title-list))
         (format-string (first trace-list))
         (arguments (rest trace-list)))
-    #+(or (and :ccl (not :ccl)) (and :lispworks (or :macosx :mswindows :linux)))
+    #+(and :lispworks (or :macosx :mswindows :linux))
     `(tools:formatting (,(if spec-p
                              `(format nil
                                       ,(ensure-first-char-is-capitalized 
@@ -93,35 +91,35 @@
                        ,(ensure-first-char-is-capitalized 
                          format-string)
                        . ,arguments)
-    #-(or (and :ccl (not :ccl)) (and :lispworks (or :macosx :mswindows :linux)))
+    #-(and :lispworks (or :macosx :mswindows :linux))
     (if spec-p
         `(let ((*print-readably* nil))
-           (format *race-trace* ,title-format-string . ,title-arguments)
-           (format *race-trace* ,format-string . ,arguments))
+           (format *racer-trace* ,title-format-string . ,title-arguments)
+           (format *racer-trace* ,format-string . ,arguments))
       `(let ((*print-readably* nil))
-         (format *race-trace* ,format-string . ,arguments)))))
+         (format *racer-trace* ,format-string . ,arguments)))))
 
 (defmacro race-trace (trace-list &optional (title-list trace-list spec-p))
   `(progn 
-     (when-debug *race-trace*
+     (when-debug *racer-trace*
        (race-message-internal ,trace-list ,title-list ,spec-p))))
 
 (defmacro race-message (trace-list)
-  `(if *race-trace*
+  `(if *racer-trace*
      (race-message-internal ,trace-list nil nil)
-     #+(or (and :ccl (not :ccl)) (and :lispworks (or :macosx :mswindows :linux)))
+     #+(and :lispworks (or :macosx :mswindows :linux))
      (tools:trace-format ,(first trace-list) . ,(rest trace-list))
-     #-(or (and :ccl (not :ccl)) (and :lispworks (or :macosx :mswindows :linux)))
-     (format *race-trace* ,(first trace-list) . ,(rest trace-list))))
+     #-(and :lispworks (or :macosx :mswindows :linux))
+     (format *racer-trace* ,(first trace-list) . ,(rest trace-list))))
 
 (defmacro when-race-trace (test-form &body then-forms)
-  `(when-debug *race-trace*
+  `(when-debug *racer-trace*
      (when ,test-form
        . ,then-forms)))
 
 (defmacro if-race-trace (then-form else-form)
   #+(or :debug :ccl (and :lispworks (or :macosx :mswindows :linux)))
-  `(if *race-trace*
+  `(if *racer-trace*
      ,then-form
      ,else-form)
   #-(or :debug :ccl (and :lispworks (or :macosx :mswindows :linux)))
@@ -132,40 +130,66 @@
 (defun param-value-pair (symbol value)
   (cons symbol value))
 
-(defmacro with-race-trace-sublevel ((name &key (expanded nil expanded-spec-p)
-                                          arguments trace-result)
+(defmacro with-race-trace-sublevel ((name 
+                                     &key 
+                                     (expanded nil expanded-spec-p)
+                                     arguments
+                                     trace-result)
                                     &body forms)
-  #-(and :debug :lispworks)
+  #-:debug
   (declare (ignore name expanded expanded-spec-p arguments trace-result))
-  #-(and :debug :lispworks)
+  #-:debug
   `(progn . ,forms)
-  #+(and :debug :lispworks)
-  `(if *race-trace*
-     ,(let ((sym (gensym)))
-        `(let ((,sym ,arguments))
-           ,(if expanded-spec-p
-              `(tools:with-trace-context ((intern (string-upcase ,name) *package*)
-                                          :expanded ,expanded
-                                          :arguments ,sym
-                                          :arglist-name-value-assoc
-                                          (mapcar #'param-value-pair
-                                                  ',(rest arguments)
-                                                  ,sym)
-                                          :trace-result ,trace-result)
-                 . ,forms)
-              `(tools:with-trace-context ((intern (string-upcase ,name) *package*)
-                                          :arguments ,arguments
-                                          :arglist-name-value-assoc
-                                          (mapcar #'param-value-pair
-                                                  ',(rest arguments)
-                                                  ,sym)
-                                          :trace-result ,trace-result)
-                 . ,forms))))
-     (progn . ,forms)))
+  #+(and :debug (not :lispworks))
+  (declare (ignore expanded expanded-spec-p))
+  #+:debug
+  (let ((forms-sym (gensym)))
+    `(let ((,forms-sym
+	    (lambda ()
+	      .,forms)))
+       (if *racer-trace*
+	   ,(let ((sym (gensym))
+                  #-:lispworks
+                  (sym2 (gensym)))
+	      `(let ((,sym ,arguments))
+		 #+:lispworks
+		 ,(if expanded-spec-p
+		      `(tools:with-trace-context ((intern (string-upcase ,name) *package*)
+						  :expanded ,expanded
+						  :arguments ,sym
+						  :arglist-name-value-assoc
+						  (mapcar #'param-value-pair
+							  ',(rest arguments)
+							  ,sym)
+						  :trace-result ,trace-result)
+			 (funcall ,forms-sym))
+		    `(tools:with-trace-context ((intern (string-upcase ,name) *package*)
+						:arguments ,arguments
+						:arglist-name-value-assoc
+						(mapcar #'param-value-pair
+							',(rest arguments)
+							,sym)
+						:trace-result ,trace-result)
+		       (funcall ,forms-sym)))
+		 #-:lispworks
+                 (progn
+                   (race-trace ("~&Calling ~A ~A~%"
+                                ,name
+                                (mapcar #'param-value-pair
+                                        ',(rest arguments)
+                                        ,sym)))
+                   (let ((,sym2
+                          (multiple-value-list
+                           (funcall ,forms-sym))))
+                     ,(if trace-result
+                          `(race-trace ("~&Exiting ~A with ~A~%" ,name ,sym2))
+                        `(race-trace ("~&Exiting ~A~%" ,name)))
+                     (apply #'values ,sym2)))))
+	 (funcall ,forms-sym)))))
 
 ;;;===========================================================================
 
 (defun show-trace ()
-  #+(or (and :ccl (not :ccl)) (and :lispworks (or :macosx :mswindows :linux)))
+  #+(and :lispworks (or :macosx :mswindows :linux))
   (when tools:*trace*
     (tools::make-trace-dialog)))

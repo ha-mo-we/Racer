@@ -51,5 +51,4 @@
   (synonym-candidates 'unknown)
   (last-cdr-individual-names nil)
   (pending-new-parents nil)
-  (all-new-parents nil)
   )

@@ -265,7 +265,7 @@
                                                                unused-2
                                                                unused-3)
                      (declare (ignore unused-1 unused-2 unused-3))
-                     #-(and :debug :lispworks) (declare (ignore new-state))
+                     #-:debug (declare (ignore new-state))
                      (or sat-p
                          (if t ;need to add some backjumping mechanisms
                              (let ((first-clash-dependencies *catching-clash-dependencies*))
@@ -275,7 +275,7 @@
                                                                                   unused-2
                                                                                   unused-3)
                                         (declare (ignore unused-1 unused-2 unused-3))
-                                        #-(and :debug :lispworks) (declare (ignore new-state))
+                                        #-:debug (declare (ignore new-state))
                                         (or sat-p
                                             (progn
                                               (setf *catching-clash-dependencies*

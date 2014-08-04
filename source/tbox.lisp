@@ -5251,8 +5251,8 @@ Always create a canonical name regardless of the order of the role parents."
                                            nil
                                            previous-visited-mark
                                            +all-features-no-full-referencing+))
-          (when (or *race-trace* *print-where-am-i* *show-time*)
-            (if *race-trace*
+          (when (or *racer-trace* *print-where-am-i* *show-time*)
+            (if *racer-trace*
               (progn
                 (setf changed-concepts (changed-concepts tbox visited-mark))
                 (setf no-of-changed-concepts (length changed-concepts)))

@@ -461,7 +461,7 @@
 
 #+(and :lispworks (or :macosx :mswindows :linux))
 (defun make-trace-dialog (&key (input-folder *trace-history*) (window-title "Trace"))
-  (declare (special racer::*race-trace*))
+  (declare (special racer::*racer-trace*))
   (when (null input-folder)
     (setf *trace-history* (make-folder-history :name "Top"
                                                :arguments +no-arguments+
@@ -507,7 +507,7 @@
                                            (case item
                                              (on "Racer Trace ON")
                                              (off "Racer Trace OFF")))
-                         :selected-item (if (and (boundp 'racer::*race-trace*) racer::*race-trace*)
+                         :selected-item (if (and (boundp 'racer::*racer-trace*) racer::*racer-trace*)
                                             'on
                                           'off)
                          :help-key 'trace-racer
@@ -515,8 +515,8 @@
                          (lambda (choice interface)
                            (declare (ignore interface))
                            (if (eq choice 'on)
-                               (racer:trace-race)
-                             (racer:untrace-race)))))
+                               (racer:trace-racer)
+                             (racer:untrace-racer)))))
          (trace-dialog
           (make-instance 'trace-dialog
                          :title window-title
@@ -541,7 +541,7 @@
                          (lambda (interface activatep)
                            (when activatep
                              (setf (capi:choice-selected-item trace-option-pane)
-                                   (if (and (boundp 'racer::*race-trace*) racer::*race-trace*)
+                                   (if (and (boundp 'racer::*racer-trace*) racer::*racer-trace*)
                                        'on
                                      'off))
                              (refresh-interface interface nil)))))
