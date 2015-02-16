@@ -49,11 +49,21 @@
                 (not (gethash string *racer-warnings*)))
         (when *racer-warnings*
           (setf (gethash string *racer-warnings*) t))
-        (fresh-line t)
-        (format t "~A~%" string)
+        (format t "~&~A" string)
         (when *triple-position*
           (format t " (@ character position ~A)" *triple-position*))
 	(force-output t)))))
+
+(defun warn-new-role-characteristic (role string &optional (ignore-inverse nil))
+  (let ((message "Role ~A found to be ~A")
+        (inverse (role-inverse-internal role)))
+    (unless (or (role-internal-name-p role) (role-internal-conjunction-p role))
+      (racer-warn message (role-name role) string))
+    (unless (or ignore-inverse
+                (eq role inverse)
+                (role-internal-name-p inverse)
+                (role-internal-conjunction-p inverse))
+      (racer-warn message (role-name inverse) string))))
 
 (defmacro without-duplicate-warnings (&body body)
   `(let ((*racer-warnings*

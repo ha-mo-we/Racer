@@ -403,18 +403,26 @@
                  (member ind (relation-store-removed-individuals store)))
       #+:debug (assert (not (member ind (relation-store-removed-individuals store))))
       (loop with first-rel-constraint = nil
+            with reflexive-p = (role-reflexive-p role)
 	    for filler in (get-kernel-ind-fillers ind (relation-store-left-table store))
+            for filler-elements = (kernel-filler-elements filler)
 	    when (member role (role-ancestors-internal (kernel-filler-role filler)))
-	    nconc (mapcar #'constraint-ind-2 (kernel-filler-elements filler))
-	    into inds
+	    nconc (mapcar #'constraint-ind-2 filler-elements) into inds
 	    and
+            when reflexive-p
+            nconc (mapcar #'constraint-ind-1 filler-elements) into inds
+            end
+            and
 	    unless first-rel-constraint
-	    do (setf first-rel-constraint (first (kernel-filler-elements filler)))
+	    do (setf first-rel-constraint (first filler-elements))
 	    finally
 	    (loop for constraint in (relation-store-added-relation-constraints store)
 	          when (and (eql ind (constraint-ind-1 constraint))
 			    (member role (role-ancestors-internal (constraint-term constraint))))
-	          do (push (constraint-ind-2 constraint) inds)
+	          do 
+                  (push (constraint-ind-2 constraint) inds)
+                  (when reflexive-p
+                    (push (constraint-ind-1 constraint) inds))
 	          and
 	          unless first-rel-constraint
 	          do (setf first-rel-constraint constraint))
@@ -939,7 +947,7 @@
                                       (or (and reflexive-roles-p
                                                (eql (constraint-ind-1 constraint) (constraint-ind-2 constraint))
                                                (member-if (lambda (roles)
-                                                            (some #'role-reflexive-p roles))
+                                                            (some #'user-defined-role-reflexive-p roles))
                                                           (role-ancestors-internal (constraint-term constraint))
                                                           :key #'role-disjoint-roles))
                                           (loop for ancestor in (role-ancestors-internal (constraint-term constraint))

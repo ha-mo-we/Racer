@@ -607,7 +607,8 @@
 
 (defun pprint-dl-common-r+d- (dl-descriptor stream)
   (when (and (any-bit-set-p dl-descriptor +dl-transitive-roles+)
-	     (not (contains-s-p (dl-language-set dl-descriptor))))
+	     (not (contains-s-p (dl-language-set dl-descriptor)))
+             (not (contains-r-p dl-descriptor)))
     (format stream "r+"))
   (pprint-dl-cd dl-descriptor stream))
 
@@ -851,6 +852,9 @@
 
 (defun dl-locally-reflexive-roles (dl-descriptor)
   (any-bit-set-p dl-descriptor +dl-locally-reflexive-roles+))
+
+(defun dl-reflexivity (dl-descriptor)
+  (any-bit-set-p dl-descriptor (logior +dl-reflexive-roles+ +dl-locally-reflexive-roles+)))
 
 (defun dl-irreflexive-roles (dl-descriptor)
   (any-bit-set-p dl-descriptor +dl-irreflexive-roles+))

@@ -1225,13 +1225,14 @@
           (return eligible-conjuncts))))
 
 (defun absorb-gci-as-negated-definition (gci-concept 
-                                               &optional
-                                               (check-only nil)
-                                               (used-concepts-table nil))
+                                         &optional
+                                         (check-only nil)
+                                         (first-pass nil)
+                                         (used-concepts-table nil))
   (let ((concept-set (if (or-concept-p gci-concept)
-                       (if check-only
-                         (concept-term gci-concept)
-                         (copy-list (concept-term gci-concept)))
+                         (if check-only
+                             (concept-term gci-concept)
+                           (copy-list (concept-term gci-concept)))
                        (list gci-concept))))
     (loop with record-gci-absorption-dependencies = *record-gci-absorption-dependencies*
           with top = *top-concept*
@@ -1245,34 +1246,38 @@
                      (null (concept-elh-role-domain-qualifications element)))
             (when check-only
               (if (gethash (first (concept-name-set element)) used-concepts-table)
-                (return-from absorb-gci-as-negated-definition nil)
+                  (return-from absorb-gci-as-negated-definition nil)
                 (return-from absorb-gci-as-negated-definition t)))
             (let* (#+:debug (old-definition (concept-encoded-negated-definition element))
-                   (concepts (mapcar #'decode-concept (delete element concept-set)))
-                   (added (if (rest concepts)
-                            `(or ,@concepts)
-                            (if concepts
-                              (first concepts)
-                              +bottom-symbol+)))
-                   (gci-dependency nil))
+                            (new-concept-set (remove element concept-set))
+                            (concepts (mapcar #'decode-concept new-concept-set))
+                            (added (if (rest concepts)
+                                       `(or ,@concepts)
+                                     (if concepts
+                                         (first concepts)
+                                       +bottom-symbol+)))
+                            (gci-dependency nil))
               #+:debug (assert (listp old-definition))
-              (push added (concept-encoded-negated-definition element))
-              (setf (concept-encoded-definition element) nil)
-              (setf (concept-definition element) nil)
-	      (when record-gci-absorption-dependencies
-                (setf gci-dependency (make-gci-dependency primitive-negated
-                                                          :removed gci-concept 
-                                                          :added added))
-                (push gci-dependency (concept-gci-dependencies element)))
-              (race-trace ("~&Concept (negated def) ~S absorbed GCI ~S: ~
+              (unless (and first-pass
+                           (null (rest new-concept-set))
+                           (negated-atomic-concept-p (first new-concept-set)))
+                (push added (concept-encoded-negated-definition element))
+                (setf (concept-encoded-definition element) nil)
+                (setf (concept-definition element) nil)
+                (when record-gci-absorption-dependencies
+                  (setf gci-dependency (make-gci-dependency primitive-negated
+                                                            :removed gci-concept 
+                                                            :added added))
+                  (push gci-dependency (concept-gci-dependencies element)))
+                (race-trace ("~&Concept (negated def) ~S absorbed GCI ~S: ~
                             Old def=~S, New def=~S~%"
-                           element gci-concept old-definition
-                           (concept-encoded-negated-definition element)))
-              (return (values t element gci-dependency)))))))
+                             element gci-concept old-definition
+                             (concept-encoded-negated-definition element)))
+                (return (values t element gci-dependency))))))))
 
-(defun absorb-gcis-as-negated-definitions (tbox concept-list)
+(defun absorb-gcis-as-negated-definitions (tbox concept-list &optional (first-pass nil))
   (with-race-trace-sublevel ("absorb-gcis-as-negated-definitions"
-                             :arguments (list tbox concept-list)
+                             :arguments (list tbox concept-list first-pass)
                              :expanded nil
                              :trace-result t)
     (when concept-list
@@ -1287,7 +1292,7 @@
           for concept in concept-list
           do
           (multiple-value-bind (absorbed-p modified-concept gci-dependency)
-                               (absorb-gci-as-negated-definition concept)
+                               (absorb-gci-as-negated-definition concept nil first-pass)
             (when absorbed-p
               (push concept removed-concepts)
               (push modified-concept modified-concepts)
@@ -1542,34 +1547,34 @@
                                        gci role))))
                       (setf changed t))
                   (if (at-most-concept-p gci)
-                      (if (and (eql (concept-number-restriction gci) 1)
-                               (or (eq (concept-term gci) top) (eq (concept-term gci) datatype-top)))
-                          (progn
-                            (push gci removed-gcis)
-                            (setf (role-feature-p (concept-role gci)) t)
-                            (when record-gci-absorption-dependencies
-                              (push (make-gci-dependency functional :removed gci)
-                                    (role-gci-dependencies (concept-role gci))))
-                            (race-trace ("~&Absorbing implicit functional restriction (implies TOP ~S) into role ~S~%"
-                                         gci (concept-role gci)))
-                            (pushnew (concept-role gci) changed-roles)
-                            (unless feature-added
-                              (setf feature-added t))
-                            (setf changed t))
-                        (if functional-only
-                            (push gci new-gcis)
-                          (let ((role (concept-role gci)))
-                            #+:debug (assert (listp (role-domain-concept role)))
-                            #+:debug (assert (notany #'role-compositions (role-ancestors-internal role)))
-                            (push gci removed-gcis)
-                            (push (decode-concept gci) (role-domain-concept role))
-                            (when record-gci-absorption-dependencies
-                              (push (make-gci-dependency simple-domain :removed gci :added gci)
-                                    (role-gci-dependencies role)))
-                            (race-trace ("~&Absorbing implicit domain restriction (implies TOP ~S) into role ~S~%"
-                                         gci role))
-                            (pushnew role changed-roles)
-                            (setf changed t))))
+                      (let ((role (concept-role gci)))
+                        (if (and (eql (concept-number-restriction gci) 1)
+                                 (or (eq (concept-term gci) top) (eq (concept-term gci) datatype-top)))
+                            (progn
+                              (push gci removed-gcis)
+                              (setf (role-feature-p role) t)
+                              (when record-gci-absorption-dependencies
+                                (push (make-gci-dependency functional :removed gci)
+                                      (role-gci-dependencies role)))
+                              (race-trace ("~&Absorbing implicit functional restriction (implies TOP ~S) into role ~S~%"
+                                           gci role))
+                              (pushnew role changed-roles)
+                              (pushnew role feature-added)
+                              (setf changed t))
+                          (if functional-only
+                              (push gci new-gcis)
+                            (progn
+                              #+:debug (assert (listp (role-domain-concept role)))
+                              #+:debug (assert (notany #'role-compositions (role-ancestors-internal role)))
+                              (push gci removed-gcis)
+                              (push (decode-concept gci) (role-domain-concept role))
+                              (when record-gci-absorption-dependencies
+                                (push (make-gci-dependency simple-domain :removed gci :added gci)
+                                      (role-gci-dependencies role)))
+                              (race-trace ("~&Absorbing implicit domain restriction (implies TOP ~S) into role ~S~%"
+                                           gci role))
+                              (pushnew role changed-roles)
+                              (setf changed t)))))
                     (if (and (some-concept-p gci) (concept-self-reference-p gci))
                         (let ((role (concept-role gci)))
                           (push gci removed-gcis)
@@ -1608,7 +1613,9 @@
               (if functional-only
                   (push gci new-gcis)
                 (let* ((all-concept (when (dl-all (concept-language gci))
-                                      (find-domain-restriction (concept-term gci) pre-absorption)))
+                                      (find-domain-restriction (concept-term gci)
+                                                               pre-absorption
+                                                               absorb-as-backpropagation)))
                        (some-concept (when all-concept
                                        (concept-negated-concept all-concept))))
                   (if some-concept
@@ -1792,7 +1799,7 @@
               (setf (tbox-removed-generalized-concept-inclusions tbox) 
                     (append removed-gcis
                             (tbox-removed-generalized-concept-inclusions tbox))))
-            (return (values new-gcis changed reflexivity-added irreflexivity-added))))))
+            (return (values new-gcis changed reflexivity-added irreflexivity-added feature-added))))))
 
 (defun flattened-and-concept-list (and-concept)
   (loop for concept in (concept-term and-concept)
@@ -1800,12 +1807,15 @@
         append (flattened-and-concept-list concept)
         else collect concept))
 
-(defun find-domain-restriction (disjuncts pre-absorption)
+(defun find-domain-restriction (disjuncts pre-absorption absorb-as-backpropagation)
   (let ((matches (loop for disjunct in disjuncts
                        if (and pre-absorption (negated-atomic-primitive-p disjunct))
                        do (return nil)
                        else
-                       when (or (all-concept-p disjunct) (at-most-concept-p disjunct))
+                       when (or (and (all-concept-p disjunct)
+                                     (or (not (role-compositions (concept-role disjunct)))
+                                         absorb-as-backpropagation))
+                                (at-most-concept-p disjunct))
                        collect disjunct)))
     (when matches
       (or (loop with bottom = *bottom-concept*
@@ -1857,7 +1867,7 @@
                 #+:debug (assert (atomic-concept-p concept))
                 (setf (gethash (first (concept-name-set concept)) used-concepts-table) t))
           (loop for gci in remaining-gcis
-                always (absorb-gci-as-negated-definition gci t used-concepts-table))))))
+                always (absorb-gci-as-negated-definition gci t nil used-concepts-table))))))
 
 (defun process-all-gcis (tbox gci-pairs cyclic-concepts tbox-el+-p)
   (with-flatten-encodings
@@ -1869,7 +1879,8 @@
           (max-name nil)
           (single-concept nil)
           (reflexivity-added nil)
-          (irreflexivity-added nil))
+          (irreflexivity-added nil)
+          (feature-added nil))
       (when (and *transform-gcis* (not tbox-el+-p))
         (with-gci-trace ("Defined concepts" transformed-gcis)
           (setf transformed-gcis
@@ -1893,7 +1904,11 @@
           (setf single-concept (get-tbox-concept tbox max-name)))
         (when *absorb-domains-ranges*
           (with-gci-trace ("Domain/range" transformed-gcis)
-            (multiple-value-bind (new-transformed-gcis changed-p new-reflexivity-added new-irreflexivity-added)
+            (multiple-value-bind (new-transformed-gcis
+                                  changed-p
+                                  new-reflexivity-added
+                                  new-irreflexivity-added
+                                  new-feature-added)
                 (race-time (absorb-domain-range-restrictions tbox
                                                                transformed-gcis
                                                                :pre-absorption t
@@ -1904,7 +1919,8 @@
               (setf transformed-gcis new-transformed-gcis)
               (when changed-p
                 (setf reflexivity-added (role-set-union new-reflexivity-added reflexivity-added))
-                (setf irreflexivity-added (role-set-union new-irreflexivity-added irreflexivity-added)))))))
+                (setf irreflexivity-added (role-set-union new-irreflexivity-added irreflexivity-added))
+                (setf feature-added (role-set-union new-feature-added feature-added)))))))
                   
       (if (and (or (not tbox-el+-p) (not *use-elh-transformation*))
 	       (pre-check-all-gcis tbox-el+-p transformed-gcis))
@@ -1941,7 +1957,8 @@
                                           transformed-gcis
                                           tbox-el+-p
                                           el+-condition
-                                          nary-unfolding-table))
+                                          nary-unfolding-table
+                                          t))
           (when (and transformed-gcis *absorb-domains-ranges*)
             (with-gci-trace ("Domain/range" transformed-gcis)
               (multiple-value-bind (new-transformed-gcis changed-p new-reflexivity-added new-irreflexivity-added)
@@ -1962,7 +1979,8 @@
                                                     transformed-gcis
                                                     tbox-el+-p
                                                     el+-condition
-                                                    nary-unfolding-table)))))
+                                                    nary-unfolding-table
+                                                    nil)))))
               (when transformed-gcis
                 (let ((new-gcis (split-axioms-using-distributive-law transformed-gcis)))
                   (unless (eq transformed-gcis new-gcis)
@@ -2001,7 +2019,8 @@
                                                     new-gcis-1
                                                     tbox-el+-p
                                                     el+-condition
-                                                    nary-unfolding-table)
+                                                    nary-unfolding-table
+                                                    nil)
                       (when (or (null new-gcis-2) (< (length new-gcis-2) (length new-gcis-1)))
                         (setf transformed-gcis new-gcis-2)
                         (setf nary-unfolding-table nary-unfolding-table-new)
@@ -2046,7 +2065,7 @@
               (return (nconc added-gcis gcis)))
       gcis)))
 
-(defun loop-twice-transformations (tbox transformed-gcis tbox-el+-p el+-condition nary-unfolding-table)
+(defun loop-twice-transformations (tbox transformed-gcis tbox-el+-p el+-condition nary-unfolding-table first-pass)
   (loop with repeat = nil
         with second-loop = nil
         do
@@ -2065,7 +2084,7 @@
         (when (and transformed-gcis (not el+-condition))
           (with-gci-trace ("Negated defs" transformed-gcis)
             (setf transformed-gcis
-                  (race-time (absorb-gcis-as-negated-definitions tbox transformed-gcis)))))
+                  (race-time (absorb-gcis-as-negated-definitions tbox transformed-gcis first-pass)))))
         (when (or transformed-gcis el+-condition)
           (with-gci-trace ("Standard Absorption" transformed-gcis)
             (multiple-value-setq (transformed-gcis nary-unfolding-table)
@@ -2108,7 +2127,7 @@
           (when (and transformed-gcis (not el+-condition))
             (with-gci-trace ("Negated defs" transformed-gcis)
               (setf transformed-gcis
-                    (race-time (absorb-gcis-as-negated-definitions tbox transformed-gcis))))))
+                    (race-time (absorb-gcis-as-negated-definitions tbox transformed-gcis first-pass))))))
         until (not repeat))
   (values transformed-gcis nary-unfolding-table))
 
@@ -2260,6 +2279,8 @@
                         (role-internal-name-p role))
               (when (role-irreflexive-p role)
                 (reject role 'role-irreflexive))
+              (when (role-feature-p role)
+                (reject role 'role-functional))
               (let ((compositions (role-compositions role)))
                 (when compositions
                   (let ((range (role-range-restriction role)))
@@ -2278,7 +2299,8 @@
                                       (or (role-symmetric-p role)
                                           (role-asymmetric-p role)
                                           (role-reflexive-p role)
-                                          (role-irreflexive-p role)))
+                                          (role-irreflexive-p role)
+                                          (role-internal-name-p role)))
                             (reject role 'role-property))))))
               (let ((domain (role-domain-restriction role)))
                 (when domain

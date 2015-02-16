@@ -76,7 +76,7 @@
 	     #-:win32 pathname))))))
 |#
 
-#+:Allegro
+#+:allegro
 (defun create-directory (directory-orig)
   (let ((directory directory-orig))
     (unless (consp directory)

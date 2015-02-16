@@ -559,8 +559,7 @@
                  collect
                  (cons constraint 
                        (loop for anc-role in (role-ancestors-internal role)
-                             when (and (role-reflexive-p anc-role)
-                                       (not (is-top-object-role-p anc-role)))
+                             when (user-defined-role-reflexive-p anc-role)
                              collect anc-role)))))
          (reflexive-role-signatures
           (remove-duplicates
@@ -1495,10 +1494,10 @@
                                        (copy-related-at-least-bounds old-at-least-bounds violated-role))))
         (if (not (and same-inds-p copied-at-least-bounds))
             (progn
-      (setf (state-at-least-bounds state) nil)
-      (setf (state-current-at-most-bound state) nil)
-      (setf (state-remaining-at-most-bounds state) nil)
-      (setf (state-role-related-exists-constraints state) nil))
+              (setf (state-at-least-bounds state) nil)
+              (setf (state-current-at-most-bound state) nil)
+              (setf (state-remaining-at-most-bounds state) nil)
+              (setf (state-role-related-exists-constraints state) nil))
           (setf (state-at-least-bounds state) copied-at-least-bounds))))
     (let ((at-least-bounds (union (state-at-least-bounds state)
                                   (create-at-least-bounds true-some-constraints)
@@ -1519,7 +1518,7 @@
                #'reset-exists-copy)
             (values nil (state-unexpanded-exists-constraints-store state)))
         (declare (ignore unused))
-        (if (use-simplex-p state at-most-bounds)
+        (if (use-simplex-p state (length at-least-bounds) at-most-bounds)
             (let ((new-state
                    (changed-signature-state state
                                             :at-least-bounds at-least-bounds
@@ -1538,7 +1537,7 @@
                                            new-unexpanded-exists-constraints-store)))
             (merge-constraints-signatures ind new-state nil nil nil)))))))
 
-(defun use-simplex-p (state at-most-bounds)
+(defun use-simplex-p (state at-least-bounds-length at-most-bounds)
   (and *use-simplex*
        (not *inverse-roles*)
        (or (if *use-relation-store*
@@ -1549,11 +1548,13 @@
          (or (null tbox)
              (null (tbox-meta-constraint-concept tbox))
              (not (dl-merging *dl-prover-language*))
-             (not (dl-merging (concept-language (tbox-meta-constraint-concept tbox))))))
+             (not (dl-merging (concept-language (tbox-meta-constraint-concept tbox))))
+             *always-use-simplex*))
        (or *always-use-simplex*
-           (some (lambda (x) (> (bound-number x) 1)) at-most-bounds))
+           (and (< (+ at-least-bounds-length (length at-most-bounds))  20)
+                (some (lambda (x) (> (bound-number x) 1)) at-most-bounds)))
        (or (not (dl-reflexive-roles *dl-prover-language*))
-           (not (member-if #'role-reflexive-p at-most-bounds :key #'bound-role)))))
+           (not (member-if #'user-defined-role-reflexive-p at-most-bounds :key #'bound-role)))))
 
 (defun reorder-at-most-bounds (at-most-bounds at-most-constraint)
   (if at-most-constraint
@@ -3429,9 +3430,15 @@
                       collect partition into new-partitions
                       finally
                       (if (rest new-partitions)
-                        (return (merge-intersecting-partitions new-partitions
-                                                               (use-simplex-p state
-                                                                              at-most-bounds)))
+                        (return
+                         (merge-intersecting-partitions new-partitions
+                                                        (use-simplex-p state
+                                                                       (reduce #'+
+                                                                               new-partitions
+                                                                               :key 
+                                                                               (lambda (p)
+                                                                                 (length (fourth p))))
+                                                                        at-most-bounds)))
                         (return new-partitions)))))
           ;(break "~S" new-exists-partitions)
           #+:debug (assert (or (find selected-some-constraint new-exists-partitions
@@ -3910,7 +3917,7 @@
                                         (or (not (dl-reflexive-roles *dl-prover-language*))
                                             (loop for constraint in all-exists-constraints
                                                   never
-                                                  (some #'role-reflexive-p
+                                                  (some #'user-defined-role-reflexive-p
                                                         (role-ancestors-internal
                                                          (concept-role (constraint-term constraint)))))))
                                (add-sat-model label))

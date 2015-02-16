@@ -743,10 +743,7 @@ Return the selected element."
            (at-most (find-if-selected-constraints
                      ind
                      (lambda (constraint)
-                       (let ((concept 
-                              (if (constraint-negated-p constraint)
-                                (concept-negated-concept (constraint-term constraint))
-                                (constraint-term constraint))))
+                       (let ((concept (constraint-concept constraint)))
                          (and (at-most-concept-p concept)
                               (member (concept-role concept) role-ancestors))))
                      (state-expanded-constraints state)
@@ -767,8 +764,6 @@ Return the selected element."
                          (concept-negated-concept
                           (constraint-term constraint))
                          (constraint-term constraint))))))
-          ;(print (list ind exists-concept upper-bound))
-          ;(break)
           (or (> count-1 upper-bound)
               (let ((count-2
                      (+ count-1 (number-of-role-successors ind
@@ -1433,13 +1428,14 @@ Return the selected element."
 
 (defun some-as-all-constraint-p (constraint relation-constraints relation-store)
   (unless (constraint-merging-trigger-p constraint)
-    (let ((role (concept-role (constraint-term constraint)))
-          (use-relation-store *use-relation-store*))
+    (let* ((role (concept-role (constraint-term constraint)))
+           (use-relation-store *use-relation-store*))
       (and (role-feature-p role)
            (not (constraint-negated-p constraint))
            (if use-relation-store
                (not (relation-store-empty-p relation-store))
              relation-constraints)
+           (not (role-reflexive-p role))
            (loop with ind = (constraint-ind constraint)
                  with feature-ancestors-1 = (role-feature-ancestors role)
                  with feature-ancestors-2 = (or feature-ancestors-1 (list role))
@@ -1479,7 +1475,8 @@ Return the selected element."
 (defvar *save-precompletion* nil)       ; flag indicating when to save a precompletion
 
 (defvar *old-swap-to-expanded-store-threshold* *swap-to-expanded-store-threshold*)
-(defvar *old-cache-size-from-constraint-store* *cache-size-from-constraint-store*)  
+(defvar *old-cache-size-from-constraint-store* *cache-size-from-constraint-store*)
+(defvar *ind-counter-some-satisfiable* +ind-counter-init+)
 
 (defun commit-precompletion (state
                                   constraint-or-list
@@ -1756,9 +1753,7 @@ Return the selected element."
                                            nil
                                            (state-indirectly-blocked-individuals new-state-1))
                                          (state-labels new-state-1)))
-           (new-state-2
-            (changed-kernel-state new-state-1
-                                  :labels new-labels)))
+           (new-state-2 (changed-kernel-state new-state-1 :labels new-labels)))
       (alc-cs-satisfiable selected-constraint new-state-2 nil nil nil))))
 
 
@@ -2001,6 +1996,7 @@ Return the selected element."
               for concept-constraints = other-conclusion-concept-constraints-2
               then added-constraints
               for added-constraints = nil
+              for newly-added-expanded-constraints = nil
               do
               (multiple-value-setq
                 (new-unexpanded-deterministic-constraints
@@ -2015,7 +2011,7 @@ Return the selected element."
                  copy-disjunctive-p
                  copy-exists-p
                  ind-role-domain-table
-                 added-expanded-constraints
+                 newly-added-expanded-constraints
                  unprocessed-constraints)
                 (distribute-new-constraints-2-2 state
                                                 expand-role-domain-p
@@ -2043,6 +2039,9 @@ Return the selected element."
               (when added-constraints
                 (setf other-conclusion-concept-constraints-2
                       (append added-constraints other-conclusion-concept-constraints-2)))
+              (when newly-added-expanded-constraints
+                (setf added-expanded-constraints 
+                      (append newly-added-expanded-constraints added-expanded-constraints)))
               until (null added-constraints)
               finally
               (let ((clashed-p nil))
@@ -2113,7 +2112,6 @@ Return the selected element."
     (loop with remaining-candidates = potential-some-as-all-constraints
           with update-dependencies = (and *model-merging*
                                           (or *use-alternate-models* *use-alternate-ind-models*)
-                                          ;(boundp '*expanded-model*)
                                           *save-expanded-model*)
           with use-relation-store = *use-relation-store*
           for unchanged = t
@@ -2127,20 +2125,21 @@ Return the selected element."
                                                                (state-relation-store new-state))
                   (declare (ignore some-as-all))
                   (when rel-constraint
-                    (let* ((new-relation-constraint-1
-                            (concluded-relation-constraint (constraint-ind-1 rel-constraint)
-                                                           (constraint-ind-2 rel-constraint)
-                                                           new-constraint))
-                           (inv-role (role-inverse-internal
-                                      (concept-role
-                                       (constraint-term new-constraint))))
+                    (let* ((role (concept-role (constraint-term new-constraint)))
+                           (ind-1 (constraint-ind-1 rel-constraint))
+                           (ind-2 (constraint-ind-2 rel-constraint))
+                           (new-relation-constraint-1
+                            (concluded-relation-constraint ind-1 ind-2 new-constraint))
                            (new-relation-constraint-2
-                            (concluded-relation-constraint (constraint-ind-2 rel-constraint)
-                                                           (constraint-ind-1 rel-constraint)
-                                                           new-constraint
-                                                           inv-role))
-                           (added-relation-constraints (list new-relation-constraint-2
-                                                             new-relation-constraint-1)))
+                            (unless (and (eql ind-1 ind-2) (role-symmetric-p role))
+                              (concluded-relation-constraint ind-2
+                                                             ind-1
+                                                             new-constraint
+                                                             (role-inverse-internal role))))
+                           (added-relation-constraints
+                            (if new-relation-constraint-2
+                                (list new-relation-constraint-1 new-relation-constraint-2)
+                              (list new-relation-constraint-1))))
                       (setf unchanged nil)
                       (push new-constraint processed-constraints)
                       (push new-constraint new-unexpanded-deterministic-constraints)
@@ -2154,9 +2153,10 @@ Return the selected element."
                                                       :relation-store new-relation-store)))
                         (setf new-relation-constraints
                               (append added-relation-constraints new-relation-constraints)))
-                      (loop for all-constraint in (append (get-matching-all-or-some-constraints
-                                                           new-relation-constraint-2
-                                                           new-state)
+                      (loop for all-constraint in (append (when new-relation-constraint-2 
+                                                            (get-matching-all-or-some-constraints
+                                                             new-relation-constraint-2
+                                                             new-state))
                                                           (get-matching-all-or-some-constraints
                                                            new-relation-constraint-1
                                                            new-state))
@@ -2279,16 +2279,14 @@ Return the selected element."
                                                  :copy-p copy-disjunctive-p))
                   (when copy-disjunctive-p
                     (setf copy-disjunctive-p nil))
-                  (setf added-unexpanded-disjunctive-constraints nil)
-                  ;(break "1")
-                  ))))
+                  (setf added-unexpanded-disjunctive-constraints nil)))))
            ((exists-constraint-p new-constraint)
             (if (or (and optimize-datatype-role-fillers
                          (optimize-datatype-role-fillers new-constraint abox table *dl-prover-language*))
                     (some-as-all-constraint-p new-constraint
                                               new-relation-constraints
                                               relation-store))
-	      (push new-constraint new-unexpanded-deterministic-constraints)
+                (push new-constraint new-unexpanded-deterministic-constraints)
               (if (and ignore-abox-redundant-exists
                        relation-store
                        (not (constraint-merging-trigger-p new-constraint))
@@ -2302,67 +2300,48 @@ Return the selected element."
                                                        expanded-store
                                                        expanded-store-index
                                                        relation-store))))
-                (progn
-                  ;(push new-constraint added-expanded-constraints)
-                  (race-trace ("~&Ignoring ABox-implied some-constraint ~S" new-constraint))
-                  ;(when (constraint-signature new-constraint) (break "~S" new-constraint))
-		  (setf do-not-expand-role-domain t)
-                  )
-                (progn
-                  ;(break "~S" new-constraint)
-                  (let ((old-constraint
-                         (unless (constraint-merging-trigger-p new-constraint)
-                           (if (or (not use-unexpanded-exists-constraints-store)
-                                   (constraint-store-unused-p new-unexpanded-exists-constraints-store)
-                                   (null new-unexpanded-exists-constraints-store))
+                  (progn
+                    (race-trace ("~&Ignoring ABox-implied some-constraint ~S" new-constraint))
+                    (setf do-not-expand-role-domain t))
+                (let ((old-constraint
+                       (unless (constraint-merging-trigger-p new-constraint)
+                         (if (or (not use-unexpanded-exists-constraints-store)
+                                 (constraint-store-unused-p new-unexpanded-exists-constraints-store)
+                                 (null new-unexpanded-exists-constraints-store))
                              (find new-constraint new-unexpanded-exists-constraints
                                    :test #'constraint-equal-test)
-                             (or (find new-constraint unexpanded-exists-constraints
-                                       :test #'constraint-equal-test)
-                                 (find-if-selected-constraints
-                                  (constraint-ind new-constraint)
-                                  (lambda (old-constraint)
-                                    (same-ind-constraint-equal-test old-constraint new-constraint))
-                                  added-unexpanded-exists-constraints
-                                  new-unexpanded-exists-constraints-store))))))
-                    (if old-constraint
+                           (or (find new-constraint unexpanded-exists-constraints
+                                     :test #'constraint-equal-test)
+                               (find-if-selected-constraints
+                                (constraint-ind new-constraint)
+                                (lambda (old-constraint)
+                                  (same-ind-constraint-equal-test old-constraint new-constraint))
+                                added-unexpanded-exists-constraints
+                                new-unexpanded-exists-constraints-store))))))
+                  (if old-constraint
                       (progn
                         (when update-dependencies
                           (setf (constraint-derived-from old-constraint)
                                 (union (constraint-derived-from new-constraint)
                                        (constraint-derived-from old-constraint))))
                         (race-trace ("~&Ignoring duplicate exists constraint, old=~S, new=~S~%"
-                                     old-constraint new-constraint))
-                        ;(break "~S: ~S / ~S" new-constraint old-constraint new-unexpanded-exists-constraints-store)
-                        )
-                      (progn
-                        (push new-constraint added-unexpanded-exists-constraints)
-                        (push new-constraint all-added-unexpanded-exists-constraints)
-                        (push new-constraint new-unexpanded-exists-constraints)
-                        (when (and use-unexpanded-exists-constraints-store
-                                   added-unexpanded-exists-constraints
-                                   (swap-to-unexpanded-constraint-store-p added-unexpanded-exists-constraints
-                                                                          new-unexpanded-exists-constraints-store))
-                          (setf new-unexpanded-exists-constraints-store
-                                (add-to-constraint-store added-unexpanded-exists-constraints
-                                                         new-unexpanded-exists-constraints-store
-                                                         ':unexpanded-exists
-                                                         :copy-p copy-exists-p))
-                          (when copy-exists-p
-                            (setf copy-exists-p nil))
-                          (setf added-unexpanded-exists-constraints nil)
-                          ;(break "1")
-                          )))))))
-            (let ((concept (constraint-concept new-constraint)))
-              (when (some-concept-p concept)
-                (let ((role (concept-role concept)))
-                  (when (and (or (role-reflexive-p role)
-                                 (some #'user-defined-role-reflexive-p (role-ancestors-internal role)))
-                             (role-feature-p role))
-                    (push (concluded-concept-constraint (constraint-ind new-constraint)
-                                                        (concept-term concept)
-                                                        new-constraint)
-                          added-constraints)))))
+                                     old-constraint new-constraint)))
+                    (progn
+                      (push new-constraint added-unexpanded-exists-constraints)
+                      (push new-constraint all-added-unexpanded-exists-constraints)
+                      (push new-constraint new-unexpanded-exists-constraints)
+                      (when (and use-unexpanded-exists-constraints-store
+                                 added-unexpanded-exists-constraints
+                                 (swap-to-unexpanded-constraint-store-p added-unexpanded-exists-constraints
+                                                                        new-unexpanded-exists-constraints-store))
+                        (setf new-unexpanded-exists-constraints-store
+                              (add-to-constraint-store added-unexpanded-exists-constraints
+                                                       new-unexpanded-exists-constraints-store
+                                                       ':unexpanded-exists
+                                                       :copy-p copy-exists-p))
+                        (when copy-exists-p
+                          (setf copy-exists-p nil))
+                        (setf added-unexpanded-exists-constraints nil)))))))
             (when (and expand-role-domain-p (not do-not-expand-role-domain))
               (let ((concept-role-domain
                      (concept-role-domain (constraint-term new-constraint))))
@@ -2394,8 +2373,7 @@ Return the selected element."
                  (some-concept-p (constraint-term new-constraint)))
             (let* ((concept (constraint-concept new-constraint))
                    (role (concept-role concept)))
-              (when (or (role-reflexive-p role)
-                        (some #'user-defined-role-reflexive-p (role-descendants-internal role)))
+              (when (role-reflexive-p role)
                 (push (concluded-concept-constraint (constraint-ind new-constraint)
                                                     (concept-term concept)
                                                     new-constraint)
@@ -2594,7 +2572,6 @@ Return the selected element."
                                 new-unexpanded-disjunctive-constraints-store
                                 nil
                                 t)
-            ;(when (or added-or-constraints new-added-unexpanded-disjunctive-constraints new-det-or-constraints) (princ "+"))
             (if clashed-p
               (progn
                 (race-trace ("~&unexpanded exists constraints= ~S~%"
@@ -3288,13 +3265,11 @@ Return 3 values: selected clause, positive weight, negative weight."
                    ))))
     (if use-succ
         (let ((selected-clause (select-new-or-clause-candidate or-constraint state success-only)))
-          ;(princ "+")
           (concluded-concept-constraint (constraint-ind or-constraint)
                                         selected-clause
                                         or-constraint))
       (multiple-value-bind (selected-clause clause-pos-weight clause-neg-weight)
           (select-or-clause-candidate or-constraint state)
-        ;(princ "-")
         (concluded-concept-constraint (constraint-ind or-constraint)
                                       (if (> clause-pos-weight clause-neg-weight)
                                           selected-clause
@@ -3494,7 +3469,6 @@ Return 3 values: selected clause, positive weight, negative weight."
                      (progn
                        (race-trace ("~&first variant of success-based disjunct ~S in ~S satisfied~%"
                                     new-other-constraint or-constraint))
-                       ;(princ "+")
                        (incf-select-disjunct-table-entry new-other-constraint))
                    (progn
                      (race-trace ("~&first variant of disjunct ~S in ~S satisfied~%"
@@ -3579,10 +3553,8 @@ Return 3 values: selected clause, positive weight, negative weight."
                                     (race-trace ("~&second variant of disjunct ~S in ~S satisfied~%"
                                                  new-negated-constraint or-constraint)))
                                   (incf-select-disjunct-table-entry new-negated-constraint)
-                                    ;(when new-other-constraint (princ "@"))
                                   (added-constraints-satisfiable nil nil state t nil))
                               (progn
-                                  ;(when new-other-constraint (princ "-"))
                                 (if new-other-constraint
                                     (decf-statistics *sat-second-alt-split*)
                                   (decf-statistics *sat-second-split*))
@@ -3712,10 +3684,10 @@ Return 3 values: selected clause, positive weight, negative weight."
                        (and some-feature-p (some-concept-p (constraint-concept all-constraint)))))
   (let* ((ind (constraint-ind all-constraint))
          (term (constraint-term all-constraint))
-         (self-concept-p (concept-self-reference-p term))
          (neg-term (concept-negated-concept term))
          (all-role (concept-role term))
          (inverse-all-role (role-inverse-internal all-role))
+         (self-concept-p (and (concept-self-reference-p term) (not (role-reflexive-p all-role))))
          (all-role-transitive-p (role-transitive-p all-role))
          (all-role-transitive-ancestors (remove-if #'role-not-transitive-p
                                                    (role-ancestors-internal all-role)))
@@ -3725,75 +3697,76 @@ Return 3 values: selected clause, positive weight, negative weight."
          (relation-constraints (if *use-relation-store*
                                    (collect-all-fillers (list ind) store)
                                  relation-constraints)))
-    (loop with tbox = *use-tbox*
-          with bottom = *bottom-concept*
-          with reflexive-roles-p = (when tbox
-                                     (dl-reflexive-roles (tbox-language tbox)))
-          for relation-constraint in relation-constraints
-          for relation-role = (constraint-term relation-constraint)
-          for inverse-relation-role = (role-inverse-internal relation-role)
-          for reflexive-link-p = (eql (constraint-ind-1 relation-constraint)
-                                      (constraint-ind-2 relation-constraint))
-          for normal-forward-link-p =
-          (and (eql (constraint-ind-1 relation-constraint) ind)
-               (or (and some-feature-p
-                        (matching-relation-constraint-simple-p relation-role
-                                                               all-role
-                                                               feature-ancestors))
-                   (if (role-has-ancestors-p relation-role)
-                       (member all-role (role-ancestors-internal relation-role))
-                     (eq all-role relation-role))))
-          for pseudo-forward-link-p =
-          (and (not normal-forward-link-p)
-               (eql (constraint-ind-2 relation-constraint) ind)
-               (new-individual-p (constraint-ind-1 relation-constraint))
-               (or (and some-feature-p
-                        (matching-inverse-relation-constraint-simple-p inverse-relation-role
-                                                                       all-role
-                                                                       feature-ancestors))
-                   (if (role-has-ancestors-p inverse-relation-role)
-                       (member all-role (role-ancestors-internal inverse-relation-role))
-                     (eq all-role inverse-relation-role))))
-          for result = 
-          (if (and reflexive-link-p
-                   (or (and self-concept-p
-                            (if (constraint-negated-p all-constraint)
-                                (if (role-has-ancestors-p relation-role)
-                                    (or (member all-role (role-ancestors-internal relation-role))
-                                        (member inverse-all-role
-                                                (role-ancestors-internal inverse-relation-role)))
-                                  (or (eq all-role relation-role)
-                                      (eq inverse-all-role inverse-relation-role)))
-                              (if (role-has-ancestors-p all-role)
-                                  (or (member relation-role (role-ancestors-internal all-role))
-                                      (member inverse-relation-role
-                                              (role-ancestors-internal (role-inverse-internal all-role))))
-                                (or (eq relation-role all-role)
-                                    (eq inverse-relation-role (role-inverse-internal all-role))))))
-                       (and some-feature-p
-                            reflexive-roles-p
-                            (member-if (lambda (roles) (some #'role-reflexive-p roles))
-                                       (role-ancestors-internal all-role)
-                                       :key #'role-disjoint-roles))))
-              (list (concluded-concept-constraint (constraint-ind-1 relation-constraint)
-                                                  bottom
-                                                  all-constraint
-                                                  relation-constraint))
-            (when (and (not self-concept-p) (or normal-forward-link-p pseudo-forward-link-p))
-              (expand-relation-constraint relation-constraint
-                                          relation-role
-                                          inverse-relation-role
-                                          normal-forward-link-p
-                                          neg-term
-                                          all-role
-                                          all-role-transitive-p
-                                          all-role-transitive-ancestors
-                                          all-term
-                                          neg-all-term
-                                          all-constraint
-                                          some-feature-p)))
-          when result
-          nconc result)))
+    (racer-remove-concept-constraint-duplicates
+     (loop with tbox = *use-tbox*
+           with bottom = *bottom-concept*
+           with reflexive-roles-p = (when tbox
+                                      (dl-reflexive-roles (tbox-language tbox)))
+           for relation-constraint in relation-constraints
+           for relation-role = (constraint-term relation-constraint)
+           for inverse-relation-role = (role-inverse-internal relation-role)
+           for reflexive-link-p = (eql (constraint-ind-1 relation-constraint)
+                                       (constraint-ind-2 relation-constraint))
+           for normal-forward-link-p =
+           (and (eql (constraint-ind-1 relation-constraint) ind)
+                (or (and some-feature-p
+                         (matching-relation-constraint-simple-p relation-role
+                                                                all-role
+                                                                feature-ancestors))
+                    (if (role-has-ancestors-p relation-role)
+                        (member all-role (role-ancestors-internal relation-role))
+                      (eq all-role relation-role))))
+           for pseudo-forward-link-p =
+           (and (not normal-forward-link-p)
+                (eql (constraint-ind-2 relation-constraint) ind)
+                (new-individual-p (constraint-ind-1 relation-constraint))
+                (or (and some-feature-p
+                         (matching-inverse-relation-constraint-simple-p inverse-relation-role
+                                                                        all-role
+                                                                        feature-ancestors))
+                    (if (role-has-ancestors-p inverse-relation-role)
+                        (member all-role (role-ancestors-internal inverse-relation-role))
+                      (eq all-role inverse-relation-role))))
+           for result = 
+           (if (and reflexive-link-p
+                    (or (and self-concept-p
+                             (if (constraint-negated-p all-constraint)
+                                 (if (role-has-ancestors-p relation-role)
+                                     (or (member all-role (role-ancestors-internal relation-role))
+                                         (member inverse-all-role
+                                                 (role-ancestors-internal inverse-relation-role)))
+                                   (or (eq all-role relation-role)
+                                       (eq inverse-all-role inverse-relation-role)))
+                               (if (role-has-ancestors-p all-role)
+                                   (or (member relation-role (role-ancestors-internal all-role))
+                                       (member inverse-relation-role
+                                               (role-ancestors-internal (role-inverse-internal all-role))))
+                                 (or (eq relation-role all-role)
+                                     (eq inverse-relation-role (role-inverse-internal all-role))))))
+                        (and some-feature-p
+                             reflexive-roles-p
+                             (member-if (lambda (roles) (some #'user-defined-role-reflexive-p roles))
+                                        (role-ancestors-internal all-role)
+                                        :key #'role-disjoint-roles))))
+               (list (concluded-concept-constraint (constraint-ind-1 relation-constraint)
+                                                   bottom
+                                                   all-constraint
+                                                   relation-constraint))
+             (when (and (not self-concept-p) (or normal-forward-link-p pseudo-forward-link-p))
+               (expand-relation-constraint relation-constraint
+                                           relation-role
+                                           inverse-relation-role
+                                           normal-forward-link-p
+                                           neg-term
+                                           all-role
+                                           all-role-transitive-p
+                                           all-role-transitive-ancestors
+                                           all-term
+                                           neg-all-term
+                                           all-constraint
+                                           some-feature-p)))
+           when result
+           nconc result))))
 
 (defun expand-relation-constraint (relation-constraint
                                    relation-role
@@ -4084,10 +4057,11 @@ Return 3 values: selected clause, positive weight, negative weight."
                                (if *use-relation-store*
                                    (not (relation-store-empty-p relation-store))
                                  relation-constraints))))
-              (get-violated-exists-constraints ind
-                                               (concept-role
-                                                (constraint-term all-constraint))
-                                               state))))
+              (racer-remove all-constraint
+                            (get-violated-exists-constraints ind
+                                                             (concept-role
+                                                              (constraint-term all-constraint))
+                                                             state)))))
       (multiple-value-bind (obsolete-individuals remaining-relation-constraints new-store)
                            (if violated-exists
                              (get-obsolete-individuals violated-exists
@@ -4384,12 +4358,13 @@ Return 3 values: selected clause, positive weight, negative weight."
                                          (not (relation-store-empty-p relation-store))
                                        relation-constraints))))
                     (remove-if (lambda (constraint)
-                                 (let ((successor-ind (constraint-successor-ind constraint)))
-                                   (and successor-ind
-                                        (if *use-relation-store*
-                                          (is-left-individual-p successor-ind relation-store)
-                                          (member successor-ind relation-constraints
-                                                  :key #'constraint-ind-1)))))
+                                 (or (eq constraint all-constraint)
+                                     (let ((successor-ind (constraint-successor-ind constraint)))
+                                       (and successor-ind
+                                            (if *use-relation-store*
+                                                (is-left-individual-p successor-ind relation-store)
+                                              (member successor-ind relation-constraints
+                                                      :key #'constraint-ind-1))))))
                                (get-violated-exists-constraints ind
                                                                 (concept-role
                                                                  (constraint-term all-constraint))
@@ -5168,7 +5143,10 @@ Return 3 values: selected clause, positive weight, negative weight."
                                                 (role-compositions role))
                                       collect role)
                                 (remove-if-not #'role-compositions
-                                               (role-ancestors-internal all-role))))))
+                                               (role-ancestors-internal all-role)))))
+         (reflexive-ancestors (loop for role in (role-ancestors-internal some-role)
+                                    when (user-defined-role-reflexive-p role)
+                                    collect role)))
     #+:debug (assert (or (some-concept-p term) (neg-ria-initial-concept-p term)))
     (when (and transitive-ancestors
                (role-transitive-p all-role)
@@ -5201,19 +5179,33 @@ Return 3 values: selected clause, positive weight, negative weight."
                                                  some-constraint)))
             ((constraint-negated-p all-or-some-constraint)
              (when (or (not (concept-self-reference-p term))
-                       (and (concept-self-reference-p (constraint-term some-constraint))
+                       (and (or reflexive-ancestors
+                                (concept-self-reference-p (constraint-term some-constraint)))
                             (or (member all-role (role-ancestors-internal some-role))
                                 (member (role-inverse-internal all-role) (role-ancestors-internal some-role)))))
                (list (concluded-concept-constraint successor-ind
                                                    neg-all-term
                                                    all-or-some-constraint
                                                    some-constraint))))
-            (t
-             #+:debug (assert (role-feature-p all-role))
-             (list (concluded-concept-constraint successor-ind
-                                                 all-term
-                                                 all-or-some-constraint
-                                                 some-constraint))))))
+             (t
+              #+:debug (assert (role-feature-p all-role))
+              (list (concluded-concept-constraint successor-ind
+                                                  all-term
+                                                  all-or-some-constraint
+                                                  some-constraint))))))
+      
+      #|(when reflexive-ancestors
+        (when (role-feature-p all-role)
+          (list (concluded-concept-constraint (constraint-ind some-constraint)
+                                              (concept-term (constraint-concept some-constraint))
+                                              all-or-some-constraint
+                                              some-constraint)))
+        (when (and (subrole-p some-role all-role) (role-feature-p some-role))
+          (list (concluded-concept-constraint (constraint-ind some-constraint)
+                                              (concept-term
+                                               (concept-term (constraint-concept some-constraint)))
+                                              all-or-some-constraint
+                                              some-constraint))))|#
       (when (neg-ria-initial-concept-p term)
         (push (concluded-concept-constraint successor-ind
                                             (encode-concept-term `(f-all ,all-role ,neg-all-term))
@@ -5611,67 +5603,68 @@ Return 3 values: selected clause, positive weight, negative weight."
   (incf-statistics *model-size*)
   (setf-statistics *max-model-size* (max (get-local-statistics-integer-value *max-model-size*)
                                          (get-local-statistics-integer-value *model-size*)))
-  (multiple-value-bind
-      (feature-related-some-constraints
-       new-unexpanded-exists-constraints
-       new-unexpanded-exists-constraint-store
-       feature-hierarchy-collapsed-p)
-      (get-related-some-constraints some-constraint
-                                    (copy-basic-kernel-state state
-                                                             (and (not *in-precompletion*)
-                                                                  ':unexpanded-exists)))
-    (let* ((role (concept-role (constraint-term some-constraint)))
-           (feature-p (role-feature-p role)))
-      (if (and (null feature-related-some-constraints)
-               (or (constraint-merging-trigger-p some-constraint)
-                   (not feature-p)
-                   (not (every #'role-feature-p (role-ancestors-internal role))))
-               (or (dl-merging *dl-prover-language*)
-                   (and feature-p
-                        (not *use-unique-name-assumption*)
-                        (role-has-feature-ancestors-p role))))
-          (let ((exists-partitions (at-most-constraint-violated-p some-constraint state)))
-            (if exists-partitions
-                (let ((new-state (if (end-of-precompletion-p exists-partitions)
-                                     (commit-precompletion state exists-partitions)
-                                   state))
-                      (ind (constraint-ind some-constraint)))
-                  (expanded-exists-partitions-satisfiable-1 ind
-                                                            exists-partitions
-                                                            new-state
-                                                            nil nil))
-              (let ((new-state
-                     (changed-kernel-state state
-                                           :unexpanded-exists-constraints new-unexpanded-exists-constraints
-                                           :unexpanded-exists-constraints-store
-                                           new-unexpanded-exists-constraint-store)))
-                (expanded-some-satisfiable-1-1 some-constraint new-state nil nil nil))))
-        (if (and feature-related-some-constraints
-                 (disjoint-roles-clash-in-feature-exists-constraints-p (state-tbox (state-parameters state))
-                                                                       (cons some-constraint
-                                                                             feature-related-some-constraints)))
-            (progn
-              (set-clash-reasons (cons some-constraint feature-related-some-constraints))
-              (set-clash-dependencies
-               (collect-dependencies (cons some-constraint feature-related-some-constraints)))
-              (set-signature-clash-reasons (cons some-constraint feature-related-some-constraints)
-                                           *catching-clash-dependencies*)
-              (race-trace ("~&Uunsatisfiable feature constraints ~S, dep=~S~%"
-                           (cons some-constraint feature-related-some-constraints)
-                           *catching-clash-dependencies*))
-              (incf-statistics *tableaux-cache-unsat-hits*)
-              (return-from expanded-some-satisfiable-1
-                (handle-clash-with-backtrack-state state nil nil nil nil)))
-          (let ((new-state
-                 (changed-kernel-state state
-                                       :unexpanded-exists-constraints new-unexpanded-exists-constraints
-                                       :unexpanded-exists-constraints-store
-                                       new-unexpanded-exists-constraint-store)))
-            (expanded-some-satisfiable-1-1 some-constraint
-                                           new-state
-                                           feature-related-some-constraints
-                                           feature-hierarchy-collapsed-p
-                                           nil)))))))
+  (let* ((term (constraint-term some-constraint))
+         (role (concept-role term)))
+    (multiple-value-bind
+        (feature-related-some-constraints
+         new-unexpanded-exists-constraints
+         new-unexpanded-exists-constraint-store
+         feature-hierarchy-collapsed-p)
+        (get-related-some-constraints some-constraint
+                                      (copy-basic-kernel-state state
+                                                               (and (not *in-precompletion*)
+                                                                    ':unexpanded-exists)))
+      (let ((feature-p (role-feature-p role)))
+        (if (and (null feature-related-some-constraints)
+                 (or (constraint-merging-trigger-p some-constraint)
+                     (not feature-p)
+                     (not (every #'role-feature-p (role-ancestors-internal role))))
+                 (or (dl-merging *dl-prover-language*)
+                     (and feature-p
+                          (not *use-unique-name-assumption*)
+                          (role-has-feature-ancestors-p role))))
+            (let ((exists-partitions (at-most-constraint-violated-p some-constraint state)))
+              (if exists-partitions
+                  (let ((new-state (if (end-of-precompletion-p exists-partitions)
+                                       (commit-precompletion state exists-partitions)
+                                     state))
+                        (ind (constraint-ind some-constraint)))
+                    (expanded-exists-partitions-satisfiable-1 ind
+                                                              exists-partitions
+                                                              new-state
+                                                              nil nil))
+                (let ((new-state
+                       (changed-kernel-state state
+                                             :unexpanded-exists-constraints new-unexpanded-exists-constraints
+                                             :unexpanded-exists-constraints-store
+                                             new-unexpanded-exists-constraint-store)))
+                  (expanded-some-satisfiable-1-1 some-constraint new-state nil nil nil))))
+          (if (and feature-related-some-constraints
+                   (disjoint-roles-clash-in-feature-exists-constraints-p (state-tbox (state-parameters state))
+                                                                         (cons some-constraint
+                                                                               feature-related-some-constraints)))
+              (progn
+                (set-clash-reasons (cons some-constraint feature-related-some-constraints))
+                (set-clash-dependencies
+                 (collect-dependencies (cons some-constraint feature-related-some-constraints)))
+                (set-signature-clash-reasons (cons some-constraint feature-related-some-constraints)
+                                             *catching-clash-dependencies*)
+                (race-trace ("~&Uunsatisfiable feature constraints ~S, dep=~S~%"
+                             (cons some-constraint feature-related-some-constraints)
+                             *catching-clash-dependencies*))
+                (incf-statistics *tableaux-cache-unsat-hits*)
+                (return-from expanded-some-satisfiable-1
+                  (handle-clash-with-backtrack-state state nil nil nil nil)))
+            (let ((new-state
+                   (changed-kernel-state state
+                                         :unexpanded-exists-constraints new-unexpanded-exists-constraints
+                                         :unexpanded-exists-constraints-store
+                                         new-unexpanded-exists-constraint-store)))
+              (expanded-some-satisfiable-1-1 some-constraint
+                                             new-state
+                                             feature-related-some-constraints
+                                             feature-hierarchy-collapsed-p
+                                             nil))))))))
 
 (defun end-of-precompletion-p (exists-partitions)
   (when *in-precompletion*
@@ -5872,9 +5865,7 @@ Return 3 values: selected clause, positive weight, negative weight."
                                               (setf self-conclusion-concept-constraints conclusion-concept-constraints)
                                             (multiple-value-bind
                                                 (result blocking-used)
-                                                (let ( ;(*expanded-model* nil)
-                                        ;(*save-expanded-model* *tableaux-cached-models*)
-                                                      (*save-expanded-model* nil)
+                                                (let ((*save-expanded-model* nil)
                                                       (new-state
                                                        (make-basic-kernel-state :labels new-labels
                                                                                 :partially-expanded-or-stack nil
@@ -5938,7 +5929,7 @@ Return 3 values: selected clause, positive weight, negative weight."
                                               (when tableaux-caching
                                                 (if result
                                                     (when *tableaux-sat-caching*
-                                                      (add-sat-model conclusions-key t)
+                                                      (add-sat-model conclusions-key)
                                                       (when blocking-possibly-required
                                                         (add-caching-dependencies new-labels)))
                                                   (when (and (first *tableaux-unsat-caching*)
@@ -6051,67 +6042,68 @@ Return 3 values: selected clause, positive weight, negative weight."
   (incf-statistics *model-size*)
   (setf-statistics *max-model-size* (max (get-local-statistics-integer-value *max-model-size*)
                                          (get-local-statistics-integer-value *model-size*)))
-  (multiple-value-bind
-      (feature-related-some-constraints
-       new-unexpanded-exists-constraints
-       new-unexpanded-exists-constraint-store
-       feature-hierarchy-collapsed-p)
-      (get-related-some-constraints some-constraint
-                                    (copy-basic-kernel-state state
-                                                             (and (not *in-precompletion*)
-                                                                  ':unexpanded-exists)))
-    (let* ((role (concept-role (constraint-term some-constraint)))
-           (feature-p (role-feature-p role)))
-      (if (and (null feature-related-some-constraints)
-               (or (constraint-merging-trigger-p some-constraint)
-                   (not feature-p))
-               (or (dl-merging *dl-prover-language*)
-                   (and feature-p
-                        (not *use-unique-name-assumption*)
-                        (role-has-feature-ancestors-p role))))
-          (let ((exists-partitions (at-most-constraint-violated-p some-constraint state)))
-            (if exists-partitions
-                (let ((new-state (if (end-of-precompletion-p exists-partitions)
-                                     (commit-precompletion state exists-partitions)
-                                   state))
-                      (ind (constraint-ind some-constraint)))
-                  (expanded-exists-partitions-satisfiable-2 ind
-                                                            exists-partitions
-                                                            new-state
-                                                            nil nil))
-              (let ((new-state
-                     (changed-kernel-state state
-                                           :unexpanded-exists-constraints
-                                           new-unexpanded-exists-constraints
-                                           :unexpanded-exists-constraints-store
-                                           new-unexpanded-exists-constraint-store)))
-                (expanded-some-satisfiable-2-1 some-constraint new-state nil nil nil))))
-        (if (and feature-related-some-constraints
-                 (disjoint-roles-clash-in-feature-exists-constraints-p (state-tbox (state-parameters state))
-                                                                       (cons some-constraint
-                                                                             feature-related-some-constraints)))
-            (progn
-              (set-clash-reasons (cons some-constraint feature-related-some-constraints))
-              (set-clash-dependencies
-               (collect-dependencies (cons some-constraint feature-related-some-constraints)))
-              (set-signature-clash-reasons (cons some-constraint feature-related-some-constraints)
-                                           *catching-clash-dependencies*)
-              (race-trace ("~&Uunsatisfiable feature constraints ~S, dep=~S~%"
-                           (cons some-constraint feature-related-some-constraints)
-                           *catching-clash-dependencies*))
-              (incf-statistics *tableaux-cache-unsat-hits*)
-              (return-from expanded-some-satisfiable-2
-                (handle-clash-with-backtrack-state state nil nil nil nil)))
-          (let ((new-state
-                 (changed-kernel-state state
-                                       :unexpanded-exists-constraints new-unexpanded-exists-constraints
-                                       :unexpanded-exists-constraints-store
-                                       new-unexpanded-exists-constraint-store)))
-            (expanded-some-satisfiable-2-1 some-constraint
-                                           new-state
-                                           feature-related-some-constraints
-                                           feature-hierarchy-collapsed-p
-                                           nil)))))))
+  (let* ((term (constraint-term some-constraint))
+         (role (concept-role term)))
+    (multiple-value-bind
+        (feature-related-some-constraints
+         new-unexpanded-exists-constraints
+         new-unexpanded-exists-constraint-store
+         feature-hierarchy-collapsed-p)
+        (get-related-some-constraints some-constraint
+                                      (copy-basic-kernel-state state
+                                                               (and (not *in-precompletion*)
+                                                                    ':unexpanded-exists)))
+      (let ((feature-p (role-feature-p role)))
+        (if (and (null feature-related-some-constraints)
+                 (or (constraint-merging-trigger-p some-constraint)
+                     (not feature-p))
+                 (or (dl-merging *dl-prover-language*)
+                     (and feature-p
+                          (not *use-unique-name-assumption*)
+                          (role-has-feature-ancestors-p role))))
+            (let ((exists-partitions (at-most-constraint-violated-p some-constraint state)))
+              (if exists-partitions
+                  (let ((new-state (if (end-of-precompletion-p exists-partitions)
+                                       (commit-precompletion state exists-partitions)
+                                     state))
+                        (ind (constraint-ind some-constraint)))
+                    (expanded-exists-partitions-satisfiable-2 ind
+                                                              exists-partitions
+                                                              new-state
+                                                              nil nil))
+                (let ((new-state
+                       (changed-kernel-state state
+                                             :unexpanded-exists-constraints
+                                             new-unexpanded-exists-constraints
+                                             :unexpanded-exists-constraints-store
+                                             new-unexpanded-exists-constraint-store)))
+                  (expanded-some-satisfiable-2-1 some-constraint new-state nil nil nil))))
+          (if (and feature-related-some-constraints
+                   (disjoint-roles-clash-in-feature-exists-constraints-p (state-tbox (state-parameters state))
+                                                                         (cons some-constraint
+                                                                               feature-related-some-constraints)))
+              (progn
+                (set-clash-reasons (cons some-constraint feature-related-some-constraints))
+                (set-clash-dependencies
+                 (collect-dependencies (cons some-constraint feature-related-some-constraints)))
+                (set-signature-clash-reasons (cons some-constraint feature-related-some-constraints)
+                                             *catching-clash-dependencies*)
+                (race-trace ("~&Uunsatisfiable feature constraints ~S, dep=~S~%"
+                             (cons some-constraint feature-related-some-constraints)
+                             *catching-clash-dependencies*))
+                (incf-statistics *tableaux-cache-unsat-hits*)
+                (return-from expanded-some-satisfiable-2
+                  (handle-clash-with-backtrack-state state nil nil nil nil)))
+            (let ((new-state
+                   (changed-kernel-state state
+                                         :unexpanded-exists-constraints new-unexpanded-exists-constraints
+                                         :unexpanded-exists-constraints-store
+                                         new-unexpanded-exists-constraint-store)))
+              (expanded-some-satisfiable-2-1 some-constraint
+                                             new-state
+                                             feature-related-some-constraints
+                                             feature-hierarchy-collapsed-p
+                                             nil))))))))
 
 (defun compute-new-labels (new-labels-1)
   (let (#+:debug (broken-blocks nil))
@@ -6141,7 +6133,9 @@ Return 3 values: selected clause, positive weight, negative weight."
                                     (not (relation-store-empty-p (state-relation-store state))))
                            (state-relation-store state)))
          (concept (constraint-term some-constraint))
-         (self-concept-p (concept-self-reference-p concept)))
+         (self-loop-p (or (concept-self-reference-p concept)
+                          (some #'user-defined-role-reflexive-feature-p
+                                (role-ancestors-internal (concept-role concept))))))
     (if (and *ignore-abox-redundant-exists*
              relation-store
              (not (constraint-merging-trigger-p some-constraint))
@@ -6158,7 +6152,6 @@ Return 3 values: selected clause, positive weight, negative weight."
                                       relation-store))
         (progn
           (race-trace ("~&Ignoring ABox-implied some-constraint ~S" some-constraint))
-        ;(break)
           (added-constraints-satisfiable nil ;no conclusion-concept-constraint
                                          nil ;no conclusion-relation-constraint
                                          state
@@ -6201,12 +6194,11 @@ Return 3 values: selected clause, positive weight, negative weight."
                                role))
                    (witness
                     (when (and (not (true-old-individual-p previous-ind))
-                               (not self-concept-p)
+                               (not self-loop-p)
                                (or *use-tbox* *encode-roles-as-transitive*))
                       (if (shiq-blocking-required *dl-prover-language*)
                           (shiq-find-label-witness new-role previous-ind label labels state nil (list some-constraint))
                         (shi-find-label-witness new-role label previous-ind labels state nil (list some-constraint))))))
-            ;(break "~S" some-constraint)
               (if witness
                   (let* ((new-witness (copy-label-info witness))
                          (new-labels (replace-modified-labels (list (cons witness new-witness))
@@ -6234,7 +6226,6 @@ Return 3 values: selected clause, positive weight, negative weight."
                              #'reset-exists-copy)
                           (values (state-unexpanded-exists-constraints state)
                                   (state-unexpanded-exists-constraints-store state)))
-                  ;(break "~S" some-constraint)
                       (let* ((new-expanded-constraints
                               (cons some-constraint
                                     (append feature-related-some-constraints
@@ -6251,144 +6242,109 @@ Return 3 values: selected clause, positive weight, negative weight."
                                                        nil ;no conclusion-relation-constraint
                                                        new-state
                                                        t nil))))
-                (multiple-value-bind
-                    (new-labels-1 blocked-labels)
-                    (if (and labels (not (true-old-individual-p previous-ind)))
-                        (let* ((previous-ind-label (find-label-for-ind previous-ind labels))
-                               (start-label (when previous-ind-label
-                                              (list (first previous-ind-label)))))
-                          (if (shiq-blocking-required *dl-prover-language*)
-                              (shiq-find-newly-blocked-labels start-label labels state)
-                            (shi-find-newly-blocked-labels start-label labels state)))
-                      labels)
-                ;(unless blocked-labels
-                ;  (when (find-newly-blocked-labels new-labels-1) (break)))
-                  (let* ((blocked-individuals (when blocked-labels
-                                                (mapcar #'label-info-ind blocked-labels)))
-                         (indirectly-blocked-individuals (state-indirectly-blocked-individuals state))
-                         (new-indirectly-blocked-individuals
-                          (if blocked-individuals
-                              (union (get-obsolete-successors-of-inds blocked-individuals
-                                                                      relation-constraints
-                                                                      (state-relation-store state))
-                                     (union blocked-individuals indirectly-blocked-individuals))
-                            indirectly-blocked-individuals))
-                         (violated-exists
-                          (unless (true-old-individual-p previous-ind)
-                            (get-violated-blocked-constraints previous-ind
-                                                              (label-info-blocked-constraints
-                                                               (first new-labels-1))
-                                                              state)))
-                         (new-labels-2
-                          (if violated-exists
-                              (multiple-value-bind (new-labels-2 #+:debug broken-blocks)
-                                  (compute-new-labels new-labels-1)
-                                #+:debug
-                                (when broken-blocks
-                                  (race-trace ("~&Some-unblocking blocked labels ~S~%" broken-blocks)))
-                                new-labels-2)
-                            new-labels-1)))
-                    (when-debug (not (eq new-labels-1 new-labels-2))
-                      (race-trace ("~&New unblocked labels ~S~%" new-labels-2)))
-                    (let ((copied-violated-exists
-                           (when violated-exists
-                             (copy-violated-exists-constraints violated-exists))))
+                (let ((conclusions-key label))
+                  (multiple-value-bind (old-result dependencies)
+                      (when (and *tableaux-inverse-unsat-caching*
+                                 label
+                                 (not self-loop-p))
+                        (get-model conclusions-key))
+                    (declare (ignore dependencies))
+                    (if (and old-result (incoherent-model-p old-result))
+                        (progn
+                          (set-clash-reasons (append (cons some-constraint
+                                                           feature-related-some-constraints)
+                                                     all-constraints
+                                                     (list relation-constraints)))
+                          (set-clash-dependencies
+                           (union-dependencies (collect-dependencies (cons some-constraint
+                                                                           feature-related-some-constraints))
+                                               (collect-dependencies all-constraints)))
+                          (set-signature-clash-reasons
+                           (append (cons some-constraint feature-related-some-constraints)
+                                   all-constraints)
+                           *catching-clash-dependencies*)
+                          ;#+:debug (print (list 'hit conclusions-key))
+                          ;#+:debug (princ "*")
+                          (race-trace ("~&Cache hit (inverse) for unsatisfiable constraints ~S ~S, ~
+                                            label=~S, dep=~S~%"
+                                       some-constraint all-constraints
+                                       conclusions-key
+                                       *catching-clash-dependencies*))
+                          (incf-statistics *tableaux-cache-unsat-hits*)
+                          (return-from expanded-some-satisfiable-2-1
+                            (handle-clash-with-backtrack-state state nil nil nil nil)))
                       (multiple-value-bind
-                          (new-expanded-constraints new-expanded-store new-expanded-store-index)
-                          (if violated-exists
-                              (remove-constraints-from-constraint-store violated-exists
-                                                                        (state-expanded-constraints state)
-                                                                        (state-expanded-store state)
-                                                                        (state-copy-expanded-store-p state)
-                                                                        state
-                                                                        #'reset-expanded-copy
-                                                                        (state-expanded-store-index state))
-                            (values (state-expanded-constraints state)
-                                    (state-expanded-store state)
-                                    (state-expanded-store-index state)))
-                        (let ((new-labels-3 (if blocked-individuals
-                                                (remove-obsolete-label-infos
-                                                 nil ; no obsolete-individuals
-                                                 new-indirectly-blocked-individuals
-                                                 new-labels-2)
-                                              new-labels-2)))
-                          (when-debug blocked-individuals
-                            (race-trace ("~&Indirectly blocked inds=~S, blocked labels=~S~%"
-                                         new-indirectly-blocked-individuals blocked-labels))
-                            (race-trace ("Constraints (~S ~S ~S)~%"
-                                         state
-                                         new-labels-2
-                                         new-indirectly-blocked-individuals)))
-                          (if (member previous-ind new-indirectly-blocked-individuals)
-                              (progn
-                                (race-trace ("~&Ignoring indirectly blocked constraint ~S, blocked inds=~S~%"
-                                             some-constraint new-indirectly-blocked-individuals))
-                                (multiple-value-bind (new-unexpanded-exists-constraints
-                                                      new-unexpanded-exists-constraints-store)
-                                    (if feature-related-some-constraints
-                                        (remove-constraints-from-constraint-store
-                                         feature-related-some-constraints
-                                         (state-unexpanded-exists-constraints state)
-                                         (state-unexpanded-exists-constraints-store state)
-                                         (state-copy-unexpanded-exists-constraints-store-p state)
-                                         state
-                                         #'reset-exists-copy)
-                                      (values (state-unexpanded-exists-constraints state)
-                                              (state-unexpanded-exists-constraints-store state)))
-                              ;(break "~S" some-constraint)
-                                  (let* ((new-expanded-constraints
-                                          (cons some-constraint
-                                                (append feature-related-some-constraints
-                                                        new-expanded-constraints)))
-                                         (new-state
-                                          (changed-kernel-state state
-                                                                :unexpanded-exists-constraints
-                                                                new-unexpanded-exists-constraints
-                                                                :expanded-constraints new-expanded-constraints
-                                                                :labels new-labels-3
-                                                                :indirectly-blocked-individuals
-                                                                new-indirectly-blocked-individuals
-                                                                :expanded-store new-expanded-store
-                                                                :expanded-store-index new-expanded-store-index
-                                                                :unexpanded-exists-constraints-store
-                                                                new-unexpanded-exists-constraints-store)))
-                                    (added-constraints-satisfiable copied-violated-exists
-                                                                   nil ;no conclusion-relation-constraint
-                                                                   new-state t nil))))
-                            (let* ((next-ind-counter (incf *ind-counter-some-satisfiable*))
-                                   (new-labels-4
-                                    (cons (make-inverse-label-info :constraint some-constraint
-                                                                   :label-or-concept label
-                                                                   :role new-role
-                                                                   :ind next-ind-counter
-                                                                   :previous-ind previous-ind
-                                                                   )
-                                          new-labels-3)))
-                              (multiple-value-bind
-                                  (satisfiable partial-model-p merging-test-skipped)
-                                  (if (and *model-merging*
-                                           *subtableaux-model-merging*
-                                           (not self-concept-p)
-                                           (use-subtableaux-model-merging-2-p some-constraint)
-                                           (every #'use-subtableaux-model-merging-2-p all-constraints))
-                                      (progn
-                                  ;(break)
-                                        (constraints-mergable-p some-constraint
-                                                                all-constraints
-                                                                feature-related-some-constraints
-                                                                relation-constraints
-                                                                new-labels-4
-                                                                (role-inverse-internal new-role)))
-                                    (values nil t t))
-                                (if satisfiable
+                          (new-labels-1 blocked-labels)
+                          (if (and labels (not (true-old-individual-p previous-ind)))
+                              (let* ((previous-ind-label (find-label-for-ind previous-ind labels))
+                                     (start-label (when previous-ind-label
+                                                    (list (first previous-ind-label)))))
+                                (if (shiq-blocking-required *dl-prover-language*)
+                                    (shiq-find-newly-blocked-labels start-label labels state)
+                                  (shi-find-newly-blocked-labels start-label labels state)))
+                            labels)
+                        (let* ((blocked-individuals (when blocked-labels
+                                                      (mapcar #'label-info-ind blocked-labels)))
+                               (indirectly-blocked-individuals (state-indirectly-blocked-individuals state))
+                               (new-indirectly-blocked-individuals
+                                (if blocked-individuals
+                                    (union (get-obsolete-successors-of-inds blocked-individuals
+                                                                            relation-constraints
+                                                                            (state-relation-store state))
+                                           (union blocked-individuals indirectly-blocked-individuals))
+                                  indirectly-blocked-individuals))
+                               (violated-exists
+                                (unless (true-old-individual-p previous-ind)
+                                  (get-violated-blocked-constraints previous-ind
+                                                                    (label-info-blocked-constraints
+                                                                     (first new-labels-1))
+                                                                    state)))
+                               (new-labels-2
+                                (if violated-exists
+                                    (multiple-value-bind (new-labels-2 #+:debug broken-blocks)
+                                        (compute-new-labels new-labels-1)
+                                      #+:debug
+                                      (when broken-blocks
+                                        (race-trace ("~&Some-unblocking blocked labels ~S~%" broken-blocks)))
+                                      new-labels-2)
+                                  new-labels-1)))
+                          (when-debug (not (eq new-labels-1 new-labels-2))
+                            (race-trace ("~&New unblocked labels ~S~%" new-labels-2)))
+                          (let ((copied-violated-exists
+                                 (when violated-exists
+                                   (copy-violated-exists-constraints violated-exists))))
+                            (multiple-value-bind
+                                (new-expanded-constraints new-expanded-store new-expanded-store-index)
+                                (if violated-exists
+                                    (remove-constraints-from-constraint-store violated-exists
+                                                                              (state-expanded-constraints state)
+                                                                              (state-expanded-store state)
+                                                                              (state-copy-expanded-store-p state)
+                                                                              state
+                                                                              #'reset-expanded-copy
+                                                                              (state-expanded-store-index state))
+                                  (values (state-expanded-constraints state)
+                                          (state-expanded-store state)
+                                          (state-expanded-store-index state)))
+                              (let ((new-labels-3 (if blocked-individuals
+                                                      (remove-obsolete-label-infos
+                                                       nil ; no obsolete-individuals
+                                                       new-indirectly-blocked-individuals
+                                                       new-labels-2)
+                                                    new-labels-2)))
+                                (when-debug blocked-individuals
+                                  (race-trace ("~&Indirectly blocked inds=~S, blocked labels=~S~%"
+                                               new-indirectly-blocked-individuals blocked-labels))
+                                  (race-trace ("Constraints (~S ~S ~S)~%"
+                                               state
+                                               new-labels-2
+                                               new-indirectly-blocked-individuals)))
+                                (if (member previous-ind new-indirectly-blocked-individuals)
                                     (progn
-                                      (race-trace ("~&models mergable for ~S and ~S~%"
-                                                   some-constraint all-constraints))
-                                      (when (and *model-merging* *subtableaux-model-merging*)
-                                        (incf-statistics *mergable-models*))
-                                      (multiple-value-bind
-                                          (new-unexpanded-exists-constraints
-                                           new-unexpanded-exists-constraints-store)
+                                      (race-trace ("~&Ignoring indirectly blocked constraint ~S, blocked inds=~S~%"
+                                                   some-constraint new-indirectly-blocked-individuals))
+                                      (multiple-value-bind (new-unexpanded-exists-constraints
+                                                            new-unexpanded-exists-constraints-store)
                                           (if feature-related-some-constraints
                                               (remove-constraints-from-constraint-store
                                                feature-related-some-constraints
@@ -6399,7 +6355,6 @@ Return 3 values: selected clause, positive weight, negative weight."
                                                #'reset-exists-copy)
                                             (values (state-unexpanded-exists-constraints state)
                                                     (state-unexpanded-exists-constraints-store state)))
-                                    ;(break "~S" some-constraint)
                                         (let* ((new-expanded-constraints
                                                 (cons some-constraint
                                                       (append feature-related-some-constraints
@@ -6408,89 +6363,46 @@ Return 3 values: selected clause, positive weight, negative weight."
                                                 (changed-kernel-state state
                                                                       :unexpanded-exists-constraints
                                                                       new-unexpanded-exists-constraints
-                                                                      :expanded-constraints
-                                                                      new-expanded-constraints
-                                                                      :labels new-labels-4
+                                                                      :expanded-constraints new-expanded-constraints
+                                                                      :labels new-labels-3
                                                                       :indirectly-blocked-individuals
                                                                       new-indirectly-blocked-individuals
                                                                       :expanded-store new-expanded-store
+                                                                      :expanded-store-index new-expanded-store-index
                                                                       :unexpanded-exists-constraints-store
                                                                       new-unexpanded-exists-constraints-store)))
                                           (added-constraints-satisfiable copied-violated-exists
                                                                          nil ;no conclusion-relation-constraint
                                                                          new-state t nil))))
-                                  (if partial-model-p
-                                      (let ((conclusion-concept-constraints
-                                             (if self-concept-p
-                                                 (expand-some-constraint some-all-list
-                                                                         feature-related-some-constraints
-                                                                         previous-ind)
-                                               (expand-some-constraint some-all-list
-                                                                       feature-related-some-constraints
-                                                                       next-ind-counter))))
-                                        (unless self-concept-p
-                                          (incf-statistics *model-depth*)
-                                          (setf-statistics *max-model-depth*
-                                                           (max (get-local-statistics-integer-value 
-                                                                 *max-model-depth*)
-                                                                (get-local-statistics-integer-value 
-                                                                 *model-depth*))))
-                                        (if merging-test-skipped
-                                            (race-trace ("~&Merging test skipped for ~S and ~S~%"
-                                                         conclusion-concept-constraints some-constraint))
+                                  (let* ((next-ind-counter (incf *ind-counter-some-satisfiable*))
+                                         (new-labels-4
+                                          (cons (make-inverse-label-info :constraint some-constraint
+                                                                         :label-or-concept label
+                                                                         :role new-role
+                                                                         :ind next-ind-counter
+                                                                         :previous-ind previous-ind
+                                                                         )
+                                                new-labels-3)))
+                                    (multiple-value-bind
+                                        (satisfiable partial-model-p merging-test-skipped)
+                                        (if (and *model-merging*
+                                                 *subtableaux-model-merging*
+                                                 (not self-loop-p)
+                                                 (use-subtableaux-model-merging-2-p some-constraint)
+                                                 (every #'use-subtableaux-model-merging-2-p all-constraints))
+                                            (constraints-mergable-p some-constraint
+                                                                    all-constraints
+                                                                    feature-related-some-constraints
+                                                                    relation-constraints
+                                                                    new-labels-4
+                                                                    (role-inverse-internal new-role))
+                                          (values nil t t))
+                                      (if satisfiable
                                           (progn
-                                            (incf-statistics *unmergable-partial-models*)
-                                            (race-trace ("~&Partial models NOT mergable for ~S from ~S~%"
-                                                         conclusion-concept-constraints some-constraint))))
-                                        (when-debug t
-                                          (if feature-related-some-constraints
-                                              (race-trace ("~&Testing satisfiability of feature partition ~%~
-                                                      ~S~%"
-                                                           (cons some-constraint
-                                                                 feature-related-some-constraints)))
-                                            (race-trace ("~&Testing satisfiability of some-constraint ~S~%"
-                                                         some-constraint))))
-                                        (if self-concept-p
-                                            (let* ((new-expanded-constraints
-                                                    (cons some-constraint new-expanded-constraints))
-                                                   (new-state
-                                                    (changed-kernel-state
-                                                     state
-                                                     :expanded-constraints new-expanded-constraints
-                                                     :labels new-labels-4
-                                                     :indirectly-blocked-individuals
-                                                     new-indirectly-blocked-individuals
-                                                     :expanded-store new-expanded-store)))
-                                              (race-trace ("~&Testing satisfiability of conclusion constrains ~S~%"
-                                                           conclusion-concept-constraints))
-                                              ;;(break "~S" some-constraint)
-                                              (added-constraints-satisfiable conclusion-concept-constraints
-                                                                             nil
-                                                                             new-state nil nil))
-                                          (let ((new-rel-constraint
-                                                 (if feature-related-some-constraints
-                                                     (concluded-feature-partition-inverse-relation-constraint
-                                                      next-ind-counter
-                                                      previous-ind
-                                                      new-role
-                                                      (cons some-constraint
-                                                            feature-related-some-constraints))
-                                                   (concluded-relation-constraint
-                                                    next-ind-counter
-                                                    previous-ind
-                                                    some-constraint
-                                                    (role-inverse-internal new-role)))))
-                                            (loop for meta-constraint-concept in *meta-constraint-concepts*
-                                                  for constraint =
-                                                  (concluded-concept-constraint next-ind-counter
-                                                                                meta-constraint-concept
-                                                                                some-constraint
-                                                                                feature-related-some-constraints)
-                                                  do
-                                                  (setf (constraint-meta-p constraint) t)
-                                                  (push constraint conclusion-concept-constraints))
-                                            (setf (constraint-successor-ind some-constraint)
-                                                  next-ind-counter)
+                                            (race-trace ("~&models mergable for ~S and ~S~%"
+                                                         some-constraint all-constraints))
+                                            (when (and *model-merging* *subtableaux-model-merging*)
+                                              (incf-statistics *mergable-models*))
                                             (multiple-value-bind
                                                 (new-unexpanded-exists-constraints
                                                  new-unexpanded-exists-constraints-store)
@@ -6504,69 +6416,172 @@ Return 3 values: selected clause, positive weight, negative weight."
                                                      #'reset-exists-copy)
                                                   (values (state-unexpanded-exists-constraints state)
                                                           (state-unexpanded-exists-constraints-store state)))
-                                              (let*
-                                                  ((new-expanded-constraints
-                                                    (cons some-constraint
-                                                          (append feature-related-some-constraints
-                                                                  new-expanded-constraints)))
-                                                   (new-relation-store
-                                                    (when *use-relation-store*
-                                                      (if (state-relation-store state)
-                                                          (update-relation-store nil
-                                                                                 (list new-rel-constraint)
-                                                                                 state)
-                                                        (generate-relation-store (list new-rel-constraint)
-                                                                                 nil))))
-                                                   (new-state
-                                                    (changed-kernel-state
-                                                     state
-                                                     :unexpanded-exists-constraints
-                                                     new-unexpanded-exists-constraints
-                                                     :expanded-constraints new-expanded-constraints
-                                                     :labels new-labels-4
-                                                     :indirectly-blocked-individuals
-                                                     new-indirectly-blocked-individuals
-                                                     :expanded-store new-expanded-store
-                                                     :relation-store new-relation-store
-                                                     :unexpanded-exists-constraints-store
-                                                     new-unexpanded-exists-constraints-store)))
-                                                (race-trace ("~&Testing satisfiability of subconstraint system ~%~
+                                              (let* ((new-expanded-constraints
+                                                      (cons some-constraint
+                                                            (append feature-related-some-constraints
+                                                                    new-expanded-constraints)))
+                                                     (new-state
+                                                      (changed-kernel-state state
+                                                                            :unexpanded-exists-constraints
+                                                                            new-unexpanded-exists-constraints
+                                                                            :expanded-constraints
+                                                                            new-expanded-constraints
+                                                                            :labels new-labels-4
+                                                                            :indirectly-blocked-individuals
+                                                                            new-indirectly-blocked-individuals
+                                                                            :expanded-store new-expanded-store
+                                                                            :unexpanded-exists-constraints-store
+                                                                            new-unexpanded-exists-constraints-store)))
+                                                (added-constraints-satisfiable copied-violated-exists
+                                                                               nil ;no conclusion-relation-constraint
+                                                                               new-state t nil))))
+                                        (if partial-model-p
+                                            (let ((conclusion-concept-constraints
+                                                   (if self-loop-p
+                                                       (expand-some-constraint some-all-list
+                                                                               feature-related-some-constraints
+                                                                               previous-ind)
+                                                     (expand-some-constraint some-all-list
+                                                                             feature-related-some-constraints
+                                                                             next-ind-counter))))
+                                              (unless self-loop-p
+                                                (incf-statistics *model-depth*)
+                                                (setf-statistics *max-model-depth*
+                                                                 (max (get-local-statistics-integer-value 
+                                                                       *max-model-depth*)
+                                                                      (get-local-statistics-integer-value 
+                                                                       *model-depth*))))
+                                              (if merging-test-skipped
+                                                  (race-trace ("~&Merging test skipped for ~S and ~S~%"
+                                                               conclusion-concept-constraints some-constraint))
+                                                (progn
+                                                  (incf-statistics *unmergable-partial-models*)
+                                                  (race-trace ("~&Partial models NOT mergable for ~S from ~S~%"
+                                                               conclusion-concept-constraints some-constraint))))
+                                              (when-debug t
+                                                (if feature-related-some-constraints
+                                                    (race-trace ("~&Testing satisfiability of feature partition ~%~
+                                                      ~S~%"
+                                                                 (cons some-constraint
+                                                                       feature-related-some-constraints)))
+                                                  (race-trace ("~&Testing satisfiability of some-constraint ~S~%"
+                                                               some-constraint))))
+                                              (if self-loop-p
+                                                  (let* ((new-expanded-constraints
+                                                          (cons some-constraint new-expanded-constraints))
+                                                         (new-state
+                                                          (changed-kernel-state
+                                                           state
+                                                           :expanded-constraints new-expanded-constraints
+                                                           :labels new-labels-4
+                                                           :indirectly-blocked-individuals
+                                                           new-indirectly-blocked-individuals
+                                                           :expanded-store new-expanded-store)))
+                                                    (race-trace ("~&Testing satisfiability of conclusion constrains ~S~%"
+                                                                 conclusion-concept-constraints))
+                                                    (added-constraints-satisfiable conclusion-concept-constraints
+                                                                                   nil
+                                                                                   new-state nil nil))
+                                                (let ((new-rel-constraint
+                                                       (if feature-related-some-constraints
+                                                           (concluded-feature-partition-inverse-relation-constraint
+                                                            next-ind-counter
+                                                            previous-ind
+                                                            new-role
+                                                            (cons some-constraint
+                                                                  feature-related-some-constraints))
+                                                         (concluded-relation-constraint
+                                                          next-ind-counter
+                                                          previous-ind
+                                                          some-constraint
+                                                          (role-inverse-internal new-role)))))
+                                                  (loop for meta-constraint-concept in *meta-constraint-concepts*
+                                                        for constraint =
+                                                        (concluded-concept-constraint next-ind-counter
+                                                                                      meta-constraint-concept
+                                                                                      some-constraint
+                                                                                      feature-related-some-constraints)
+                                                        do
+                                                        (setf (constraint-meta-p constraint) t)
+                                                        (push constraint conclusion-concept-constraints))
+                                                  (setf (constraint-successor-ind some-constraint)
+                                                        next-ind-counter)
+                                                  (multiple-value-bind
+                                                      (new-unexpanded-exists-constraints
+                                                       new-unexpanded-exists-constraints-store)
+                                                      (if feature-related-some-constraints
+                                                          (remove-constraints-from-constraint-store
+                                                           feature-related-some-constraints
+                                                           (state-unexpanded-exists-constraints state)
+                                                           (state-unexpanded-exists-constraints-store state)
+                                                           (state-copy-unexpanded-exists-constraints-store-p state)
+                                                           state
+                                                           #'reset-exists-copy)
+                                                        (values (state-unexpanded-exists-constraints state)
+                                                                (state-unexpanded-exists-constraints-store state)))
+                                                    (let*
+                                                        ((new-expanded-constraints
+                                                          (cons some-constraint
+                                                                (append feature-related-some-constraints
+                                                                        new-expanded-constraints)))
+                                                         (new-relation-store
+                                                          (when *use-relation-store*
+                                                            (if (state-relation-store state)
+                                                                (update-relation-store nil
+                                                                                       (list new-rel-constraint)
+                                                                                       state)
+                                                              (generate-relation-store (list new-rel-constraint)
+                                                                                       nil))))
+                                                         (new-state
+                                                          (changed-kernel-state
+                                                           state
+                                                           :unexpanded-exists-constraints
+                                                           new-unexpanded-exists-constraints
+                                                           :expanded-constraints new-expanded-constraints
+                                                           :labels new-labels-4
+                                                           :indirectly-blocked-individuals
+                                                           new-indirectly-blocked-individuals
+                                                           :expanded-store new-expanded-store
+                                                           :relation-store new-relation-store
+                                                           :unexpanded-exists-constraints-store
+                                                           new-unexpanded-exists-constraints-store)))
+                                                      (race-trace ("~&Testing satisfiability of subconstraint system ~%~
                                                       ~S (label ~S), rels = ~S, new rel-constraint ~S, state ~S~%"
-                                                             (append copied-violated-exists
-                                                                     conclusion-concept-constraints)
-                                                             label
-                                                             relation-constraints
-                                                             new-rel-constraint
-                                                             new-state))
-                                                ;;(break "~S" some-constraint)
-                                                (added-constraints-satisfiable (append copied-violated-exists
-                                                                                       conclusion-concept-constraints)
-                                                                               (unless *use-relation-store*
-                                                                                 new-rel-constraint)
-                                                                               new-state t nil))))))
-                                    (progn
-                                      (race-trace ("~&models NOT mergable for ~S of conclusions ~S~%"
-                                                   all-constraints some-constraint))
-                                      (when (and *model-merging* *subtableaux-model-merging*)
-                                        (incf-statistics *unmergable-det-models*))
-                                      (let ((invalid-model-concepts
-                                             (when (or *model-merging* *tableaux-caching*)
-                                               (get-label-info-dependent-models (first new-labels-3)))))
-                                        (when invalid-model-concepts
-                                          (invalidate-concept-models invalid-model-concepts)))
-                                      (when feature-related-some-constraints
-                                        (race-trace ("~&Unsatisfiable feature partition ~S~%"
-                                                     (cons some-constraint
-                                                           feature-related-some-constraints))))
-                                      (when feature-hierarchy-collapsed-p
-                                        ;;; add dependencies of related feature constraints
-                                        (add-clash-dependencies
-                                         (union-dependencies
-                                          (constraint-or-dependencies some-constraint)
-                                          (collect-dependencies
-                                           feature-related-some-constraints))))
-                                      (return-from expanded-some-satisfiable-2-1
-                                        (handle-clash-with-backtrack-state state nil nil nil nil)))))))))))))))))))))
+                                                                   (append copied-violated-exists
+                                                                           conclusion-concept-constraints)
+                                                                   label
+                                                                   relation-constraints
+                                                                   new-rel-constraint
+                                                                   new-state))
+                                                      ;;(break "~S" some-constraint)
+                                                      (added-constraints-satisfiable (append copied-violated-exists
+                                                                                             conclusion-concept-constraints)
+                                                                                     (unless *use-relation-store*
+                                                                                       new-rel-constraint)
+                                                                                     new-state t nil))))))
+                                          (progn
+                                            (race-trace ("~&models NOT mergable for ~S of conclusions ~S~%"
+                                                         all-constraints some-constraint))
+                                            (when (and *model-merging* *subtableaux-model-merging*)
+                                              (incf-statistics *unmergable-det-models*))
+                                            (let ((invalid-model-concepts
+                                                   (when (or *model-merging* *tableaux-caching*)
+                                                     (get-label-info-dependent-models (first new-labels-3)))))
+                                              (when invalid-model-concepts
+                                                (invalidate-concept-models invalid-model-concepts)))
+                                            (when feature-related-some-constraints
+                                              (race-trace ("~&Unsatisfiable feature partition ~S~%"
+                                                           (cons some-constraint
+                                                                 feature-related-some-constraints))))
+                                            (when feature-hierarchy-collapsed-p
+                                              ;;; add dependencies of related feature constraints
+                                              (add-clash-dependencies
+                                               (union-dependencies
+                                                (constraint-or-dependencies some-constraint)
+                                                (collect-dependencies
+                                                 feature-related-some-constraints))))
+                                            (return-from expanded-some-satisfiable-2-1
+                                              (handle-clash-with-backtrack-state state nil nil nil nil))))))))))))))))))))))))
 
 (defun use-subtableaux-model-merging-2-p (constraint)
   (let* ((concept (if (constraint-negated-p constraint)
@@ -6632,12 +6647,9 @@ Return 3 values: selected clause, positive weight, negative weight."
         finally
         (let ((modified-labels (append new-labels new-witnesses)))
           (if modified-labels
-            (progn
-              ;(princ (length labels)) (princ " ")
-              ;(break "~S" retry-labels)
-              (return (values (replace-modified-labels modified-labels labels)
-                              (mapcar #'cdr new-labels)
-                              (set-difference retry-labels (mapcar #'car new-labels)))))
+            (return (values (replace-modified-labels modified-labels labels)
+                            (mapcar #'cdr new-labels)
+                            (set-difference retry-labels (mapcar #'car new-labels))))
             (return (values labels nil retry-labels))))))
 
 (defun shiq-find-label-witness (role
@@ -6793,7 +6805,6 @@ Return 3 values: selected clause, positive weight, negative weight."
                                         (setf condition-b6-known-p t)
                                         (setf condition-b6-true-p t)
                                         (setf cyclic-block-used t)
-                                        ;(princ "*")
                                         (return t))))
                          ;;; B3-a
                          (unless (or (not (member (concept-role concept) inverse-role-ancestors))
@@ -6840,8 +6851,6 @@ Return 3 values: selected clause, positive weight, negative weight."
                                  (not (label-info-blocked-p witness))
                                  (not (eql *ignored-live-individuals-cycles* 0))))
             ;(format t "~&opt SHIQ succeeded for ind ~S, role ~S and ~S~%" predecessor-ind role back-propagation)
-            ;(break)
-            ;(when (zerop (label-info-ind witness)) (princ "+") '(break))
             (when-statistics
               (when (zerop (label-info-ind witness))
                 (incf-statistics *number-of-successful-zero-shiq-blocking-tests*))
@@ -6851,14 +6860,12 @@ Return 3 values: selected clause, positive weight, negative weight."
             (return witness))
           (progn
             ;(format t "~&opt SHIQ failed for ind ~S, role ~S and ~S~%" predecessor-ind role back-propagation)
-            ;(break)
             ))
         until (null predecessor-of-witness)
         finally
         #+:debug
         (progn
           ;(format t "~&opt SHIQ finally failed for ind ~S, role ~S and ~S~%" predecessor-ind role back-propagation)
-          ;(break)
           )
         #-:debug (return nil)))
 
@@ -6977,8 +6984,6 @@ Return 3 values: selected clause, positive weight, negative weight."
                          #+:debug (assert (or (not *gc-of-obsolete-individuals*)
                                               (not (label-info-blocked-p witness))
                                               (not (eql *ignored-live-individuals-cycles* 0))))
-                         ;(princ "+")
-                         ;(break)
                          (return witness))
                        (incf-statistics *number-of-weak-failed-shi-blocking-tests*)))
                    until (null predecessor-of-witness))))
@@ -7174,19 +7179,27 @@ Return 3 values: selected clause, positive weight, negative weight."
 
 (defun number-of-role-successors-old (ind-1 role relation-constraints)
   (if (null relation-constraints)
-    0
+      (if (role-reflexive-p role)
+          1
+        0)
     (loop with succ-list = nil
           with first-match = nil
+          with reflexive-p = (role-reflexive-p role)
           for rel-constraint in relation-constraints
           for current-role = (constraint-term rel-constraint) do
           (when (and (eql ind-1 (constraint-ind-1 rel-constraint))
                      (if (role-has-ancestors-p current-role)
-                       (member role (role-ancestors-internal current-role))
+                         (member role (role-ancestors-internal current-role))
                        (eq role current-role)))
             (unless first-match
               (setf first-match rel-constraint))
-            (pushnew (constraint-ind-2 rel-constraint) succ-list))
-          finally (return (values (length succ-list) first-match succ-list)))))
+          (when reflexive-p
+            (push (constraint-ind-1 rel-constraint) succ-list))
+          (push (constraint-ind-2 rel-constraint) succ-list))
+          finally
+          (return (values (length succ-list)
+                          first-match
+                          (racer-remove-duplicates succ-list))))))
 
 (defun expanded-at-most-satisfiable (at-most-constraint state unused-1 unused-2 unused-3)
   (declare (ignore unused-1 unused-2 unused-3))
@@ -9344,6 +9357,7 @@ and add it to the list of established constraints."
              (if (and create-new-labels
                       (constraint-backpropagated-p new-constraint)
                       (not (constraint-signature new-constraint))
+                      (not (constraint-merging-trigger-p new-constraint))
                       (member (constraint-term new-constraint)
                               (label-info-back-propagated-concepts
                                (first (find-label-for-ind ind labels)))))
@@ -9594,21 +9608,44 @@ and add it to the list of established constraints."
     (role-feature-ancestors feature)
     (list feature)))
 
+(defmacro pushnew-or-update-constraint (constraint place)
+  (let ((sym (gensym)))
+    `(let ((,sym (find ,constraint ,place :test #'relation-constraint-equal-test)))
+       (if ,sym
+           (progn
+             (setf (constraint-ind-1-synonyms ,sym)
+                   (union (constraint-ind-1-synonyms ,constraint) (constraint-ind-1-synonyms ,sym)))
+             (setf (constraint-ind-2-synonyms ,sym)
+                   (union (constraint-ind-2-synonyms ,constraint) (constraint-ind-2-synonyms ,sym)))
+             ,sym)
+         (push ,constraint ,place)))))
+
 (defun merge-violated-abox-feature-relation-constraints (abox
                                                          concept-constraints
                                                          relation-constraints)
   (loop with satisfied-p = t
         with unchanged = nil
         with new-relation-constraints = relation-constraints
-        with violated-inds-table = (racer-make-hash-table :test 'equal)
+        with violated-inds-table = (if (> (length relation-constraints) 100)
+                                       (racer-make-hash-table :test 'equal)
+                                     nil)
         with removed-inds-table = (racer-make-hash-table)
+        for iteration from 1
         do
-        (collect-violated-abox-feature-relation-constraints new-relation-constraints
-                                                            (clrhash violated-inds-table))
+        #+(and :lispworks :debug)
+        (when (> iteration 10)
+          (break "More than 10 iterations: possible infinite loop in merge-violated-abox-feature-relation-constraints"))
+        (setf violated-inds-table
+              (collect-violated-abox-feature-relation-constraints new-relation-constraints
+                                                                  (if (listp violated-inds-table)
+                                                                      nil
+                                                                    (clrhash violated-inds-table))))
         (multiple-value-bind (satisfied-p-1
                               new-relation-constraints-1
                               changed-p)
-            (if (eql (hash-table-count violated-inds-table) 0)
+            (if (if (listp violated-inds-table)
+                    (eql (length violated-inds-table) 0)
+                  (eql (hash-table-count violated-inds-table) 0))
                 (values t new-relation-constraints)
               (merge-relation-constraints abox
                                           violated-inds-table
@@ -9641,44 +9678,113 @@ and add it to the list of established constraints."
         (values (constraint-ind-1 constraint) (constraint-ind-2 constraint))
       (values (constraint-ind-2 constraint) (constraint-ind-1 constraint)))))
 
+(defun get-violated-inds-table-entry (ind role-name violated-inds-table)
+  (let ((key (cons ind role-name)))
+    (if (listp violated-inds-table)
+        (cdr (assoc key violated-inds-table :test 'equal))
+      (gethash key violated-inds-table))))
+
+(defun add-violated-inds-table-entry (ind role-name value violated-inds-table)
+  (let ((key (cons ind role-name)))
+    (if (listp violated-inds-table)
+        (let ((found (assoc key violated-inds-table :test 'equal)))
+          (if found
+              (push value (cdr found))
+            (push (cons key (list value)) violated-inds-table)))
+      (push value (gethash key violated-inds-table)))
+    violated-inds-table))
+
+(defun remove-violated-inds-table-entry (ind role-name violated-inds-table)
+  (let ((key (cons ind role-name)))
+    (if (listp violated-inds-table)
+        (setf violated-inds-table (remove key violated-inds-table :key 'car :test 'equal))
+      (remhash key violated-inds-table))
+    violated-inds-table))
+
+(defun remove-violated-inds-table-entry-p (role ancestors ind-rel-constraints)
+  (or (null ind-rel-constraints)
+      (multiple-value-bind (ind-1 ind-2)
+          (correct-ind-pair (first ind-rel-constraints) role ancestors)
+        (if (rest ind-rel-constraints)
+            (loop for constraint in (rest ind-rel-constraints)
+                  never
+                  (multiple-value-bind (cind-1 cind-2)
+                      (correct-ind-pair constraint role ancestors)
+                    (and (eql ind-1 cind-1)
+                         (or (not (eql ind-2 cind-2))
+                             (role-reflexive-p role)))))
+          (or (not (role-reflexive-p role)) (eql ind-1 ind-2))))))
+
+#|
+(defmacro remove-violated-inds-table-entry (ind role-name role ancestors ind-rel-constraints violated-inds-table)
+  `(unless (and ,ind-rel-constraints
+                (multiple-value-bind (ind-1 ind-2)
+                    (correct-ind-pair (first ,ind-rel-constraints) ,role ,ancestors)
+                  (if (rest ,ind-rel-constraints)
+                      (loop for constraint in (rest ,ind-rel-constraints)
+                            thereis
+                            (multiple-value-bind (cind-1 cind-2)
+                                (correct-ind-pair constraint ,role ,ancestors)
+                              (and (eql ind-1 cind-1)
+                                   (or (not (eql ind-2 cind-2))
+                                       (role-reflexive-p ,role)))))
+                    (and (role-reflexive-p ,role) (not (eql ind-1 ind-2))))))
+     (remove-violated-inds-table-entry ,ind ,role-name ,violated-inds-table)))
+|#
+
 (defun collect-violated-abox-feature-relation-constraints (relation-constraints violated-inds-table)
   (when relation-constraints
     (loop for relation-constraint in relation-constraints
           for role = (constraint-term relation-constraint)
           for inverse-role = (role-inverse-internal role)
-          when (role-feature-p role)
+          for ind-1 = (when (role-feature-p role)
+                        (constraint-ind-1 relation-constraint))
+          for ind-2 = (when (role-feature-p inverse-role)
+                        (constraint-ind-2 relation-constraint))
           do
-          (push relation-constraint
-                (gethash (list (constraint-ind-1 relation-constraint) (role-name role))
-                         violated-inds-table))
-          (when (role-has-feature-ancestors-p role)
-            (loop for ancestor in (rest (role-feature-ancestors role)) do
-                  (push relation-constraint
-                        (gethash (list (constraint-ind-1 relation-constraint) (role-name ancestor))
-                                 violated-inds-table))))
-          when (role-feature-p inverse-role)
-          do
-          (push relation-constraint
-                (gethash (list (constraint-ind-2 relation-constraint) (role-name inverse-role))
-                         violated-inds-table))
-          (when (role-has-feature-ancestors-p inverse-role)
-            (loop for ancestor in (rest (role-feature-ancestors inverse-role)) do
-                  (push relation-constraint
-                        (gethash (list (constraint-ind-2 relation-constraint) (role-name ancestor))
-                                 violated-inds-table)))))
-    (loop for ind-rel-constraints being the hash-value of violated-inds-table using (hash-key ind-role)
-          for role = (get-role (second ind-role))
-          for ancestors = (role-feature-ancestors role)
-          do
-          (unless (and (rest ind-rel-constraints)
-                       (multiple-value-bind (ind-1 ind-2)
-                           (correct-ind-pair (first ind-rel-constraints) role ancestors)
-                         (loop for constraint in (rest ind-rel-constraints)
-                               thereis
-                               (multiple-value-bind (cind-1 cind-2)
-                                   (correct-ind-pair constraint role ancestors)
-                                 (and (eql ind-1 cind-1) (not (eql ind-2 cind-2)))))))
-            (remhash ind-role violated-inds-table)))))
+          (when ind-1
+            (setf violated-inds-table
+                  (add-violated-inds-table-entry ind-1
+                                                 (role-name role)
+                                                 relation-constraint
+                                                 violated-inds-table))
+            (when (role-has-feature-ancestors-p role)
+              (loop for ancestor in (rest (role-feature-ancestors role)) do
+                    (setf violated-inds-table
+                          (add-violated-inds-table-entry ind-1
+                                                         (role-name ancestor)
+                                                         relation-constraint
+                                                         violated-inds-table)))))
+          (when (and ind-2 (not (and (eq role inverse-role) (eql ind-1 ind-2))))
+            (setf violated-inds-table
+                  (add-violated-inds-table-entry ind-2
+                                                 (role-name inverse-role)
+                                                 relation-constraint
+                                                 violated-inds-table))
+            (when (role-has-feature-ancestors-p inverse-role)
+              (loop for ancestor in (rest (role-feature-ancestors inverse-role)) do
+                    (setf violated-inds-table
+                          (add-violated-inds-table-entry ind-2
+                                                         (role-name ancestor)
+                                                         relation-constraint
+                                                         violated-inds-table))))))
+    (if (listp violated-inds-table)
+        (loop for ((ind . role-name) . ind-rel-constraints) in violated-inds-table
+              for role = (get-role role-name)
+              for ancestors = (role-feature-ancestors role)
+              do 
+              (when (remove-violated-inds-table-entry-p role ancestors ind-rel-constraints)
+                (setf violated-inds-table
+                      (remove-violated-inds-table-entry ind role-name violated-inds-table))))
+      (loop for ind-rel-constraints being the hash-value of violated-inds-table using (hash-key key)
+	    for (ind . role-name) = key
+            for role = (get-role role-name)
+            for ancestors = (role-feature-ancestors role)
+            do
+            (when (remove-violated-inds-table-entry-p role ancestors ind-rel-constraints)
+              (setf violated-inds-table
+                    (remove-violated-inds-table-entry ind role-name violated-inds-table))))))
+  violated-inds-table)
 
 (defun merge-relation-constraints (abox
                                    violated-inds-table
@@ -9751,60 +9857,89 @@ and add it to the list of established constraints."
         (return (values (racer-merge-remove-rel-constraint-duplicates new-relation-constraints)
                         removed-relation-constraints))))
 
-(defun merge-relation-constraints-1 (abox violated-inds-table removed-inds-table)
-  (loop with added-constraints = nil
-        for key being the hash-key of violated-inds-table using (hash-value constraints)
-        for ind-1 = (get-true-ind (first key) removed-inds-table)
-        append constraints into removed-constraints
+(defun merge-ind-relation-constraints (ind-1 constraints removed-inds-table)
+  (loop with merged-inds = nil
+        with merged-roles = nil
+        with ind-1-synonyms = nil
+        with ind-2-synonyms =  nil
+        for constraint in constraints
+        for cind-1 = (get-true-ind (constraint-ind-1 constraint) removed-inds-table)
+        for crole = (constraint-term constraint)
         do
-        (multiple-value-bind (merged-inds merged-roles ind-1-synonyms ind-2-synonyms)
-            (loop with merged-inds = nil
-                  with merged-roles = nil
-                  with ind-1-synonyms = nil
-                  with ind-2-synonyms =  nil
-                  for constraint in constraints
-                  for cind-1 = (get-true-ind (constraint-ind-1 constraint) removed-inds-table)
-                  do
-                  (if (eql ind-1 cind-1)
-                      (progn
-                        (pushnew (constraint-term constraint) merged-roles)
-                        (push (get-true-ind (constraint-ind-2 constraint) removed-inds-table) merged-inds)
-                        (setf ind-2-synonyms
-                              (stable-union (constraint-ind-2-synonyms constraint) ind-2-synonyms)))
-                    (progn
-                      (pushnew (role-inverse-internal (constraint-term constraint)) merged-roles)
-                      (push cind-1 merged-inds)
-                      (setf ind-1-synonyms
-                            (stable-union (constraint-ind-1-synonyms constraint) ind-1-synonyms))))
-                  finally (return (values (racer-remove-duplicates merged-inds)
-                                          (role-set-remove-duplicates merged-roles)
-                                          ind-1-synonyms
-                                          ind-2-synonyms)))
-          (let* ((ind-2 (first merged-inds))
-                 (synonyms (rest merged-inds)))
-            (unless (loop for ind in (individual-told-disjoints (find-individual abox ind-2))
-                          always (lists-disjoint-p (individual-name-set ind) synonyms))
-              (return-from merge-relation-constraints-1 nil))
-            (loop for merged-ind in synonyms
-                  do (add-synonym-for-ind merged-ind ind-2 removed-inds-table))
-            (loop for role in merged-roles do
-                  (let ((new-constraint (make-relation-constraint ind-1 ind-2 role)))
-                    (setf (constraint-dependencies new-constraint) constraints)
-                    (setf (constraint-ind-1-synonyms new-constraint) ind-1-synonyms)
-                    (setf (constraint-ind-2-synonyms new-constraint) 
-                          (stable-union synonyms ind-2-synonyms))
-                    (push new-constraint added-constraints)
-                    #+:debug
-                    (assert (not (or (when (constraint-ind-1-synonyms new-constraint)
-                                       (member (constraint-ind-1 new-constraint)
-                                               (constraint-ind-1-synonyms new-constraint)))
-                                     (when (constraint-ind-2-synonyms new-constraint)
-                                       (member (constraint-ind-2 new-constraint)
-                                               (constraint-ind-2-synonyms new-constraint))))))))))
-        finally
-        (return (values t
-                        (racer-merge-remove-rel-constraint-duplicates added-constraints)
-                        (constraint-set-remove-duplicates removed-constraints)))))
+        (if (eql ind-1 cind-1)
+            (progn
+              (pushnew crole merged-roles)
+              (when (role-reflexive-p crole)
+                (push (get-true-ind (constraint-ind-1 constraint) removed-inds-table) merged-inds)
+                (setf ind-1-synonyms
+                      (stable-union (constraint-ind-1-synonyms constraint) ind-1-synonyms)))
+              (push (get-true-ind (constraint-ind-2 constraint) removed-inds-table) merged-inds)
+              (setf ind-2-synonyms
+                    (stable-union (constraint-ind-2-synonyms constraint) ind-2-synonyms)))
+          (progn
+            (pushnew (role-inverse-internal crole) merged-roles)
+            (when (role-reflexive-p crole)
+              (push (get-true-ind (constraint-ind-2 constraint) removed-inds-table) merged-inds)
+              (setf ind-2-synonyms
+                    (stable-union (constraint-ind-2-synonyms constraint) ind-2-synonyms)))
+            (push cind-1 merged-inds)
+            (setf ind-1-synonyms
+                  (stable-union (constraint-ind-1-synonyms constraint) ind-1-synonyms))))
+        finally (return (values (racer-remove-duplicates merged-inds)
+                                (role-set-remove-duplicates merged-roles)
+                                ind-1-synonyms
+                                ind-2-synonyms))))
+
+(defmacro merge-relation-constraints-1-body (ind-1 constraints added-constraints removed-inds-table)
+  `(multiple-value-bind (merged-inds merged-roles ind-1-synonyms ind-2-synonyms)
+       (merge-ind-relation-constraints ,ind-1 ,constraints ,removed-inds-table)
+     (let* ((ind-2 (or (find ,ind-1 merged-inds)
+                       (first merged-inds)))
+            (synonyms (racer-remove ind-2 merged-inds)))
+       (unless (loop for ind in (individual-told-disjoints (find-individual abox ind-2))
+                     always (lists-disjoint-p (individual-name-set ind) synonyms))
+         (return-from merge-relation-constraints-1 nil))
+       (loop for merged-ind in synonyms
+             do (add-synonym-for-ind merged-ind ind-2 ,removed-inds-table))
+       (loop for role in merged-roles do
+             (let ((new-constraint (make-relation-constraint ,ind-1 ind-2 role)))
+               (setf (constraint-dependencies new-constraint) ,constraints)
+               (if (eql ,ind-1 ind-2)
+                   (progn
+                     (setf (constraint-ind-1-synonyms new-constraint) synonyms)
+                     (setf (constraint-ind-2-synonyms new-constraint) synonyms))
+                 (progn
+                   (setf (constraint-ind-1-synonyms new-constraint) ind-1-synonyms)
+                   (setf (constraint-ind-2-synonyms new-constraint) 
+                         (stable-union synonyms ind-2-synonyms))))
+               (pushnew-or-update-constraint new-constraint ,added-constraints)
+               #+:debug
+               (assert (not (or (when (constraint-ind-1-synonyms new-constraint)
+                                  (member (constraint-ind-1 new-constraint)
+                                          (constraint-ind-1-synonyms new-constraint)))
+                                (when (constraint-ind-2-synonyms new-constraint)
+                                  (member (constraint-ind-2 new-constraint)
+                                          (constraint-ind-2-synonyms new-constraint)))))))))))
+
+(defun merge-relation-constraints-1 (abox violated-inds-table removed-inds-table)
+  (let ((added-constraints nil))
+    (if (listp violated-inds-table)
+        (loop for (key . constraints) in violated-inds-table
+              for ind-1 = (get-true-ind (car key) removed-inds-table)
+              append constraints into removed-constraints
+              do (merge-relation-constraints-1-body ind-1 constraints added-constraints removed-inds-table)
+              finally
+              (return (values t
+                              (racer-merge-remove-rel-constraint-duplicates added-constraints)
+                              (racer-remove-rel-constraint-duplicates removed-constraints))))
+      (loop for key being the hash-key of violated-inds-table using (hash-value constraints)
+            for ind-1 = (get-true-ind (first key) removed-inds-table)
+            append constraints into removed-constraints
+            do (merge-relation-constraints-1-body ind-1 constraints added-constraints removed-inds-table)
+            finally
+            (return (values t
+                            (racer-merge-remove-rel-constraint-duplicates added-constraints)
+                            (racer-remove-rel-constraint-duplicates removed-constraints)))))))
 
 (defun add-synonym-for-ind (synonym ind table)
   #+:debug (assert (not (eql synonym ind)))

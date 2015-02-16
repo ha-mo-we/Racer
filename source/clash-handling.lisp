@@ -431,6 +431,10 @@ if their ids, terms, and negation flags match."
                                               extra-clash-dependencies))
       (set-clash-dependencies clash-dependencies))
     (setf clash-dependencies *catching-clash-dependencies*)
+    (when (and *inverse-roles*
+               *tableaux-inverse-unsat-caching*
+               (consp relation-constraints))
+      (create-unsat-entries clash-reasons relation-constraints))
     
     (when-debug t
       (let ((signature-clash-reasons
@@ -783,7 +787,7 @@ if their ids, terms, and negation flags match."
                (and (dl-disjoint-roles (abox-language abox))
                     (dl-reflexive-roles (abox-language abox))
                     (member-if (lambda (roles)
-                                 (some #'role-reflexive-p roles))
+                                 (some #'user-defined-role-reflexive-p roles))
                                (role-ancestors-internal role)
                                :key #'role-disjoint-roles))))))
 
@@ -890,3 +894,218 @@ if their ids, terms, and negation flags match."
           finally
           (unless (role-set-disjoint-p all-roles-with-disjoint-ancestors all-disjoints)
             (return t)))))
+
+;;; UNSAT caching for inverse roles
+
+(defun create-unsat-entries (clash-reasons role-chain)
+  (when (and role-chain
+             (loop with old-ind-p = t
+                   for reason in clash-reasons
+                   do
+                   (unless (constraint-common-p reason)
+                     (return nil))
+                   (when (and old-ind-p
+                              (not (true-old-individual-p 
+                                    (if (relation-constraint-p reason)
+                                        (constraint-ind-1 reason)
+                                      (constraint-ind reason)))))
+                     (setf old-ind-p nil))
+                   finally
+                   (return (not old-ind-p))))
+    (let ((role-depth-table
+           (loop with table = (racer-make-hash-table)
+                 for tuple in role-chain
+                 for depth from (length role-chain) downto 1
+                 do
+                 (setf (gethash (constraint-ind-1 tuple) table) depth)
+                 finally
+                 (setf (gethash 0 table) 0)
+                 (return table))))
+      (create-unsat-entries-1 clash-reasons role-depth-table (make-constraints-table nil)))))
+
+(defun get-ind-role-depth (reason role-depth-table)
+  (if (relation-constraint-p reason)
+      (gethash (constraint-ind-1 reason) role-depth-table 0)
+    (gethash (constraint-ind reason) role-depth-table 0)))
+
+(defun get-max-or-level-and-min-depth (clash-reasons role-depth-table visited)
+  (loop for reason in clash-reasons
+        unless (constraint-found-p reason visited)
+        maximize (constraint-or-level reason) into max-or-level
+        and 
+        minimize (get-ind-role-depth reason role-depth-table) into min-depth
+        finally
+        (return (values max-or-level min-depth))))
+
+(defun get-greater-depth-det (clash-reasons min-depth role-depth-table)
+  (flet ((greater-depth-predicate (reason)
+           (and (> (get-ind-role-depth reason role-depth-table) min-depth)
+                (not (or-constraint-p reason))
+                (or (null (constraint-or-dependencies reason))
+                    (not (some #'or-constraint-p (get-dependencies reason)))))))
+    (collect-elements clash-reasons #'greater-depth-predicate)))
+
+(defun get-greater-depth-non-det (clash-reasons min-depth max-or-level role-depth-table)
+  (flet ((greater-depth-non-det-predicate (reason)
+           (and (eql (constraint-or-level reason) max-or-level)
+                (> (get-ind-role-depth reason role-depth-table) min-depth)
+                (or (or-constraint-p reason) 
+                    (some #'or-constraint-p (get-dependencies reason))))))
+    (collect-elements clash-reasons #'greater-depth-non-det-predicate)))
+
+(defun replace-reasons-by-dependencies (all-clash-reasons greater-depth-det-reasons visited)
+  (loop for reason in greater-depth-det-reasons
+        append (get-dependencies reason) into added-dependencies
+        do (add-to-constraints-table reason visited)
+        finally
+        (return (constraint-set-union (constraint-set-remove-duplicates added-dependencies)
+                                      (constraint-set-difference all-clash-reasons
+                                                                 greater-depth-det-reasons)))))
+
+(defun every-no-dependency (clash-reasons)
+  (loop for reason in clash-reasons
+        never (get-dependencies reason)))
+
+(defun create-unsat-entries-1 (initial-clash-reasons role-depth-table visited)
+  (when initial-clash-reasons
+    (loop with pending-unsat-cache = nil
+          with clash-reasons = initial-clash-reasons
+          do
+          (let (#+:debug (old-clash-reasons clash-reasons))
+            (multiple-value-bind (max-or-level min-depth)
+                (get-max-or-level-and-min-depth clash-reasons role-depth-table visited)
+              (race-trace ("~S" (list pending-unsat-cache max-or-level min-depth clash-reasons)))
+              (let ((greater-depth-det (get-greater-depth-det clash-reasons min-depth role-depth-table)))
+                (if greater-depth-det
+                    (progn
+                      (setf pending-unsat-cache t)
+                      (setf clash-reasons
+                            (replace-reasons-by-dependencies clash-reasons greater-depth-det visited))
+                      (race-trace ("greater-depth-det ~S" clash-reasons))
+                      )
+                  (let ((greater-depth-non-det
+                         (get-greater-depth-non-det clash-reasons min-depth max-or-level role-depth-table)))
+                    (unless greater-depth-non-det
+                      (when pending-unsat-cache
+                        (setf pending-unsat-cache (cache-entry-possible-p clash-reasons role-depth-table)))
+                      (when (every-no-dependency clash-reasons)
+                        (race-trace ("pend=~S, greater-depth-non-det ~S" pending-unsat-cache clash-reasons))
+                        (return-from create-unsat-entries-1 (cache-entry-possible-p clash-reasons role-depth-table))))
+                    (let* ((at-max-or-level
+                            (unless greater-depth-non-det
+                              (collect-elements clash-reasons
+                                                (lambda (reason)
+                                                  (eql (constraint-or-level reason) max-or-level)))))
+                           (selected-reason (or (first greater-depth-non-det)
+                                                (first at-max-or-level))))
+                      (race-trace ("pend=~S, at-max-or-level ~S ~S" pending-unsat-cache selected-reason clash-reasons))
+                      (if (constraint-found-p selected-reason visited)
+                          (setf clash-reasons (racer-remove selected-reason clash-reasons))
+                        (if (or-constraint-p selected-reason)
+                            (return nil)
+                          (progn
+                            (setf clash-reasons
+                                  (constraint-set-union (get-dependencies selected-reason)
+                                                        (racer-remove selected-reason clash-reasons))))))))))
+              #+:debug
+              (when (and old-clash-reasons (eq clash-reasons old-clash-reasons))
+                (error "inifinite loop deteced"))))
+          until (null clash-reasons))))
+
+(defun cache-entry-possible-p (clash-reasons role-depth-table)
+  (loop with all-atomic-p = t
+        with ind = nil
+        with all-inds-equal = t
+        with depth = nil
+        with all-inds-same-depth = t
+        with exists-found-p = nil
+        with old-ind-found-p = nil
+        with and-found-p = nil
+        with cd-constraint-found-p = nil
+        with all-deterministic-p = t
+        for reason in clash-reasons
+        do
+        (cond 
+         ((concept-constraint-p reason)
+          (if (true-old-individual-p (constraint-ind reason))
+              (setf old-ind-found-p t)
+            (if ind
+                (unless (eql ind (constraint-ind reason))
+                  (setf all-inds-equal nil))
+              (setf ind (constraint-ind reason))))
+          (if depth
+              (unless (eql depth (get-ind-role-depth reason role-depth-table))
+                (setf all-inds-same-depth nil))
+            (setf depth (get-ind-role-depth reason role-depth-table)))
+          (when (and all-atomic-p
+                     (let ((concept (constraint-concept reason)))
+                       (not (and (atomic-concept-p concept)
+                                 (concept-visible-p concept)))))
+            (setf all-atomic-p nil))
+          (cond ((exists-constraint-p reason)
+                 (unless exists-found-p
+                   (setf exists-found-p t)))
+                ((and-constraint-p reason)
+                 (setf and-found-p t))
+                ((or-constraint-p reason)
+                 (setf all-deterministic-p nil))))
+         ((qualified-role-signature-p reason)
+          (setf all-atomic-p nil))
+         ((relation-constraint-p reason)
+          (setf all-inds-equal nil)
+          (setf all-atomic-p nil))
+         ((cd-constraint-p reason)
+          (setf cd-constraint-found-p t))
+         (t (error "unexpected ~S" reason)))
+        until (or and-found-p
+                  (not all-inds-equal)
+                  old-ind-found-p
+                  (not all-deterministic-p)
+                  cd-constraint-found-p)
+        finally
+        (when (and exists-found-p
+                   (not and-found-p)
+                   (not all-atomic-p)
+                   (or all-inds-equal all-inds-same-depth)
+                   (not old-ind-found-p)
+                   all-deterministic-p
+                   (not cd-constraint-found-p))
+          (let ((label (make-label (loop for reason in clash-reasons
+                                         when (concept-constraint-p reason)
+                                         collect (constraint-concept reason)))))
+            (when label
+              (multiple-value-bind (result dependencies)
+                  (get-model label)
+                (declare (ignore dependencies))
+                (if result
+                    (progn
+                      #+:debug (assert (incoherent-model-p result))
+                      (return (values t result)))
+                  (progn
+                    (add-unsat-model label *catching-clash-dependencies*)
+                    (race-trace ("~&Added unsat cache entry (inverse) for unsatisfiable constraints ~S, ~
+                                  label=~S, dep=~S~%"
+                                 clash-reasons
+                                 label
+                                 *catching-clash-dependencies*))
+                    ;#+:debug (print (list 'cached label))
+                    ;#+:debug (princ "+")
+                    (return (values t label))))))))))
+
+(defun collect-elements (elements predicate)
+  (loop for element in elements
+        when (funcall predicate element)
+        collect element))
+
+(defun get-dependencies (element)
+  (if (concept-constraint-p element)
+      (if (constraint-signature element)
+          (signature-dependencies (constraint-signature element))
+        (constraint-dependencies element))
+    (cond ((qualified-role-signature-p element)
+           (signature-dependencies element))
+          ((relation-constraint-p element)
+           (if (constraint-signature element)
+               (signature-dependencies (constraint-signature element))
+             (constraint-dependencies element)))
+          (t nil))))

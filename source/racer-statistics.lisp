@@ -837,32 +837,76 @@
   (when data-stream
     (format data-stream "  ~14A" (tbox-name tbox))))
 
-(defun print-tbox-info (tbox stream)
-  (let (named-concepts
-        (prim-no 0)
-        (definded-no 0)
-        (atomic-no 0)
-        (cyclic-no 0))
-    (loop with top = (tbox-top-node tbox)
-          for concept in (tbox-encoded-concept-list tbox) do
-          (if (and (concept-encoded-definition concept)
-                   (not (eq (concept-encoded-definition concept) top)))
-            (if (concept-primitive-p concept)
-              (incf prim-no)
-              (incf definded-no))
-            (incf atomic-no))
-          (when (concept-self-referencing-p concept)
-            (incf cyclic-no))
-          finally
-          (setf named-concepts (+ atomic-no prim-no definded-no)))
-    (format stream "~&TBox ~A (~A): No. of named concepts:~D ~
-                    (~D atomic, ~D primitive, ~D defined, ~D cyclic, ~D incoherent)~%"
-            (tbox-name tbox)
-            (tbox-language tbox)
-            named-concepts
-            atomic-no prim-no definded-no
-            cyclic-no
-            (- (length (concept-name-set (tbox-bottom-node tbox))) 2))))
+(defun print-tbox-info (&optional (tbox *current-tbox*) (stream t))
+  (let* ((total (length (tbox-encoded-concept-list tbox)))
+         (info-1
+          (loop with top = (tbox-top-node tbox)
+                with named-concepts = nil
+                with prim-no = 0
+                with definded-no = 0
+                with atomic-no = 0
+                with cyclic-no = 0
+                for concept in (tbox-encoded-concept-list tbox) do
+                (if (and (concept-encoded-definition concept)
+                         (not (eq (concept-encoded-definition concept) top)))
+                    (if (concept-primitive-p concept)
+                        (incf prim-no)
+                      (incf definded-no))
+                  (incf atomic-no))
+                (when (concept-self-referencing-p concept)
+                  (incf cyclic-no))
+                finally
+                (setf named-concepts (+ atomic-no prim-no definded-no))
+                (return
+                 (format stream "~&TBox ~A (~A): No. of named concepts:~D ~
+                          (~D (~,2F%) atomic, ~D (~,2F%) primitive, ~D (~,2F%) defined, ~D (~,2F%) cyclic, ~
+                          ~D (~,2F%) incoherent)~%"
+                         (tbox-name tbox)
+                         (tbox-language tbox)
+                         named-concepts
+                         prim-no
+                         (safe-percentage prim-no total)
+                         atomic-no
+                         (safe-percentage atomic-no total)
+                         definded-no
+                         (safe-percentage definded-no total)
+                         cyclic-no
+                         (safe-percentage cyclic-no total)
+                         (- (length (concept-name-set (tbox-bottom-node tbox))) 2)
+                         (safe-percentage (- (length (concept-name-set (tbox-bottom-node tbox))) 2) total)))))
+         (info-2
+          (loop with cd-count = 0
+                with elh-count = 0
+                with end-of-no-bottom-search = (tbox-end-of-no-bottom-search tbox)
+                with no-bottom = 
+                (if end-of-no-bottom-search
+                    (1+ (position end-of-no-bottom-search (tbox-encoded-concept-list tbox)))
+                  0)
+                with stat-list = (loop with table = (racer-make-hash-table)
+                                       for concept in (tbox-encoded-concept-list tbox)
+                                       do (incf (gethash (concept-language concept) table 0))
+                                       finally
+                                       (return
+                                        (loop for language being the hash-key of table using (hash-value count)
+                                              collect (list language count))))
+                for (language count) in stat-list do
+                (if (subset-l-minus-p language)
+                    (incf cd-count count)
+                  (when (subset-el+-p language)
+                    (incf elh-count count)))
+                finally
+                (return
+                 (format stream 
+                         "Atomic concept statistics: ~D (~,2F%) completely defined, ~
+                          ~D (~,2F%) no bottom search, ~D (~,2F%) EL+; all=~A~%"
+                         cd-count
+                         (safe-percentage cd-count total)
+                         no-bottom
+                         (safe-percentage no-bottom total)
+                         elh-count
+                         (safe-percentage elh-count total)
+                         (sort stat-list #'> :key 'second))))))
+    (values info-1 info-2)))
 
 (defun print-tbox-statistics (tbox stream data-stream start end)
   (let ((time (/ (- end start) internal-time-units-per-second)))

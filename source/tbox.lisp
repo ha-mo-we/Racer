@@ -1451,11 +1451,16 @@ are automatically installed.")
            (roles-equivalent-1 (role-info-inverse entry) inverse-role tbox))
           (t 
            (setf (role-info-inverse entry) inverse-role)
-           (let ((inv-entry (gethash inverse-role index)))
-             (unless inv-entry
-               (error "Declaration for role ~A in TBox ~A not found."
-                      inverse-role (tbox-name tbox)))
-             (setf (role-info-inverse inv-entry) rolename))))))
+           (if (eq rolename inverse-role)
+               (progn
+                 (setf (role-info-symmetric-p entry) t)
+                 (setf (role-info-inverse entry) rolename)
+                 (setf (gethash inverse-role index) entry))
+             (let ((inv-entry (gethash inverse-role index)))
+               (unless inv-entry
+                 (error "Declaration for role ~A in TBox ~A not found."
+                        inverse-role (tbox-name tbox)))
+               (setf (role-info-inverse inv-entry) rolename)))))))
 
 (defmacro inverse (rolename inverse-role &optional (tbox nil tbox-supplied-p))
   (if tbox-supplied-p
@@ -3003,7 +3008,9 @@ Always create a canonical name regardless of the order of the role parents."
                   (push role-term all-transitive-roles)
                   (setf all-transitive-roles (append synonyms all-transitive-roles))))
               (push role-term all-roles)
-              (setf all-roles (nconc synonyms all-roles))))
+              (setf all-roles (nconc synonyms all-roles))
+              (when (eq role inverse)
+                (setf (role-symmetric-p role) t))))
           finally
           (setf (tbox-all-features tbox) (racer-remove-duplicates all-features :test 'equal))
           (setf (tbox-all-transitive-roles tbox)
@@ -3044,6 +3051,8 @@ Always create a canonical name regardless of the order of the role parents."
                     (setf (role-irreflexive-p (role-inverse-internal role)) t)
                   (when (role-reflexive-p role)
                     (setf (role-reflexive-p (role-inverse-internal role)) t))))
+              (when (and (role-symmetric-p role) (role-feature-p role))
+                (setf (role-inverse-feature-p role) t))
               (unless (role-parents-internal role)
                 (setf (role-parents-internal role) (list top))
                 (push role (role-children-internal top)))
@@ -3055,6 +3064,7 @@ Always create a canonical name regardless of the order of the role parents."
                 (setf (role-simple-p (role-inverse-internal role)) nil))
               (when (role-compositions role)
                 (setf (role-simple-p role) nil)
+                (setf (role-simple-p (role-inverse-internal role)) nil)
                 (setf (role-compositions role)
                       (loop with store = (tbox-role-store tbox)
                             for composition in (role-compositions role)
@@ -3099,8 +3109,7 @@ Always create a canonical name regardless of the order of the role parents."
                 (pushnew role-2 (role-disjoint-roles role-1))
                 (pushnew role-1-inv (role-disjoint-roles role-2-inv))
                 (pushnew role-2-inv (role-disjoint-roles role-1-inv)))))))
-  (propagate-role-characteristics-to-children (tbox-object-top-role tbox))
-  (propagate-role-characteristics-to-ancestors tbox)
+  (propagate-role-characteristics-to-parents-children tbox)
   (check-ria-regularity tbox)
   (loop with tbox-language = (tbox-language tbox)
         with reflexive = nil
@@ -3135,15 +3144,95 @@ Always create a canonical name regardless of the order of the role parents."
         finally (setf (tbox-language tbox) tbox-language))
   nil)
 
-(defun propagate-role-characteristics-to-children (parent)
-  (loop with disjoint-roles = (role-disjoint-roles parent)
-        with inverse-disjoint-roles = (role-disjoint-roles (role-inverse-internal parent))
-        with asymmetric = (role-asymmetric-p parent)
-        with irreflexive = (or asymmetric (role-irreflexive-p parent))
-        for child in (role-children-internal parent)
+(defun propagate-role-characteristics-to-parents-children (tbox)
+  (let ((top-role (tbox-object-top-role tbox)))
+    (propagate-role-characteristics-to-parents (tbox-object-bottom-role tbox))
+    (propagate-role-characteristics-to-children top-role)
+    (collapse-role-and-role-inverse tbox (collect-reflexive-features tbox))
+    (collapse-reflexive-feature-roles tbox)
+    (propagate-role-symmetry-to-children tbox top-role nil)))
+
+(defun reduce-to-named-roles (roles)
+  (role-set-remove-duplicates
+   (loop for role in roles
+         if (role-internal-name-p role)
+         collect (role-inverse-internal role)
+         else collect role)))
+
+(defun collapse-role-and-role-inverse (tbox roles)
+  (loop for role in roles
+        for role-inverse = (role-inverse-internal role)
+        do
+        (unless (role-symmetric-p role)
+          #+:debug (assert (not (eq role role-inverse)))
+          (collapse-roles role role-inverse tbox)
+          (setf (role-symmetric-p role) t))))
+
+(defun collect-reflexive-features (tbox)
+  (reduce-to-named-roles
+   (loop for role in (tbox-encoded-role-list tbox)
+         when (and (not (or (is-predefined-role-p role)
+                            (role-datatype role)
+                            (role-cd-attribute role)))
+                   (role-reflexive-p role)
+                   (role-feature-p role))
+         collect role)))
+
+(defun collapse-reflexive-feature-children (tbox role)
+  (loop with feature-p = (role-feature-p role)
+        with reflexive-p = (role-reflexive-p role)
+        for child in (role-children-internal role)
+        for ignore-p = (or (is-predefined-role-p child)
+                           (role-datatype child)
+                           (role-cd-attribute child))
+        do
+        (when (and feature-p reflexive-p (not ignore-p) (role-reflexive-p child))
+          (collapse-roles role child tbox)
+          (return t))
+        (when (and (not ignore-p) (collapse-reflexive-feature-children tbox child))
+          (return t))))
+
+(defun collapse-reflexive-feature-roles (tbox)
+  (loop with top-role = (tbox-object-top-role tbox)
+        for repeat = nil
+        do
+        (loop for role in (role-children-internal top-role)
+              for collapsed = (collapse-reflexive-feature-children tbox role)
+              do
+              (when (and (not repeat) collapsed)
+                (setf repeat t)))
+        until (not repeat)))
+
+(defun propagate-role-symmetry-to-children (tbox role make-symmetric)
+  (loop for child in (role-children-internal role)
         for child-inverse = (role-inverse-internal child)
         do
         (unless (is-bottom-object-role-p child)
+          #+:debug (assert (not (eq child role)))
+          (when (role-internal-name-p child)
+            (rotatef child child-inverse))
+          (when (and make-symmetric
+                     (not (or (role-removed-p child) (role-symmetric-p child))))
+            #+:debug (assert (not (eq child child-inverse)))
+            #+:debug (assert (not (role-removed-p child-inverse)))
+            (collapse-roles child child-inverse tbox)
+            (setf (role-symmetric-p child) t))
+          (if (or make-symmetric
+                  (and (role-feature-p child) (role-reflexive-p child)))
+              (propagate-role-symmetry-to-children tbox child t)
+            (propagate-role-symmetry-to-children tbox child nil)))))
+
+(defun propagate-role-characteristics-to-children (role)
+  (loop with disjoint-roles = (role-disjoint-roles role)
+        with inverse-disjoint-roles = (role-disjoint-roles (role-inverse-internal role))
+        with asymmetric-p = (role-asymmetric-p role)
+        with irreflexive-p = (or asymmetric-p (role-irreflexive-p role))
+        with feature-p = (role-feature-p role)
+        for child in (role-children-internal role)
+        for child-inverse = (role-inverse-internal child)
+        do
+        (unless (is-bottom-object-role-p child)
+          #+:debug (assert (not (eq child role)))
           (when disjoint-roles
             (let ((child-disjoint-roles (role-disjoint-roles child)))
               (when (or (null child-disjoint-roles)
@@ -3155,35 +3244,50 @@ Always create a canonical name regardless of the order of the role parents."
                 (loop for disjoint in disjoint-roles do
                       (pushnew child (role-disjoint-roles disjoint))
                       (pushnew child-inverse (role-disjoint-roles (role-inverse-internal disjoint)))))))
-          (if asymmetric
+          (if asymmetric-p
               (progn
-                (setf (role-asymmetric-p child) t)
-                (setf (role-irreflexive-p child) t)
-                (setf (role-asymmetric-p child-inverse) t)
-                (setf (role-irreflexive-p child-inverse) t))
-            (when irreflexive
+                (unless (role-asymmetric-p child)
+                  (warn-new-role-characteristic child "asymmetric")
+                  (setf (role-asymmetric-p child) t)
+                  (setf (role-asymmetric-p child-inverse) t))
+                (unless (role-irreflexive-p child)
+                  (warn-new-role-characteristic child "irreflexive")
+                  (setf (role-irreflexive-p child) t)
+                  (setf (role-irreflexive-p child-inverse) t)))
+            (when (and irreflexive-p (not (role-irreflexive-p child)))
+              (warn-new-role-characteristic child "irreflexive")
               (setf (role-irreflexive-p child) t)
               (setf (role-irreflexive-p child-inverse) t)))
+          (when feature-p
+            (unless (role-feature-p child)
+              (warn-new-role-characteristic child "functional" t)
+              (setf (role-feature-p child) t)
+              (setf (role-inverse-feature-p child-inverse) t)
+            (when (and (not (role-feature-p child-inverse))
+                       (or (role-symmetric-p child) (role-reflexive-p child)))
+              (warn-new-role-characteristic child-inverse "functional" t)
+              (setf (role-feature-p child-inverse) t)
+              (setf (role-inverse-feature-p child) t)
+              (propagate-role-characteristics-to-children child-inverse))))
           (propagate-role-characteristics-to-children child))))
 
-(defun propagate-role-characteristics-to-parents (child reflexive composition)
-  (loop for parent in (role-parents-internal child) do
+(defun propagate-role-characteristics-to-parents (role)
+  (loop with reflexive-p = (role-reflexive-p role)
+        with not-simple-p = (and (not (is-bottom-object-role-p role))
+                                 (or (role-transitive-p role) (role-compositions role)))
+        for parent in (role-parents-internal role)
+        for parent-inverse = (role-inverse-internal parent)
+        do
         (unless (is-top-object-role-p parent)
-          (when (and reflexive (not (role-reflexive-p parent)))
+          #+:debug (assert (not (eq role parent)))
+          (when (and reflexive-p (not (role-reflexive-p parent)))
             (setf (role-reflexive-p parent) t)
-            (setf (role-reflexive-p (role-inverse-internal parent)) t))
-          (when (and (or reflexive composition) (role-simple-p parent))
+            (setf (role-reflexive-p parent-inverse) t)
+            (warn-new-role-characteristic parent "reflexive"))
+          (when (and not-simple-p (role-simple-p parent))
             (setf (role-simple-p parent) nil)
-            (setf (role-simple-p (role-inverse-internal parent)) nil))
-          (propagate-role-characteristics-to-parents parent reflexive composition))))
-
-(defun propagate-role-characteristics-to-ancestors (tbox)
-  (loop for role in (tbox-encoded-role-list tbox) do
-        (unless (or (is-predefined-role-p role) (role-datatype role))
-          (let ((reflexive (role-reflexive-p role))
-                (composition (role-compositions role)))
-            (when (or reflexive composition)
-              (propagate-role-characteristics-to-parents role reflexive composition))))))
+            (setf (role-simple-p parent-inverse) nil))
+          (propagate-role-characteristics-to-parents parent))))
 
 (defun check-ria-regularity (tbox)
   (flet ((mark-roles-for-cycle-check (tbox)
@@ -3468,12 +3572,15 @@ Always create a canonical name regardless of the order of the role parents."
           ;; cases using specific code.
           (when (eq (role-inverse-internal role) removed-role)
             (setf (role-inverse-internal role) role)
-            (racer-warn "Role ~S found to be symmetric." role))
+            (when (role-internal-name-p removed-role)
+              (setf (role-synonyms-internal role)
+                    (remove removed-role (role-synonyms-internal role))))
+            (warn-new-role-characteristic role "symmetric"))
                  
           (when (eq (role-inverse-internal (role-inverse-internal removed-role))
                     removed-role)
             (setf (role-inverse-internal (role-inverse-internal removed-role))
-                  role));(break "2")
+                  role))
                  
           (when (role-removed-p (role-inverse-internal role))
             #+:debug
@@ -3506,7 +3613,46 @@ Always create a canonical name regardless of the order of the role parents."
         (unless (role-internal-name-p role-inverse)
           (tbox-classification-report stream ':roles-equivalent
                                       (role-name role-inverse) (role-name removed-role-inverse)))))
-               
+
+    (if (and (eq role role-inverse) (not (eq removed-role removed-role-inverse)))
+        (progn
+          (loop for role-1 in (role-synonyms-internal removed-role-inverse) do
+                (setf (gethash (role-name role-1) (tbox-role-store tbox)) role))
+          (setf (role-synonyms-internal removed-role)
+                (role-set-union (role-set-remove-duplicates
+                                 (mapcar (lambda (role) (gethash (role-name role) (tbox-role-store tbox)))
+                                         (role-synonyms-internal removed-role)))
+                                (role-set-remove-duplicates
+                                 (mapcar (lambda (role) (gethash (role-name role) (tbox-role-store tbox)))
+                                         (role-synonyms-internal removed-role-inverse)))))
+          (setf (role-symmetric-p removed-role) t)
+          (when (role-feature-p role)
+            (setf (role-feature-p removed-role) t)
+            (setf (role-inverse-feature-p removed-role) t)
+            (setf (role-feature-p removed-role-inverse) t)
+            (setf (role-inverse-feature-p removed-role-inverse) t))
+          (setf removed-role-inverse removed-role)
+          (setf (role-synonyms-internal (role-inverse-internal removed-role)) nil)
+          (setf (role-inverse-internal removed-role) removed-role))
+      (when (and (not (eq role role-inverse)) (eq removed-role removed-role-inverse))
+        (loop for role-1 in (role-synonyms-internal role-inverse) do
+              (setf (gethash (role-name role-1) (tbox-role-store tbox)) role))
+        (setf (role-synonyms-internal role)
+              (role-set-union (role-set-remove-duplicates
+                               (mapcar (lambda (role) (gethash (role-name role) (tbox-role-store tbox)))
+                                       (role-synonyms-internal role)))
+                              (role-set-remove-duplicates
+                               (mapcar (lambda (role) (gethash (role-name role) (tbox-role-store tbox)))
+                                       (role-synonyms-internal role-inverse)))))
+        (setf (role-symmetric-p role) t)
+        (when (role-feature-p removed-role)
+          (setf (role-feature-p role) t)
+          (setf (role-inverse-feature-p role) t)
+          (setf (role-feature-p role-inverse) t)
+          (setf (role-inverse-feature-p role-inverse) t))
+        (setf role-inverse role)
+        (setf (role-synonyms-internal (role-inverse-internal role)) nil)
+        (setf (role-inverse-internal role) role)))
     (loop for role-1 in (role-synonyms-internal removed-role) do
           (setf (gethash (role-name role-1) (tbox-role-store tbox)) role))
     (unless (eq removed-role removed-role-inverse)
@@ -3519,7 +3665,6 @@ Always create a canonical name regardless of the order of the role parents."
             (mapcar #'role-inverse-internal (role-synonyms-internal role)))
       (setf (role-synonyms-internal removed-role-inverse) nil)) ; Marker for being removed.
     (setf (role-synonyms-internal removed-role) nil)
-
     (cond ((and (null (role-cd-attribute role)) 
                 (not (null (role-cd-attribute removed-role))))
            (setf (role-cd-attribute role) (role-cd-attribute removed-role)))
@@ -3528,10 +3673,15 @@ Always create a canonical name regardless of the order of the role parents."
            nil)
           (t (unless (equal (role-cd-attribute role) (role-cd-attribute removed-role))
                (error "Equality of concrete domain attributes ~a dn ~a ~
-                                  cannot be enforced because the domain are disjoint - ~
-                                  found ~a and ~a, respectively."
+                       cannot be enforced because the domain are disjoint - ~
+                       found ~a and ~a, respectively."
                       role removed-role (role-cd-attribute role)
                       (role-cd-attribute removed-role)))))
+    ;(setf (role-children-internal role) (remove role (role-children-internal role)))
+    ;(setf (role-parents-internal role) (remove role (role-parents-internal role)))
+    ;(unless (eq role role-inverse)
+    ;  (setf (role-children-internal role-inverse) (remove role-inverse (role-children-internal role-inverse)))
+    ;  (setf (role-parents-internal role-inverse) (remove role-inverse (role-parents-internal role-inverse))))
     (unless (role-cd-attribute role)
       (unless (is-bottom-object-role-p role)
         (when (role-transitive-p removed-role)
@@ -3577,13 +3727,13 @@ Always create a canonical name regardless of the order of the role parents."
                   (error "cannot intersect the datatypes ~A and ~A of datatype properties ~A and ~A"
                          datatype removed-datatype (role-name role) (role-name removed-role)))
               (setf (role-datatype role) removed-datatype)))))
-                 
       #+:debug
       (when *debug-r*
         (print (role-parents-internal role))
         (print (role-children-internal role))
         (print (role-inverse-internal role))
-        (print (role-inverse-internal (role-inverse-internal removed-role)))))))
+        (print (role-inverse-internal (role-inverse-internal removed-role)))))
+    #+:debug (values role (role-synonyms-internal role))))
 
 (defun remove-role-synonyms (tbox encoded-role-list)
   ;; This function deals with role synonyms.
@@ -4048,7 +4198,7 @@ Always create a canonical name regardless of the order of the role parents."
             (add-to-role-descendants ancestor role only-lists)))
     (when (and (role-transitive-p role) 
                (role-feature-p role))
-      (unless (role-internal-conjunction-p role)
+      (unless (or (role-internal-conjunction-p role) (role-internal-name-p role))
         (racer-warn "While considering ~S: ~
                        Features cannot be transitive - Ignoring transitivity declaration."
                     role))
@@ -4056,13 +4206,13 @@ Always create a canonical name regardless of the order of the role parents."
     (when (some #'role-feature-p ancestors)
       (setf (tbox-language tbox) (add-dl-features (tbox-language tbox)))
       (unless (role-feature-p role)
-        (unless (role-internal-conjunction-p role)
+        (unless (or (role-internal-conjunction-p role) (role-internal-name-p role))
           (racer-warn "While considering ~S: ~
                          Role contains a feature as a super role and is converted into a feature."
                       role))
         (setf (role-feature-p role) t))
       (when (role-transitive-p role)
-        (unless (role-internal-conjunction-p role)
+        (unless (or (role-internal-conjunction-p role) (role-internal-name-p role))
           (racer-warn "While considering ~S: ~
                          Role contains a feature as a super role but is declared to be transitive - ~
                          Ignoring transitivity declaration."
@@ -4472,15 +4622,65 @@ Always create a canonical name regardless of the order of the role parents."
 (defun attribute-domain-1 (attribute-name &optional (tbox *current-tbox*))
   (atomic-role-domain attribute-name tbox))
 
-(defun role-characteristics-checked-p (tbox role-name characteristics)
+(defun role-characteristics-checked-p (tbox role-name characteristics &optional (role-name-2 nil))
+  #+:debug (assert (or (not (eq characteristics ':disjoint)) role-name-2))
   (let ((role-characteristics-checked-p (tbox-role-characteristics-checked-p tbox)))
     (when role-characteristics-checked-p
-      (gethash (cons role-name characteristics) role-characteristics-checked-p))))
+      (if role-name-2
+          (member role-name-2 (gethash (cons role-name characteristics) role-characteristics-checked-p))
+        (gethash (cons role-name characteristics) role-characteristics-checked-p)))))
 
-(defun set-role-characteristics-checked-p (tbox role-name characteristics)
+(defun set-role-characteristics-checked-p (tbox role-name characteristics &optional (role-name-2 nil))
+  #+:debug (assert (or (not (eq characteristics ':disjoint)) role-name-2))
   (unless (tbox-role-characteristics-checked-p tbox)
     (setf (tbox-role-characteristics-checked-p tbox) (racer-make-hash-table :test 'equal)))
-  (setf (gethash (cons role-name characteristics) (tbox-role-characteristics-checked-p tbox)) t))
+  (if role-name-2
+      (push role-name-2
+            (gethash (cons role-name characteristics) (tbox-role-characteristics-checked-p tbox)))
+    (setf (gethash (cons role-name characteristics) (tbox-role-characteristics-checked-p tbox)) t)))
+
+(defun test-role-characteristics (tbox role-term characteristic)
+  (flet ((get-test-concept ()
+           (let* ((name (create-tbox-internal-marker-concept tbox))
+                  (concept (encode-concept-term name)))
+             (setf (concept-visible-p concept) nil)
+             concept)))
+    (with-concept-definition-mapping tbox
+      (let* ((role (if (consp role-term)
+                       (role-inverse-internal (get-tbox-role tbox (second role-term)))
+                     (if (role-node-p role-term)
+                         role-term
+                       (get-tbox-role tbox role-term))))
+             (result
+              (ecase characteristic
+                (:feature
+                 (not (concept-satisfiable-p `(at-least 2 ,role-term) tbox)))
+                (:transitive
+                 (let ((test-concept (get-test-concept)))
+                   (not (concept-satisfiable-p `(and (some ,role-term (some ,role-term ,test-concept))
+                                                     (all ,role-term (not ,test-concept)))
+                                               tbox))))
+                (:symmetric
+                 (let ((test-concept (get-test-concept)))
+                   (not (concept-satisfiable-p `(and ,test-concept 
+                                                     (some ,role-term (all ,role-term (not ,test-concept))))
+                                               tbox))))
+                (:asymmetric
+                 (not (temporary-abox-satisfiable tbox nil `((i j ,role-term) (j i ,role-term)))))
+                (:reflexive
+                 (let* ((test-concept (get-test-concept)))
+                   (not (concept-satisfiable-p `(and ,test-concept (all ,role-term (not ,test-concept)))
+                                               tbox))))
+                (:irreflexive
+                 (not (concept-satisfiable-p `(self-reference ,role-term) tbox))))))
+        (unless (or result (role-satisfiability-checked-p role))
+          (set-role-ancestors-sat-checked-p role))
+        result))))
+
+(defun test-roles-characteristics (tbox role-name-1 role-name-2 feature)
+  (ecase feature
+    (:disjoint
+     (not (temporary-abox-satisfiable tbox nil `((i j ,role-name-1) (i j ,role-name-2)))))))
   
 (defun transitive-p (role-term &optional (tbox *current-tbox*))
   (setf tbox (find-tbox tbox))
@@ -4583,14 +4783,27 @@ Always create a canonical name regardless of the order of the role parents."
   (check-role-term role-term)
   (ensure-knowledge-base-state ':tbox-prepared tbox)
   (ensure-role-is-known role-term tbox)
-  (let ((role (if (consp role-term)
-                  (role-inverse-internal (get-tbox-role tbox (second role-term)))
-                (get-tbox-role tbox role-term))))
-    (cond ((role-symmetric-p role) t)
-          ((role-asymmetric-p role) nil)
-          ((eq role (role-inverse-internal role))
-           (setf (role-symmetric-p role) t))
-          (t nil))))
+  (let* ((role (if (consp role-term)
+                   (role-inverse-internal (get-tbox-role tbox (second role-term)))
+                 (get-tbox-role tbox role-term)))
+         (role-name (role-name role)))
+    (if (role-characteristics-checked-p tbox role-name ':symmetric)
+        (role-symmetric-p role)
+      (let* ((inverse (role-inverse-internal role))
+             (inverse-name (role-name inverse)))
+        (set-role-characteristics-checked-p tbox role-name ':symmetric)
+        (set-role-characteristics-checked-p tbox inverse-name ':symmetric)
+        (cond ((role-symmetric-p role) t)
+              ((role-asymmetric-p role) nil)
+              ((eq role inverse)
+               (setf (role-symmetric-p role) t))
+              ((test-role-characteristics tbox role-term ':symmetric)
+               (setf (role-symmetric-p role) t)
+               (setf (role-symmetric-p inverse) t)
+               (with-concept-definition-mapping tbox
+                 (collapse-roles role inverse tbox))
+               t)
+              (t nil))))))
 
 (defmacro symmetric? (role-term &optional (tbox-name nil tbox-name-specified-p))
   (if tbox-name-specified-p
@@ -5504,7 +5717,12 @@ Always create a canonical name regardless of the order of the role parents."
                (setf changed-p t)))
            (when changed-p
              (set-language concept visited-mark))))
-        ((all-concept at-most-concept)
+        ((all-concept
+          at-most-concept
+          ria-initial-concept
+          ria-final-concept
+          neg-ria-initial-concept
+          neg-ria-final-concept)
          (unless (eql (concept-visited-mark concept-term) visited-mark)
            (update-encoded-definition tbox
                                       concept-term
@@ -5901,7 +6119,8 @@ Always create a canonical name regardless of the order of the role parents."
                             domain-qualifications-table
                             true-tbox-el+-p
                             new-reflexive-roles
-                            new-irreflexive-roles)
+                            new-irreflexive-roles
+                            new-feature-roles)
                            (absorb-gcis tbox
                                         (append added-gcis
                                                 (tbox-meta-constraint-concepts tbox)
@@ -5932,10 +6151,8 @@ Always create a canonical name regardless of the order of the role parents."
                             (setf (gethash concept inverse-nary-absorption-table) t)))
                   (unless (gethash concept inverse-nary-absorption-table)
                     (setf (gethash concept inverse-nary-absorption-table) t)))))
-        (loop for role in new-reflexive-roles do
-              (propagate-role-characteristics-to-parents role t nil))
-        (loop for role in new-irreflexive-roles do
-              (propagate-role-characteristics-to-children role))
+        (when (or new-reflexive-roles new-irreflexive-roles new-feature-roles)
+          (propagate-role-characteristics-to-parents-children tbox))
         (setf (tbox-meta-constraint-concepts tbox) meta-constraint-concepts)
         (setf (tbox-literal-meta-constraints tbox)
               (mapcar #'decode-concept meta-constraint-concepts))
@@ -6127,20 +6344,16 @@ Always create a canonical name regardless of the order of the role parents."
                         (cons concept1 visited-concepts)
                         nil)))))
 
-(defun sort-encoded-concept-list (tbox mirrored-concept-table &optional (tbox-el+-p nil))
+(defun sort-encoded-concept-list (tbox mirror-concepts &optional (tbox-el+-p nil))
   (multiple-value-bind (visible hidden)
-      (if mirrored-concept-table
+      (or (copy-list mirror-concepts)
           (loop for concept in (tbox-encoded-concept-list tbox)
-                if (gethash concept mirrored-concept-table)
+                if (or (concept-visible-p concept)
+                       (concept-encoded-definition concept))
                 collect concept into visible
-                finally (return visible))
-        (loop for concept in (tbox-encoded-concept-list tbox)
-              if (or (concept-visible-p concept)
-                     (concept-encoded-definition concept))
-              collect concept into visible
-              else collect concept into hidden
-              finally (return (values visible hidden))))
-    (when (or hidden mirrored-concept-table)
+                else collect concept into hidden
+                finally (return (values visible hidden))))
+    (when (or hidden mirror-concepts)
       (setf (tbox-encoded-concept-list tbox) visible))
     (cond
      (*random-concept-list* (sort-concept-list-random tbox))
@@ -6567,22 +6780,27 @@ Always create a canonical name regardless of the order of the role parents."
     (let ((language (tbox-language tbox)))
       (and (dl-simple-role-inclusions language)
            (or (dl-complex-role-inclusions language)
-               (and (or (dl-features language)
-                        (dl-merging language))
-                    (at-least-two-feature-children-p tbox)))))))
+               (and (or (dl-features language) (dl-merging language))
+                    (or (loop for role in (tbox-at-least-n-feature-children tbox 1)
+                              thereis (some #'user-defined-role-reflexive-p (role-children-internal role)))
+                        (tbox-at-least-n-feature-children tbox 2))))))))
 
-(defun at-least-two-feature-children-p (tbox)
+(defun tbox-at-least-n-feature-children (tbox number)
   (loop for role in (tbox-encoded-role-list tbox)
-        for role-inverse = (role-inverse-internal role)
-        thereis 
-        (and (not (or (is-predefined-role-p role)
-                      (role-datatype role)
-                      (role-cd-attribute role)
-                      (role-internal-conjunction-p role)))
-             (or (role-feature-p role)
-                 (and role-inverse (role-feature-p role-inverse)))
-             (rest (role-children-internal role))
-             role)))
+        when (at-least-n-feature-children role number)
+        collect role))
+
+(defun at-least-n-feature-children (role number)
+  (let ((role-inverse (role-inverse-internal role)))
+    (and (not (or (is-predefined-role-p role)
+                  (role-datatype role)
+                  (role-cd-attribute role)
+                  (role-annotation-p role)
+                  (role-internal-conjunction-p role)))
+         (or (role-feature-p role)
+             (and role-inverse (role-feature-p role-inverse)))
+         (>= (length (role-children-internal role)) number)
+         role)))
 
 (defun has-feature-as-sibling (role)
   (loop for parent in (role-ancestors-internal role)
@@ -6606,6 +6824,7 @@ Always create a canonical name regardless of the order of the role parents."
               (or *encode-roles-as-transitive*
                   *meta-constraint-concepts*
                   (tbox-blocking-possibly-required tbox)))
+             (*tableaux-inverse-unsat-caching* nil)
              (roles-classified-p nil)
              (synonyms-changed-p nil)
              (start (when *debug*
@@ -6615,50 +6834,52 @@ Always create a canonical name regardless of the order of the role parents."
                 (unless top-bottom-p
                   (without-taxonomic-encoding
                     (let ((*tbox-clustering* nil))
+                      (test-satisfiability-of-roles tbox
+                                                    reasoning-mode
+                                                    nil
+                                                    t)
                       (multiple-value-bind (concept-name-to-role
-                                            concept-to-concept-name
                                             role-to-concept-name
                                             marker-name
                                             marker-concept)
-                          (mirror-role-to-concept-hierarchy-1 tbox)
-                        (test-satisfiability-of-roles tbox
-                                                      stream
-                                                      reasoning-mode
-                                                      role-to-concept-name
-                                                      t)
-                        (let ((tbox-inverse-roles-p (or (dl-inverse-roles (tbox-language tbox))
-                                                        (critical-inverse-role-in-tbox-p tbox))))
-                          (mirror-role-to-concept-hierarchy-2 tbox
-                                                              tbox-inverse-roles-p
-                                                              concept-name-to-role
-                                                              role-to-concept-name
-                                                              concept-to-concept-name
-                                                              marker-concept
-                                                              marker-name)
+                          (mirror-role-to-concept-hierarchy-1 tbox nil)
+                        (let* ((mirror-concepts 
+                                (mirror-role-to-concept-hierarchy-2 tbox
+                                                                    nil
+                                                                    concept-name-to-role
+                                                                    role-to-concept-name
+                                                                    marker-concept
+                                                                    marker-name))
+                               (mirror-concept-table (racer-make-hash-table
+                                                      :size (length mirror-concepts)
+                                                      :structure-p t)))
+                          (loop for concept in mirror-concepts do
+                                (setf (gethash concept mirror-concept-table) t))
                           (test-satisfiability-of-roles tbox
-                                                        stream
                                                         reasoning-mode
                                                         role-to-concept-name
                                                         nil)
-                          (if (and concept-name-to-role (use-new-role-classification-p tbox))
+                          (if (and mirror-concepts (use-new-role-classification-p tbox))
                               (progn
-                                (sort-concepts tbox reasoning-mode concept-to-concept-name)
+                                (sort-concepts tbox reasoning-mode mirror-concepts)
                                 (race-time (classify-tbox-concepts tbox
                                                                    stream 
                                                                    ':classify-internal-concept-only
                                                                    nil
-                                                                   concept-to-concept-name))
+                                                                   mirror-concept-table))
                                 (setf synonyms-changed-p
                                       (mirror-concept-to-role-hierarchy tbox
                                                                         stream
-                                                                        concept-to-concept-name
+                                                                        mirror-concepts
+                                                                        mirror-concept-table
+                                                                        role-to-concept-name
                                                                         concept-name-to-role
-                                                                        tbox-inverse-roles-p))
+                                                                        nil))
                                 (setf roles-classified-p t))
                             (progn
                               (add-missing-role-parents-children tbox)
                               (when concept-name-to-role
-                                (remove-obsolete-concepts tbox concept-name-to-role concept-to-concept-name)))))))))
+                                (remove-obsolete-concepts tbox concept-name-to-role mirror-concept-table)))))))))
                 (setf (tbox-role-hierarchy-classified-p tbox) t)
                 (let ((new-object-bottoms
                        (rest (role-synonyms-internal (tbox-object-bottom-role tbox))))
@@ -6727,7 +6948,7 @@ Always create a canonical name regardless of the order of the role parents."
           (setf (role-parents-internal data-bottom)
                 (role-set-union new-data-bottom-parents (role-parents-internal data-bottom))))))
 
-(defun sort-concepts (tbox reasoning-mode &optional (mirrored-concept-table nil))
+(defun sort-concepts (tbox reasoning-mode &optional (mirror-concepts nil))
   (let ((tbox-el+-p (and *use-elh-model-embedding*
                          *fully-sorted-concept-list* 
                          (subset-el+-p (tbox-language tbox)))))
@@ -6736,20 +6957,9 @@ Always create a canonical name regardless of the order of the role parents."
              *use-elh-model-embedding*
              (eq reasoning-mode ':classification))
         (with-alc-bindings
-          (let* ((*meta-constraint-concepts* (tbox-meta-constraint-concepts tbox))
-                 (*blocking-possibly-required*
-                  (or *encode-roles-as-transitive*
-                      *meta-constraint-concepts*
-                      (tbox-blocking-possibly-required tbox)))
-                 (concepts (tbox-encoded-concept-list tbox))
-                 #+:ignore
-                 (n-concepts (length concepts)))
-            (loop for concept in concepts 
-                  when (or (not mirrored-concept-table)
-                           (gethash (concept-hash-id concept) mirrored-concept-table))
-                  do
-                  (setf (concept-sort-no concept) nil)))
-          (race-time (sort-encoded-concept-list tbox mirrored-concept-table t)))
+          (loop for concept in (or mirror-concepts (tbox-encoded-concept-list tbox)) do
+                (setf (concept-sort-no concept) nil))
+          (race-time (sort-encoded-concept-list tbox mirror-concepts t)))
       (progn
         (loop with nominal-table = (tbox-nominal-table tbox)
               for concept in (tbox-encoded-concept-list tbox)
@@ -6758,9 +6968,9 @@ Always create a canonical name regardless of the order of the role parents."
                           thereis
                           (eq (gethash name nominal-table) ':nominal))
                 (setf (concept-visible-p concept) nil)))
-        (race-time (sort-encoded-concept-list tbox mirrored-concept-table))))
+        (race-time (sort-encoded-concept-list tbox mirror-concepts))))
     (race-time (determine-cyclic-atomic-concepts tbox))
-    (when (and (not mirrored-concept-table) (tbox-use-less-memory tbox))
+    (when (and (not mirror-concepts) (tbox-use-less-memory tbox))
       (clean-tbox tbox)))
   #+:debug (tbox-encoded-concept-list tbox))
 
@@ -6801,7 +7011,12 @@ Always create a canonical name regardless of the order of the role parents."
                         finally
                         (when internal-only
                           (error "no end-of-no-bottom-search concept encountered")))))
-              (race-trace ("~A" (print-tbox-info tbox nil)))
+              #+:debug
+              (when-race-trace
+               (multiple-value-bind (info-1 info-2)
+                   (print-tbox-info tbox nil)
+                 (race-trace ("~A" info-1))
+                 (race-trace ("~A" info-2))))
               (loop with n-concepts = (if internal-only 
                                           0
                                         (loop with count = 0
@@ -6890,47 +7105,74 @@ Always create a canonical name regardless of the order of the role parents."
 
 (defun create-role-mirror-concept (tbox role marker-name concept-name-to-role role-to-concept-name)
   (let ((mirror-concept-name
-         (intern (concatenate 'string (symbol-name (role-name role)) "-" marker-name)))
-        (synonyms (role-synonyms-internal role)))
-    (create-tbox-internal-marker-concept tbox mirror-concept-name)
-    (setf (gethash role role-to-concept-name) mirror-concept-name)
-    (setf (gethash mirror-concept-name concept-name-to-role) role)
-    (when (rest synonyms)
-      (loop for synonym in synonyms do
-            (unless (eq synonym role)
-              (let ((synonym-mirror-concept-name
-                     (intern (concatenate 'string (symbol-name (role-name synonym)) "-" marker-name))))
-                (create-tbox-internal-marker-concept tbox synonym-mirror-concept-name)
-                (setf (gethash synonym role-to-concept-name) synonym-mirror-concept-name)
-                (setf (gethash synonym-mirror-concept-name concept-name-to-role) synonym)))))))
+         (intern (concatenate 'string (symbol-name (role-name role)) "-" marker-name))))
+    (unless (tbox-internal-marker-concept mirror-concept-name tbox)
+      (create-tbox-internal-marker-concept tbox mirror-concept-name)
+      (setf (gethash role role-to-concept-name) mirror-concept-name)
+      (setf (gethash mirror-concept-name concept-name-to-role) role))
+    #+:debug mirror-concept-name))
 
-(defun mirror-role-to-concept-hierarchy-1 (tbox)
+(defun mirror-role-to-concept-hierarchy-1 (tbox tbox-inverse-roles-p)
   (with-race-trace-sublevel ("mirror-role-to-concept-hierarchy-1"
-                             :arguments (list tbox)
+                             :arguments (list tbox tbox-inverse-roles-p)
                              :trace-result t
                              :expanded t)
     (without-taxonomic-encoding
       (let* ((table-size (length (tbox-encoded-role-list tbox)))
              (concept-name-to-role (racer-make-hash-table :size table-size))
              (role-to-concept-name (racer-make-hash-table :size table-size))
-             (concept-to-concept-name (racer-make-hash-table :size table-size))
              (marker-concept (create-tbox-internal-marker-concept tbox))
              (marker-name (symbol-name (gensym))))
-        (loop for role in (tbox-encoded-role-list tbox) do
-              (unless (ignore-role-p role nil)
-                (create-role-mirror-concept tbox role marker-name concept-name-to-role role-to-concept-name)))
-        (internalize-role-mirror-concepts tbox nil marker-concept concept-to-concept-name role-to-concept-name)
+        (mirror-role-to-concept-hierarchy-internal (tbox-object-top-role tbox)
+                                                   tbox
+                                                   tbox-inverse-roles-p
+                                                   concept-name-to-role
+                                                   role-to-concept-name
+                                                   marker-concept
+                                                   marker-name)
+        (internalize-role-mirror-concepts tbox
+                                          marker-concept
+                                          role-to-concept-name)
         (values concept-name-to-role
-                concept-to-concept-name
                 role-to-concept-name
                 marker-name
                 marker-concept)))))
+
+(defun mirror-role-to-concept-hierarchy-internal (role
+                                                  tbox
+                                                  tbox-inverse-roles-p
+                                                  concept-name-to-role
+                                                  role-to-concept-name
+                                                  marker-concept
+                                                  marker-name)
+  (loop with ignore-parent = t
+        for child in (role-children-internal role)
+        do
+        (unless (or (ignore-role-p child tbox-inverse-roles-p) (gethash child role-to-concept-name))
+          (create-role-mirror-concept tbox child marker-name concept-name-to-role role-to-concept-name)
+          (when ignore-parent
+            (setf ignore-parent nil)))
+        (unless (mirror-role-to-concept-hierarchy-internal child
+                                                           tbox
+                                                           tbox-inverse-roles-p
+                                                           concept-name-to-role
+                                                           role-to-concept-name
+                                                           marker-concept
+                                                           marker-name)
+          (when ignore-parent
+            (setf ignore-parent nil)))
+        finally 
+        (if (or ignore-parent (is-predefined-role-p role) (gethash role role-to-concept-name))
+            (return t)
+          (progn
+            (create-role-mirror-concept tbox role marker-name concept-name-to-role role-to-concept-name)
+            (return nil)))))
+
 
 (defun mirror-role-to-concept-hierarchy-2 (tbox
                                            tbox-inverse-roles-p
                                            concept-name-to-role
                                            role-to-concept-name
-                                           concept-to-concept-name
                                            marker-concept
                                            marker-name)
   (with-race-trace-sublevel ("mirror-role-to-concept-hierarchy-2"
@@ -6938,29 +7180,33 @@ Always create a canonical name regardless of the order of the role parents."
                                               tbox-inverse-roles-p
                                               concept-name-to-role
                                               role-to-concept-name
-                                              concept-to-concept-name
                                               marker-concept
                                               marker-name)
                              :trace-result t
                              :expanded t)
-    (without-taxonomic-encoding
-      (loop for role in (tbox-encoded-role-list tbox) do
-            (unless (or (gethash role role-to-concept-name)
-                        (ignore-role-p role tbox-inverse-roles-p))
-              (create-role-mirror-concept tbox role marker-name concept-name-to-role role-to-concept-name)))
-      (internalize-role-mirror-concepts tbox
-                                        tbox-inverse-roles-p
-                                        marker-concept
-                                        concept-to-concept-name
-                                        role-to-concept-name)
-      (when (> (hash-table-count concept-to-concept-name) 0)
+    (mirror-role-to-concept-hierarchy-internal (tbox-object-top-role tbox)
+                                               tbox
+                                               tbox-inverse-roles-p
+                                               concept-name-to-role
+                                               role-to-concept-name
+                                               marker-concept
+                                               marker-name)
+    (internalize-role-mirror-concepts tbox
+                                      marker-concept
+                                      role-to-concept-name)
+    (when (> (hash-table-count role-to-concept-name) 0)
+      (let ((added-concepts
+             (concept-set-remove-duplicates
+              (loop for concept-name being the hash-value of role-to-concept-name
+                    for concept = (get-tbox-concept tbox concept-name)
+                    collect concept))))
         (setf (tbox-encoded-concept-list tbox)
-              (nconc (loop for concept being the hash-key of concept-to-concept-name
-                           collect concept)
-                     (tbox-encoded-concept-list tbox)))))))
+              (append added-concepts (tbox-encoded-concept-list tbox)))
+        added-concepts))))
 
 (defun ignore-role-p (role tbox-inverse-roles-p)
   (or (is-predefined-role-p role)
+      (role-internal-conjunction-p role)
       (role-datatype role)
       (role-cd-attribute role)
       (role-annotation-p role)
@@ -6968,53 +7214,77 @@ Always create a canonical name regardless of the order of the role parents."
 
 (defun ignore-inverse-p (role tbox-inverse-roles-p)
   (and (role-internal-name-p role)
-       (or (not tbox-inverse-roles-p)
+       (if tbox-inverse-roles-p
            (let ((inverse-role (role-inverse-internal role)))
              (and inverse-role
                   (or (role-datatype inverse-role)
-                      (role-cd-attribute inverse-role)))))))
+                      (role-cd-attribute inverse-role)
+                      (role-internal-conjunction-p role)
+                      (role-symmetric-p role))))
+         (loop for child in (role-children-internal role)
+               always (or (role-internal-name-p child)
+                          (role-internal-conjunction-p child)
+                          (is-bottom-object-role-p child))))))
 
 (defun critical-inverse-role-in-tbox-p (tbox)
   (loop for role in (tbox-encoded-role-list tbox)
+        for inverse-role = (role-inverse-internal role)
         thereis
         (and (not (role-internal-name-p role))
-             (not (or (is-predefined-role-p role)
-                      (role-datatype role)
-                      (role-cd-attribute role)
-                      (role-annotation-p role)))
-             (let ((inverse-role (role-inverse-internal role)))
-               (and inverse-role
-                    (not (eq role inverse-role))
-                    (not (role-internal-name-p inverse-role))
-                    (or (role-compositions role)
-                        (and (or (role-feature-p role)
-                                 (role-feature-p inverse-role))
-                             (rest (role-children-internal role))))
-                    #+:debug
-                    (cons role inverse-role))))))
+             (and inverse-role (not (role-internal-name-p inverse-role)))
+             (or (role-compositions role)
+                 (at-least-n-feature-children role 2))
+             #+:debug
+             (cons role inverse-role))))
 
 (defun internalize-role-mirror-concepts (tbox
-                                         tbox-inverse-roles-p
                                          marker-concept
-                                         concept-to-concept-name
                                          role-to-concept-name)
-  (loop for role in (tbox-encoded-role-list tbox) do
-        (unless (or (role-removed-p role)
-                    (get-tbox-concept tbox (gethash role role-to-concept-name) nil)
-                    (ignore-role-p role tbox-inverse-roles-p))
-          (internalize-role-mirror-concept tbox
-                                           role
-                                           marker-concept
-                                           concept-to-concept-name
-                                           role-to-concept-name))))
+  (internalize-role-mirror-concepts-internal tbox
+                                             (tbox-object-top-role tbox)
+                                             marker-concept
+                                             role-to-concept-name)
+  (loop for role being the hash-key of role-to-concept-name using (hash-value role-concept-name)
+        do
+        (unless (is-predefined-role-p role)
+          (loop for parent in (role-parents-internal role)
+                for parent-concept-name = (gethash parent role-to-concept-name)
+                unless (or (is-predefined-role-p parent) (null parent-concept-name))
+                collect (get-tbox-concept tbox parent-concept-name) into told-subsumers
+                finally
+                (when told-subsumers
+                  (let ((concept (get-tbox-concept tbox role-concept-name)))
+                    (setf (concept-told-subsumers concept)
+                          (concept-set-union told-subsumers (concept-told-subsumers concept)))
+                    (setf (concept-referencing concept)
+                          (concept-set-union told-subsumers (concept-referencing concept))))))))
+  (update-encoded-definitions tbox))
+
+(defun internalize-role-mirror-concepts-internal (tbox
+                                                  role
+                                                  marker-concept
+                                                  role-to-concept-name)
+  (loop for child in (role-children-internal role)
+        for child-concept-name = (gethash child role-to-concept-name)
+        do
+        (when child-concept-name
+          (let ((role-concept (get-tbox-concept tbox child-concept-name nil)))
+            (unless (and role-concept (concept-encoded-definition role-concept))
+              (internalize-role-mirror-concept tbox
+                                               child
+                                               marker-concept
+                                               role-to-concept-name)))))
+  (loop for child in (role-children-internal role) do
+        (internalize-role-mirror-concepts-internal tbox
+                                                   child
+                                                   marker-concept
+                                                   role-to-concept-name)))
 
 (defun internalize-role-mirror-concept (tbox
                                         role
                                         marker-concept
-                                        concept-to-concept-name
                                         role-to-concept-name)
-  (let* ((synonyms (role-synonyms-internal role))
-         (mirror-concept-name (gethash role role-to-concept-name))
+  (let* ((mirror-concept-name (gethash role role-to-concept-name))
          (definition `(some ,role ,marker-concept))
          (concept (initialize-atomic-concept tbox mirror-concept-name definition nil)))
     #+:debug (assert mirror-concept-name)
@@ -7027,26 +7297,6 @@ Always create a canonical name regardless of the order of the role parents."
                                t
                                (incf *tbox-classification-counter*))
     (setf (concept-visible-p concept) nil)
-    (setf (gethash concept concept-to-concept-name) mirror-concept-name)
-    (when (rest synonyms)
-      (loop with top = (tbox-top-node tbox)
-            with bottom = (tbox-bottom-node tbox)
-            for synonym in synonyms do
-            (unless (eq synonym role)
-              (let* ((synonym-mirror-concept-name (gethash synonym role-to-concept-name))
-                     (synonym-concept
-                      (initialize-atomic-concept tbox synonym-mirror-concept-name mirror-concept-name nil)))
-                (setf (concept-encoded-definition synonym-concept)
-                      (encode-concept-term mirror-concept-name synonym-mirror-concept-name))
-                (update-encoded-definition tbox
-                                           synonym-concept
-                                           top
-                                           bottom
-                                           (incf *tbox-classification-counter*)
-                                           t
-                                           (incf *tbox-classification-counter*))
-                (setf (concept-visible-p synonym-concept) nil)
-                (setf (gethash synonym-concept concept-to-concept-name) synonym-mirror-concept-name)))))
     concept))
 
 (defun partially-reset-role (role)
@@ -7060,20 +7310,23 @@ Always create a canonical name regardless of the order of the role parents."
 
 (defun mirror-concept-to-role-hierarchy (tbox
                                          stream
-                                         concept-to-concept-name
+                                         mirror-concepts
+                                         mirror-concept-table
+                                         role-to-concept-name
                                          concept-name-to-role
                                          tbox-inverse-roles-p)
   (with-race-trace-sublevel ("mirror-concept-to-role-hierarchy"
                              :arguments (list tbox
                                               stream
-                                              concept-to-concept-name
+                                              mirror-concepts
+                                              mirror-concept-table
+                                              role-to-concept-name
                                               concept-name-to-role
                                               tbox-inverse-roles-p)
                              :trace-result t
                              :expanded t)
     (let ((synonyms-changed-p nil))
-      (loop for mirror-concept-name being the hash-value of concept-to-concept-name
-            for role = (gethash mirror-concept-name concept-name-to-role)
+      (loop for role being the hash-key of role-to-concept-name
             for inverse-role = (role-inverse-internal role)
             do
             #+:debug (assert role)
@@ -7082,19 +7335,21 @@ Always create a canonical name regardless of the order of the role parents."
               (partially-reset-role inverse-role)))
       (loop with top = (tbox-object-top-role tbox)
             with bottom = (tbox-object-bottom-role tbox)
-            for mirror-concept-name being the hash-value of concept-to-concept-name
-            for mirror-concept = (get-tbox-concept tbox mirror-concept-name)
+            for mirror-concept in mirror-concepts
             for synonyms-p = (rest (concept-name-set mirror-concept))
             for synonyms = (when synonyms-p
-                             (racer-remove-duplicates
-                              (mapcar (lambda (symbol)
-                                        (or (gethash symbol concept-name-to-role)
-                                            (and (member symbol (list +bottom-symbol+ +krss-bottom-symbol+))
-                                                 bottom)
-                                            (and (member symbol (list +top-symbol+ +krss-top-symbol+))
-                                                 top)
-                                            (error "unexpected")))
-                                      (concept-name-set mirror-concept))))
+                             (sort 
+                              (racer-remove-duplicates
+                               (mapcar (lambda (symbol)
+                                         (or (gethash symbol concept-name-to-role)
+                                             (and (member symbol (list +bottom-symbol+ +krss-bottom-symbol+))
+                                                  bottom)
+                                             (and (member symbol (list +top-symbol+ +krss-top-symbol+))
+                                                  top)
+                                             (error "unexpected")))
+                                       (concept-name-set mirror-concept)))
+                              (lambda (r1 r2)
+                                (and (not (role-internal-name-p r1)) (role-internal-name-p r2)))))
             for synomym-proxy = (first synonyms)
             do
             (when synonyms-p
@@ -7106,9 +7361,9 @@ Always create a canonical name regardless of the order of the role parents."
                                                   (role-synonyms-internal synomym-proxy))))))
               (loop while (not (role-removed-p synomym-proxy))
                     for synonym in (rest synonyms) do
-                    (unless (role-removed-p synonym)
-                      (collapse-roles-new synomym-proxy synonym tbox stream nil)))))
-      (mirror-concepts-to-roles tbox concept-to-concept-name concept-name-to-role tbox-inverse-roles-p)
+                    (unless (or (role-removed-p synonym) (role-internal-name-p synonym))
+                      (collapse-roles-new synomym-proxy synonym tbox stream)))))
+      (mirror-concepts-to-roles tbox mirror-concepts concept-name-to-role tbox-inverse-roles-p)
       (loop for role being the hash-value of concept-name-to-role
             for inverse-role = (role-inverse-internal role)
             do
@@ -7119,113 +7374,93 @@ Always create a canonical name regardless of the order of the role parents."
               (setf (role-parents-internal inverse-role)
                     (mapcar #'role-inverse-internal (role-parents-internal role))))
             (encode-role tbox inverse-role))
-      (remove-obsolete-concepts tbox concept-name-to-role concept-to-concept-name)
+      (remove-obsolete-concepts tbox concept-name-to-role mirror-concept-table)
       synonyms-changed-p)))
 
-(defun mirror-concepts-to-roles (tbox concept-to-concept-name concept-name-to-role tbox-inverse-roles-p)
-  (flet ((concept-to-role (concept)
-           (let ((result (gethash (gethash concept concept-to-concept-name) concept-name-to-role)))
-             #+:debug (assert result)
-             result)))
-    (loop with top-role = (tbox-object-top-role tbox)
-          with top-children = nil
-          with bottom-role = (tbox-object-bottom-role tbox)
-          with bottom-parents = nil
-          for mirror-concept-name being the hash-value of concept-to-concept-name
-          for mirror-concept = (get-tbox-concept tbox mirror-concept-name)
-          for role = (gethash mirror-concept-name concept-name-to-role)
-          unless (or (role-removed-p role) (ignore-inverse-p role tbox-inverse-roles-p))
-          do
-          #+:debug 
-          (assert (or (role-removed-p role)
-                      (and (eql (length (concept-name-set mirror-concept))
-                                (length (role-synonyms-internal role)))
-                           (subsetp (mapcar (lambda (symbol) (gethash symbol concept-name-to-role))
-                                            (concept-name-set mirror-concept))
-                                    (role-synonyms-internal role))))
-              (role mirror-concept)
-            "synonyms ~S of mirror concept ~S do not match synonyms ~S of corresponding role ~S"
-            (concept-name-set mirror-concept) mirror-concept (role-synonyms-internal role) role)
-          (loop with parents = (racer-remove top-role (role-parents-internal role))
-                for parent in (concept-parents-internal mirror-concept) do
-                (unless (is-top-concept-p parent)
-                  (push (concept-to-role parent) parents))
-                (when (member nil parents) (break))
-                finally
-                (let ((inverse-role (role-inverse-internal role)))
-                  (if parents
-                      (progn
-                        (setf parents (role-set-remove-duplicates parents))
-                        (setf (role-parents-internal role) parents)
-                        (unless (or tbox-inverse-roles-p (eq role inverse-role))
-                          (setf (role-parents-internal inverse-role)
-                                (mapcar #'role-inverse-internal parents)))
-                        #+:debug 
-                        (assert (or (null (rest parents))
-                                    (and (eql (length (concept-parents-internal mirror-concept))
-                                              (length (role-parents-internal role)))
-                                         (subsetp (mapcar #'concept-to-role
-                                                          (concept-parents-internal mirror-concept))
-                                                  (role-parents-internal role))))
-                            (role mirror-concept)
-                          "parents ~S of mirror concept ~S do not match parents ~S of corresponding role ~S"
-                          (concept-parents-internal mirror-concept) mirror-concept (role-parents-internal role) role)
-                        #+:debug (assert (or (not (rest parents)) (not (member top-role (role-parents-internal role)))))
-                        )
-                    (progn
-                      (setf (role-parents-internal role) (list top-role))
-                      (push role top-children)
-                      (unless (or tbox-inverse-roles-p (eq role inverse-role))
-                        (setf (role-parents-internal (role-inverse-internal role)) (list top-role))
-                        (push inverse-role top-children))))))
-          (loop with children = (racer-remove bottom-role (role-children-internal role))
-                for child in (concept-children-internal mirror-concept) do
-                (unless (is-bottom-concept-p child)
-                  (push (concept-to-role child) children))
-                finally
-                (let ((inverse-role (role-inverse-internal role)))
-                  (if children
-                      (progn
-                        (setf children (role-set-remove-duplicates children))
-                        (setf (role-children-internal role) children)
-                        (unless (or tbox-inverse-roles-p (eq role inverse-role))
-                          (setf (role-children-internal inverse-role) 
-                                (mapcar #'role-inverse-internal children)))
-                        #+:debug 
-                        (assert (or (null (rest children))
-                                    (and (eql (length (concept-children-internal mirror-concept))
-                                              (length (role-children-internal role)))
-                                         (subsetp (mapcar #'concept-to-role
-                                                          (concept-children-internal mirror-concept))
-                                                  (role-children-internal role))))
-                            (role mirror-concept)
-                          "children ~S of mirror concept ~S do not match children ~S of corresponding role ~S"
-                          (concept-children-internal mirror-concept) mirror-concept (role-children-internal role) role)
-                        #+:debug (assert (or (not (rest children)) (not (member bottom-role (role-children-internal role)))))
-                        )
-                    (progn
-                      (setf (role-children-internal role) (list bottom-role))
-                      (push role bottom-parents)
-                      (unless (or tbox-inverse-roles-p (eq role inverse-role))
-                        (setf (role-children-internal (role-inverse-internal role)) (list bottom-role))
-                        (push inverse-role bottom-parents))))))
-          #+:debug (assert (and (role-parents-internal role) (role-children-internal role)))
-          finally
-          (setf (role-children-internal top-role) (role-set-remove-duplicates top-children))
-          (setf (role-parents-internal bottom-role) (role-set-remove-duplicates bottom-parents)))))
+(defun mirror-concepts-to-roles (tbox mirror-concepts concept-name-to-role tbox-inverse-roles-p)
+  (let ((top-role (tbox-object-top-role tbox))
+        (bottom-role (tbox-object-bottom-role tbox)))
+    (labels ((concept-name-to-role (concept-name &optional (concept nil))
+               (let ((concept (or concept (get-tbox-concept tbox concept-name))))
+                 (cond ((is-top-concept-p concept) top-role)
+                       ((is-bottom-concept-p concept) bottom-role)
+                       (t (let ((role (gethash concept-name concept-name-to-role)))
+                            #+:debug (assert role)
+                            role)))))
+             (concept-to-role (concept)
+               (cond ((is-top-concept-p concept) top-role)
+                     ((is-bottom-concept-p concept) bottom-role)
+                     (t 
+                      (let ((concept-name (first (concept-name-set concept))))
+                        #+:debug (assert concept-name)
+                        (concept-name-to-role concept-name concept)))))
+             (ignore-role-p (role)
+               (or (role-removed-p role)
+                   (ignore-inverse-p role tbox-inverse-roles-p)
+                   (let ((inverse (role-inverse-internal role)))
+                     (or (is-bottom-datatype-role-p inverse) (is-top-datatype-role-p inverse))))))
+      (let ((top-children nil)
+            (bottom-parents nil))
+        (loop for mirror-concept in mirror-concepts
+              for role = (concept-to-role mirror-concept)
+              unless (ignore-role-p role)
+              do
+              (let ((parents
+                     (role-set-remove-duplicates 
+                      (loop for parent in (concept-parents-internal mirror-concept)
+                            unless (is-top-concept-p parent)
+                            collect (concept-to-role parent)))))
+                #+:debug (assert (not (member nil parents)))
+                (if parents
+                    (setf (role-parents-internal role) parents)
+                  (progn
+                    (setf (role-parents-internal role) (list top-role))
+                    (push role top-children))))
+              (let ((children
+                     (role-set-remove-duplicates
+                      (loop for child in (concept-children-internal mirror-concept)
+                            unless (is-bottom-concept-p child)
+                            collect (concept-to-role child)))))
+                #+:debug (assert (not (member nil children)))
+                (if children
+                    (setf (role-children-internal role) children)
+                  (progn
+                    (setf (role-children-internal role) (list bottom-role))
+                    (push role bottom-parents)))))
+        (loop for mirror-concept in mirror-concepts
+              for role = (concept-to-role mirror-concept)
+              for inverse-role = (role-inverse-internal role)
+              do
+              (unless (or (eq role inverse-role) (role-internal-name-p role) (role-removed-p role))
+                (let ((parents (role-parents-internal role))
+                      (inverse-parents (role-parents-internal inverse-role)))
+                  #+:debug (assert (consp parents))
+                  (when (< (length inverse-parents) (length parents))
+                    (setf (role-parents-internal inverse-role) (mapcar #'role-inverse-internal parents))
+                    (if (not (null inverse-parents))
+                        (setf top-children (delete inverse-role top-children))
+                      (when (and (null (rest parents)) (is-top-object-role-p (first parents)))
+                        (push inverse-role top-children)))))
+                (let ((children (role-children-internal role))
+                      (inverse-children (role-children-internal inverse-role)))
+                  #+:debug (assert (consp children))
+                  (when (< (length inverse-children) (length children))
+                    (setf (role-children-internal inverse-role) (mapcar #'role-inverse-internal children))
+                    (if (not (null inverse-children))
+                        (setf bottom-parents (delete inverse-role bottom-parents))
+                      (when (and (null (rest children)) (is-bottom-object-role-p (first children)))
+                        (push inverse-role bottom-parents)))))))
+        (setf (role-children-internal top-role) (role-set-remove-duplicates top-children))
+        (setf (role-parents-internal bottom-role) (role-set-remove-duplicates bottom-parents))))))
 
-(defun remove-obsolete-concepts (tbox concept-name-to-role concept-to-concept-name)
-  (setf (tbox-encoded-concept-list tbox)
-        (loop with internal-marker-concepts = (tbox-internal-marker-concepts tbox)
-              for concept in (tbox-encoded-concept-list tbox)
-              when (or (concept-visible-p concept)
-                       ;; an invisible concept created by the EL+ transformation needs to be preserved
-                       ;; it can be recognized because it is not recorded as internal marker concept
-                       (not (gethash (first (concept-name-set concept)) internal-marker-concepts)))
+(defun remove-obsolete-concepts (tbox concept-name-to-role obsolete-concept-table)
+  (setf (tbox-encoded-concept-list tbox) 
+        (loop for concept in (tbox-encoded-concept-list tbox)
+              unless (gethash concept obsolete-concept-table)
               collect concept))
   (clean-top-bottom-concepts tbox concept-name-to-role)
-  (remove-obsolete-children tbox (tbox-top-node tbox) concept-to-concept-name)
-  (remove-obsolete-parents tbox (tbox-bottom-node tbox) concept-to-concept-name))
+  (remove-obsolete-children tbox (tbox-top-node tbox) obsolete-concept-table)
+  (remove-obsolete-parents tbox (tbox-bottom-node tbox) obsolete-concept-table))
 
 (defun clean-top-bottom-concepts (tbox concept-name-to-role)
   (loop for concept in (list (tbox-top-node tbox) (tbox-bottom-node tbox)) do
@@ -7289,76 +7524,90 @@ Always create a canonical name regardless of the order of the role parents."
   (without-taxonomic-encoding
     (test-satisfiable tbox (encode-update-concept-term tbox role-concept))))
 
-(defun test-satisfiability-of-role (tbox role)
-  (let* ((role-sat-p t)
-         (meta-concept (tbox-meta-constraint-concept tbox))
-         (meta-concept-merging-p (and meta-concept
-                                      (dl-merging (concept-language meta-concept)))))
-    (unless (or (not (dl-clash-possible-p (tbox-language tbox)))
+(defun test-satisfiability-of-role (tbox
+                                    role
+                                    &key
+                                    (feature-test nil)
+                                    (mirror-concept-test nil)
+                                    (role-to-concept-name nil))
+  #+:debug (assert (not (and feature-test mirror-concept-test)))
+  (let ((role-sat-p (role-is-satisfiable role)))
+    (unless (or (role-satisfiability-checked-p role)
+                (not role-sat-p)
+                (not (dl-clash-possible-p (tbox-language tbox)))
                 (role-internal-name-p role)
                 (role-internal-conjunction-p role)
-                (eq role (tbox-object-bottom-role tbox))
-                (eq role (tbox-datatype-bottom-role tbox))
-                (eq role (tbox-datatype-top-role tbox))
                 (role-cd-attribute role)
-                (role-annotation-p role)
-                (role-satisfiability-checked-p role))
+                (role-annotation-p role))
       (with-concept-definition-mapping tbox
-        (when (and (not (or (is-top-object-role-p role) 
-                            (role-datatype role)))
-                   (not (role-feature-p role))
-                   (not (role-transitive-p role))
-                   (or meta-concept-merging-p 
-                       (dl-qualified-number-restrictions (role-language-context role))
-                       (and (dl-merging (role-language-context role))
-                            (has-feature-as-sibling role))))
-          (let ((start (when-print-statistics
-                         (when-sat-statistics
-                           (get-internal-run-time)))))
-            (setf (role-satisfiability-checked-p role) t)
-            (unless (test-satisfiability-of-role-concept tbox `(at-least 2 ,(role-name role)))
-              (setf role-sat-p (test-satisfiability-of-role-concept tbox `(at-least 1 ,(role-name role)))))
-            (when-print-statistics
-              (when-sat-statistics
-                (print-sat-statistics *standard-output*
-                                      *race-statistics-stream*
-                                      start
-                                      (get-internal-run-time))))))
-        (unless (role-internal-name-p (role-inverse-internal role))
-          (setf (role-satisfiability-checked-p (role-inverse-internal role)) t))
-        (let ((start (when-print-statistics
+        (let ((role-name (role-name role))
+              (cardinality (if feature-test
+                               2
+                             1))
+              (start (when-print-statistics
                        (when-sat-statistics
                          (get-internal-run-time)))))
-          (if (role-datatype role)
-              (setf role-sat-p
-                    (test-satisfiability-of-role-concept tbox `(d-at-least 1 ,(role-name role))))
-            (if (is-top-object-role-p role)
-                (setf role-sat-p
-                      (test-satisfiability-of-role-concept tbox
-                                                           `(at-least 1 ,+top-object-role-symbol+)))
-              (setf role-sat-p
-                    (test-satisfiability-of-role-concept tbox
-                                                         `(at-least 1 ,(role-name role))))))
+          (cond ((role-datatype role)
+                 (setf role-sat-p
+                       (test-satisfiability-of-role-concept tbox `(d-at-least 1 ,role-name))))
+                ((is-top-object-role-p role)
+                 (setf role-sat-p
+                       (test-satisfiability-of-role-concept tbox `(at-least 1 ,role-name))))
+                (t
+                 (if mirror-concept-test
+                     (setf role-sat-p (test-mirror-concept tbox role role-to-concept-name))
+                   (setf role-sat-p
+                         (test-satisfiability-of-role-concept tbox `(at-least ,cardinality ,role-name))))))
           (when-print-statistics
             (when-sat-statistics
               (print-sat-statistics *standard-output*
                                     *race-statistics-stream*
                                     start
-                                    (get-internal-run-time))))))
-      (unless role-sat-p
-        (setf (role-domain-concept role) +bottom-symbol+)
-        (setf (role-domain-restriction role) (tbox-object-bottom-role tbox))
-        (if (role-datatype role)
+                                    (get-internal-run-time))))
+          (when (and (not feature-test) role-sat-p)
+            (set-role-ancestors-sat-checked-p role)))
+        (unless (or role-sat-p feature-test)
+          (setf (role-domain-concept role) +bottom-symbol+)
+          (setf (role-domain-restriction role) (tbox-bottom-node tbox))
+          (if (role-datatype role)
+              (progn
+                (setf (role-range-concept role) +datatype-bottom-symbol+)
+                (setf (role-range-concept role) (tbox-datatype-bottom-node tbox)))
             (progn
-              (setf (role-range-concept role) +datatype-bottom-symbol+)
-              (setf (role-range-concept role) (tbox-datatype-bottom-role tbox)))
+              (setf (role-range-concept role) +bottom-symbol+)
+              (setf (role-range-concept role) (tbox-bottom-node tbox))))
+          (collapse-roles (tbox-object-bottom-role tbox) role tbox))))
+      role-sat-p))
+
+(defun test-mirror-concept (tbox role role-to-concept-name)
+  (test-atomic-concept-satisfiable tbox (get-tbox-concept tbox (gethash role role-to-concept-name))))
+
+(defun set-role-ancestors-sat-checked-p (role)
+  (loop for ancestor in (role-ancestors-internal role) do
+        (unless (or (eq role ancestor)
+                    (is-predefined-role-p role)
+                    (role-satisfiability-checked-p ancestor))
+          (setf (role-satisfiability-checked-p ancestor) t))))
+
+(defun process-unsat-role (role data-bottom-roles object-bottom-roles)
+  (if (or (role-datatype role) (role-cd-attribute role))
+      (progn
+        (setf data-bottom-roles (append (role-descendants-internal role) data-bottom-roles))
+        (racer-warn "Datatype property ~A is unsatisfiable" (role-name role)))
+    (let ((inverse-role (role-inverse-internal role)))
+      (if (role-removed-p inverse-role)
           (progn
-            (setf (role-range-concept role) +bottom-symbol+)
-            (setf (role-range-concept role) (tbox-object-bottom-role tbox))))))
-    role-sat-p))
+            (setf object-bottom-roles (append (role-descendants-internal role) object-bottom-roles))
+            (racer-warn "Object property ~A is unsatisfiable" (role-name role)))
+        (progn
+          (setf object-bottom-roles (append (role-descendants-internal role)
+                                            (role-descendants-internal inverse-role)
+                                            object-bottom-roles))
+          (unless (role-internal-name-p inverse-role)
+            (racer-warn "Object property ~A is unsatisfiable" (role-name inverse-role)))))))
+  (values data-bottom-roles object-bottom-roles))
 
 (defun test-satisfiability-of-roles (tbox
-                                     stream
                                      reasoning-mode
                                      role-to-concept-name
                                      first-pass)
@@ -7369,143 +7618,140 @@ Always create a canonical name regardless of the order of the role parents."
                                               first-pass)
                              :trace-result t
                              :expanded t)
-    (flet ((test-mirror-concept (role)
-             (test-atomic-concept-satisfiable
-              tbox
-              (get-tbox-concept tbox (gethash role role-to-concept-name)))))
-      (when (and (member reasoning-mode '(:setup :coherence-only :classification))
-                 (not (tbox-role-hierarchy-classified-p tbox)))
-        (let ((bottom-role (tbox-object-bottom-role tbox))
-              (data-bottom-roles nil)
-              (object-bottom-roles nil)
-              (language (tbox-language tbox)))
-          (when (and (or (not first-pass) (dl-merging language))
-                     (dl-clash-possible-p language))
-            (loop with datatype-bottom = (tbox-datatype-bottom-role tbox)
-                  with datatype-top = (tbox-datatype-top-role tbox)
-                  with top-role-bottom = nil
-                  with meta-concept = (tbox-meta-constraint-concept tbox)
-                  with meta-concept-merging-p = (and meta-concept
-                                                     (dl-merging (concept-language meta-concept)))
-                  for role in (sort (copy-list (tbox-encoded-role-list tbox))
-                                    #'>
-                                    :key (lambda (role) (length (role-ancestors-internal role))))
-                  for role-synonym-to-bottom = (member role object-bottom-roles)
-                  for role-sat-p = t
-                  do
-                  (unless (or (role-internal-name-p role)
-                              (role-internal-conjunction-p role)
-                              (eq role bottom-role)
-                              (eq role datatype-bottom)
-                              (eq role datatype-top)
-                              (role-cd-attribute role)
-                              (role-annotation-p role)
-                              role-synonym-to-bottom
-                              (and (not first-pass) (role-satisfiability-checked-p role)))
+    (when (and (member reasoning-mode '(:setup :coherence-only :classification))
+               (not (tbox-role-hierarchy-classified-p tbox)))
+      (let ((bottom-role (tbox-object-bottom-role tbox))
+            (data-bottom-roles nil)
+            (object-bottom-roles nil)
+            (language (tbox-language tbox)))
+        (when (or (not first-pass)
+                  (dl-merging language)
+                  (dl-clash-possible-p language)
+                  (dl-reflexivity language))
+          (loop with datatype-bottom = (tbox-datatype-bottom-role tbox)
+                with datatype-top = (tbox-datatype-top-role tbox)
+                with top-role-bottom = nil
+                with meta-concept = (tbox-meta-constraint-concept tbox)
+                with meta-concept-merging-p = (and meta-concept
+                                                   (dl-merging (concept-language meta-concept)))
+                with new-role-characteristics-p = nil
+                for role in (sort (copy-list (tbox-encoded-role-list tbox))
+                                  (if first-pass
+                                      #'<
+                                    #'>)
+                                  :key (lambda (role) (length (role-ancestors-internal role))))
+                for role-name = (role-name role)
+                for role-synonym-to-bottom = (member role object-bottom-roles)
+                for role-sat-p = t
+                for feature-p = (role-feature-p role)
+                for reflexive-p = (role-reflexive-p role)
+                for role-language-context = (role-language-context role)
+                for role-sat-checked-p = (role-satisfiability-checked-p role)
+                for feature-checked-p = (role-characteristics-checked-p tbox role-name ':feature)
+                do
+                (unless (or (role-internal-name-p role)
+                            (role-internal-conjunction-p role)
+                            (eq role bottom-role)
+                            (eq role datatype-bottom)
+                            (eq role datatype-top)
+                            (role-cd-attribute role)
+                            (role-annotation-p role)
+                            role-synonym-to-bottom)
+                  (when first-pass
                     (multiple-value-setq (role-sat-p top-role-bottom)
                         (check-complex-role tbox role))
-                    (when (and (not top-role-bottom)
-                               role-sat-p
-                               (not (role-satisfiability-checked-p role)))
-                      (with-concept-definition-mapping tbox
-                        (if first-pass
-                            (when (and (not (or (is-top-object-role-p role) 
-                                                (role-datatype role)))
-                                       (not (role-feature-p role))
+                    (unless (or top-role-bottom role-sat-p)
+                      (setf role-sat-checked-p t)
+                      (multiple-value-setq (data-bottom-roles object-bottom-roles)
+                          (process-unsat-role role data-bottom-roles object-bottom-roles))))
+                  (when (and (not top-role-bottom)
+                             role-sat-p
+                             (not (and role-sat-checked-p feature-checked-p)))
+                    (with-concept-definition-mapping tbox
+                      (if first-pass
+                          (unless (or (is-top-object-role-p role) (role-datatype role))
+                            (when (and (not feature-p)
                                        (not (role-transitive-p role))
-                                       (or meta-concept-merging-p 
-                                           (dl-qualified-number-restrictions (role-language-context role))
-                                           (and (dl-merging (role-language-context role))
-                                                (has-feature-as-sibling role))))
-                              (let ((start (when-print-statistics
-                                             (when-sat-statistics
-                                               (get-internal-run-time)))))
-                                (setf (role-satisfiability-checked-p role) t)
-                                (unless (test-satisfiability-of-role-concept tbox `(at-least 2 ,(role-name role)))
-                                  (if (and role-to-concept-name (gethash role role-to-concept-name))
-                                      (setf role-sat-p (test-mirror-concept role))
-                                    (setf role-sat-p
-                                          (test-satisfiability-of-role-concept tbox `(at-least 1 ,(role-name role)))))
-                                  (when role-sat-p
-                                    (convert-role-descendants-to-features tbox role role-to-concept-name)))
-                                (when-print-statistics
-                                  (when-sat-statistics
-                                    (print-sat-statistics *standard-output*
-                                                          *race-statistics-stream*
-                                                          start
-                                                          (get-internal-run-time))))))
-                          (progn
-                            (setf (role-satisfiability-checked-p role) t)
-                            (unless (role-internal-name-p (role-inverse-internal role))
-                              (setf (role-satisfiability-checked-p (role-inverse-internal role)) t))
-                            (let ((start (when-print-statistics
-                                           (when-sat-statistics
-                                             (get-internal-run-time)))))
-                              (if (role-datatype role)
-                                  (setf role-sat-p
-                                        (test-satisfiability-of-role-concept tbox `(d-at-least 1 ,(role-name role))))
-                                (if (is-top-object-role-p role)
-                                    (setf role-sat-p
-                                          (test-satisfiability-of-role-concept tbox
-                                                                               `(at-least 1 ,+top-object-role-symbol+)))
+                                       (or meta-concept-merging-p (dl-merging role-language-context)))
+                              (unless (or feature-checked-p (not (role-simple-p role)))
+                                (setf feature-p (not (test-satisfiability-of-role tbox role :feature-test t)))
+                                (set-role-characteristics-checked-p tbox role-name ':feature)
+                                (setf feature-checked-p t)
+                                (if feature-p
+                                    (progn
+                                      (unless new-role-characteristics-p
+                                        (setf new-role-characteristics-p t))
+                                      (convert-role-descendants-to-features tbox role role-to-concept-name))
                                   (progn
-                                    (if (and role-to-concept-name (gethash role role-to-concept-name))
-                                        (setf role-sat-p (test-mirror-concept role))
-                                      (setf role-sat-p
-                                            (test-satisfiability-of-role-concept tbox
-                                                                                 `(at-least 1 ,(role-name role))))))))
-                              (when-print-statistics
-                                (when-sat-statistics
-                                  (print-sat-statistics *standard-output*
-                                                        *race-statistics-stream*
-                                                        start
-                                                        (get-internal-run-time))))))))))
-                  if top-role-bottom
-                  do
-                  (loop for role in (tbox-encoded-role-list tbox)
-                        if (or (role-datatype role) (role-cd-attribute role))
-                        collect role into data-roles
-                        else
-                        collect role into object-roles
-                        finally
-                        (setf object-bottom-roles object-roles)
-                        (setf data-bottom-roles data-roles))
-                  until top-role-bottom
-                  unless role-synonym-to-bottom
-                  if role-sat-p
-                  do
-                  '(loop for ancestor in (role-ancestors-internal role) do
-                        (unless (or (eq role ancestor)
-                                    (role-satisfiability-checked-p ancestor))
-                          (setf (role-satisfiability-checked-p ancestor) t)))
-                  else
-                  do
-                  (if (or (role-datatype role) (role-cd-attribute role))
-                      (progn
-                        (push role data-bottom-roles)
-                        (racer-warn "Datatype property ~A is unsatisfiable" (role-name role)))
-                    (progn
-                      ;(push role object-bottom-roles)
-                      (setf object-bottom-roles (append (role-descendants-internal role) object-bottom-roles)))))
-            (when object-bottom-roles
-              (setf object-bottom-roles (role-set-remove-duplicates object-bottom-roles))
-              (loop for role in object-bottom-roles do
-                    (unless (or (role-removed-p role) (eq role bottom-role))
-                      (collapse-roles-new bottom-role role tbox stream))))
-            (when data-bottom-roles
-              (loop with bottom = (tbox-bottom-node tbox)
-                    with datatype-bottom = (tbox-datatype-bottom-node tbox)
-                    for role in data-bottom-roles do
-                    (setf (role-domain-concept role) +bottom-symbol+)
-                    (setf (role-domain-restriction role) bottom)
-                    (setf (role-range-concept role) +datatype-bottom-symbol+)
-                    (setf (role-range-concept role) datatype-bottom))
-              (loop with bottom-role = (tbox-datatype-bottom-role tbox)
-                    for role in data-bottom-roles
-                    unless (eq role bottom-role) do
+                                    (setf role-sat-checked-p t)
+                                    (set-role-ancestors-sat-checked-p role)))))
+                            (when (and feature-p 
+                                       (dl-reflexivity role-language-context)
+                                       (not (or reflexive-p
+                                                (role-characteristics-checked-p tbox role-name ':reflexive))))
+                              (let ((test-concept
+                                     (encode-concept-term (create-tbox-internal-marker-concept tbox))))
+                                (setf (concept-visible-p test-concept) nil)
+                                (setf reflexive-p
+                                      (not (test-satisfiability-of-role-concept
+                                            tbox
+                                            `(and ,test-concept (all ,role-name (not ,test-concept))))))
+                                (set-role-characteristics-checked-p tbox role-name ':reflexive))
+                              (if reflexive-p
+                                  (progn
+                                    (setf (role-reflexive-p role) t)
+                                    (multiple-value-setq (role-sat-p top-role-bottom)
+                                        (check-complex-role tbox role)))
+                                (progn
+                                  (setf role-sat-checked-p t)
+                                  (set-role-ancestors-sat-checked-p role)))))
+                        #|(unless role-sat-checked-p
+                          (setf role-sat-checked-p t)
+                          (if (and role-to-concept-name (gethash role role-to-concept-name))
+                              (setf role-sat-p
+                                    (test-satisfiability-of-role
+                                     tbox
+                                     role
+                                     :mirror-concept-test t
+                                     :role-to-concept-name role-to-concept-name))
+                            (setf role-sat-p (test-satisfiability-of-role tbox role)))
+                          (if role-sat-p
+                              (set-role-ancestors-sat-checked-p role)
+                            (multiple-value-setq (data-bottom-roles object-bottom-roles)
+                                (process-unsat-role role data-bottom-roles object-bottom-roles))))|#))))
+                when top-role-bottom
+                do
+                (loop for role in (tbox-encoded-role-list tbox)
+                      if (or (role-datatype role) (role-cd-attribute role))
+                      collect role into data-roles
+                      else
+                      collect role into object-roles
+                      finally
+                      (setf object-bottom-roles object-roles)
+                      (setf data-bottom-roles data-roles))
+                until top-role-bottom
+                finally
+                (when (and first-pass new-role-characteristics-p)
+                  (propagate-role-characteristics-to-parents-children tbox)))
+          (when object-bottom-roles
+            (setf object-bottom-roles (role-set-remove-duplicates object-bottom-roles))
+            (loop for role in object-bottom-roles do
+                  (unless (or (role-removed-p role) (eq role bottom-role))
                     (collapse-roles bottom-role role tbox))))
-          #+:debug
-          (values object-bottom-roles data-bottom-roles))))))
+          (when data-bottom-roles
+            (loop with bottom = (tbox-bottom-node tbox)
+                  with datatype-bottom = (tbox-datatype-bottom-node tbox)
+                  for role in data-bottom-roles do
+                  (setf (role-domain-concept role) +bottom-symbol+)
+                  (setf (role-domain-restriction role) bottom)
+                  (setf (role-range-concept role) +datatype-bottom-symbol+)
+                  (setf (role-range-concept role) datatype-bottom))
+            (loop with bottom-role = (tbox-datatype-bottom-role tbox)
+                  for role in data-bottom-roles
+                  unless (eq role bottom-role) do
+                  (collapse-roles bottom-role role tbox))))
+        #+:debug
+        (values object-bottom-roles data-bottom-roles)))))
 
 (defun check-complex-role (tbox role)
   (let* ((language (tbox-language tbox))
@@ -7516,17 +7762,11 @@ Always create a canonical name regardless of the order of the role parents."
          (check-symmetric-roles-p (and (dl-symmetric-roles language) asymmetric-roles-p))
          (top-role-bottom nil)
          (role-sat-p t))
-    (when (role-compositions role)
-      (when (role-reflexive-p role)
-        (racer-warn "Reflexive role ~A cannot be result of role composition axioms -- ~
-                                   reflexivity declaration is ignored."
-                    (nice-role-name role))
-        (setf (role-reflexive-p role) nil))
-      (when (role-irreflexive-p role)
-        (racer-warn "Irreflexive role ~A cannot be result of role composition axioms -- ~
+    (when (and (role-compositions role) (role-irreflexive-p role))
+      (racer-warn "Irreflexive role ~A cannot be result of role composition axioms -- ~
                                    irreflexivity declaration is ignored."
-                    (nice-role-name role))
-        (setf (role-irreflexive-p role) nil)))
+                  (nice-role-name role))
+      (setf (role-irreflexive-p role) nil))
     (when (and check-reflexive-roles-p (role-reflexive-p role))
       (loop for ancestor in (role-ancestors-internal role)
             while (not top-role-bottom)
@@ -7563,6 +7803,7 @@ Always create a canonical name regardless of the order of the role parents."
     (unless (dl-features language)
       (setf (tbox-language tbox) (add-dl-features language))))
   (loop for descendant in (role-descendants-internal role)
+        for descendant-inverse = (role-inverse-internal descendant)
         for mirror-concept =
         (when role-to-concept-name
           (get-tbox-concept tbox (or (gethash descendant role-to-concept-name)
@@ -7570,8 +7811,15 @@ Always create a canonical name regardless of the order of the role parents."
                                               role-to-concept-name))
                             nil))
         do
-        (setf (role-feature-p descendant) t)
-        (setf (role-inverse-feature-p (role-inverse-internal descendant)) t)
+        (unless (role-feature-p descendant)
+          (unless (or (role-internal-name-p descendant) (role-internal-conjunction-p descendant))
+            (warn-new-role-characteristic descendant "functional" t))
+          (setf (role-feature-p descendant) t))
+        (unless (role-feature-p descendant-inverse)
+          (unless (or (role-internal-name-p descendant-inverse)
+                      (role-internal-conjunction-p descendant))
+            (warn-new-role-characteristic descendant-inverse "functional" t))
+          (setf (role-inverse-feature-p descendant-inverse) t))
         (setf (role-language-context role) (add-dl-features (role-language-context role)))
         when mirror-concept do
         (setf (concept-model mirror-concept) nil)
@@ -7727,10 +7975,10 @@ Always create a canonical name regardless of the order of the role parents."
     `(tbox-coherent-p *current-tbox*)))
 
 (defun ensure-tbox-state (tbox
-                             state
-                             &key
-                             (stream *standard-output*)
-                             (data-stream *race-statistics-stream*))
+                          state
+                          &key
+                          (stream *standard-output*)
+                          (data-stream *race-statistics-stream*))
   (assert (member state '(:classification :coherence-only :setup)))
   (let ((start (when-print-statistics-plus data-stream
                  (get-internal-run-time))))
@@ -7742,9 +7990,9 @@ Always create a canonical name regardless of the order of the role parents."
           (initialize-concept-role-store tbox))
         (when (and (not *prevent-lean-tbox*)
                    (or *always-use-lean-tbox*
-                        (and (not use-less-memory)
-                             (> (hash-table-count (tbox-concept-axioms-index tbox))
-                                *enforce-lean-tbox-threshold*))))
+                       (and (not use-less-memory)
+                            (> (hash-table-count (tbox-concept-axioms-index tbox))
+                               *enforce-lean-tbox-threshold*))))
           (setf (tbox-use-less-memory tbox) t)
           (when (and *tbox-verbose* (not *always-use-lean-tbox*))
 	    (racer-warn "~&Automatically switching to lean ontology mode because the number of axioms (~D) ~
@@ -7796,65 +8044,66 @@ Always create a canonical name regardless of the order of the role parents."
               (when *absorb-domains-ranges*
                 (let ((*provisionally-inserted-atomic-concepts* nil)
                       (*provisionally-inserted-roles* nil))
-                  (multiple-value-bind (reflexivity-added new-irreflexive-roles)
+                  (multiple-value-bind (reflexivity-added new-irreflexive-roles new-feature-roles)
                       (race-time (absorb-simple-domain-range-restrictions tbox))
                     (when *provisionally-inserted-roles*
                       (add-provisionally-encoded-roles tbox *provisionally-inserted-roles*)
                       (preencode-roles-3 tbox *provisionally-inserted-roles*))
-                    (loop for role in reflexivity-added do
-                          (propagate-role-characteristics-to-parents role t nil))
-                    (loop for role in new-irreflexive-roles do
-                          (propagate-role-characteristics-to-children role)))))
-              (let ((*provisionally-inserted-atomic-concepts* nil)
-                    (*provisionally-inserted-roles* nil))
-                (race-time (encode-roles tbox (tbox-encoded-role-list tbox) nil))
-                (race-time (encode-domain-range-of-roles tbox))
-                (race-time (preencode-concepts tbox stream))
-                #+:debug (assert (null *provisionally-inserted-atomic-concepts*))
-                (when *provisionally-inserted-roles*
-                  (add-provisionally-encoded-roles tbox *provisionally-inserted-roles*)
-		  (preencode-roles-3 tbox *provisionally-inserted-roles*)
-                  (encode-roles tbox *provisionally-inserted-roles* t))))
+                    (when (or reflexivity-added new-irreflexive-roles new-feature-roles)
+                      (loop for role in new-feature-roles do
+                            (when (role-symmetric-p role)
+                              (setf (role-inverse-feature-p role) t)))
+                      (propagate-role-characteristics-to-parents-children tbox)))))
+                (let ((*provisionally-inserted-atomic-concepts* nil)
+                      (*provisionally-inserted-roles* nil))
+                  (race-time (encode-roles tbox (tbox-encoded-role-list tbox) nil))
+                  (race-time (encode-domain-range-of-roles tbox))
+                  (race-time (preencode-concepts tbox stream))
+                  #+:debug (assert (null *provisionally-inserted-atomic-concepts*))
+                  (when *provisionally-inserted-roles*
+                    (add-provisionally-encoded-roles tbox *provisionally-inserted-roles*)
+                    (preencode-roles-3 tbox *provisionally-inserted-roles*)
+                    (encode-roles tbox *provisionally-inserted-roles* t))))
             (setf-statistics *taxonomic-encoding-hits* 0) ;we don't want the preencoding results
             (prog2
-             (when (or (eq state :classification)
-                       (and (eq state :coherence-only)
-                            (not (tbox-coherence-checked-p tbox)))
-                       (and (eq state :setup)
-                            (not (tbox-index-structures-complete-p tbox))))
-               (when-print-statistics
-                 (print-tbox-statistics-name tbox data-stream)))
-             (unwind-protect
-                 (build-tbox-structures tbox stream state)
-               (when-print-statistics-plus data-stream
-                 (when (or (eq state :classification)
-                           (and (eq state :coherence-only)
-                                (not (tbox-coherence-checked-p tbox)))
-                           (and (eq state :setup)
-                                (or *sat-statistics*
-                                    (not (tbox-index-structures-complete-p tbox)))))
-                   (if-sat-statistics (eq state :setup)
-                                      (print-sat-statistics stream
-                                                            data-stream
-                                                            start
-                                                            (get-internal-run-time))
-                                      (print-tbox-statistics tbox
-                                                             (and *statistics* stream)
-                                                             data-stream
-                                                             start
-                                                             (get-internal-run-time))))))
-             (setf (tbox-index-structures-complete-p tbox) t)
-             (if (eq state :classification)
-               (progn
-                 (setf (tbox-classified-p-internal tbox) t)
-                 (setf (tbox-coherence-checked-p tbox) t))
-               (when (eq state :coherence-only) 
-                 (setf (tbox-coherence-checked-p tbox) t))))))))))
+                (when (or (eq state :classification)
+                          (and (eq state :coherence-only)
+                               (not (tbox-coherence-checked-p tbox)))
+                          (and (eq state :setup)
+                               (not (tbox-index-structures-complete-p tbox))))
+                  (when-print-statistics
+                    (print-tbox-statistics-name tbox data-stream)))
+                (unwind-protect
+                    (build-tbox-structures tbox stream state)
+                  (when-print-statistics-plus data-stream
+                    (when (or (eq state :classification)
+                              (and (eq state :coherence-only)
+                                   (not (tbox-coherence-checked-p tbox)))
+                              (and (eq state :setup)
+                                   (or *sat-statistics*
+                                       (not (tbox-index-structures-complete-p tbox)))))
+                      (if-sat-statistics (eq state :setup)
+                                         (print-sat-statistics stream
+                                                               data-stream
+                                                               start
+                                                               (get-internal-run-time))
+                                         (print-tbox-statistics tbox
+                                                                (and *statistics* stream)
+                                                                data-stream
+                                                                start
+                                                                (get-internal-run-time))))))
+              (setf (tbox-index-structures-complete-p tbox) t)
+              (if (eq state :classification)
+                  (progn
+                    (setf (tbox-classified-p-internal tbox) t)
+                    (setf (tbox-coherence-checked-p tbox) t))
+                (when (eq state :coherence-only) 
+                  (setf (tbox-coherence-checked-p tbox) t))))))))))
 
 (defun absorb-simple-domain-range-restrictions (tbox)
   (let ((inclusions (tbox-generalized-concept-inclusions tbox)))
     (when inclusions
-      (multiple-value-bind (new-gcis absorbed-p reflexivity-added irreflexivity-added)
+      (multiple-value-bind (new-gcis absorbed-p reflexivity-added irreflexivity-added feature-added)
           (absorb-domain-range-restrictions tbox
                                             inclusions
                                             :pre-absorption t
@@ -7872,7 +8121,7 @@ Always create a canonical name regardless of the order of the role parents."
                                   (tbox-datatype-bottom-node tbox))
         (when absorbed-p
           (setf (tbox-generalized-concept-inclusions tbox) new-gcis))
-        (values reflexivity-added irreflexivity-added)))))
+        (values reflexivity-added irreflexivity-added feature-added)))))
 
 (defun process-synonym (tbox concept synonym-concept)
   (when (and (not (concept-primitive-p synonym-concept))
@@ -9409,50 +9658,50 @@ Always create a canonical name regardless of the order of the role parents."
       (:concept-incoherent
        (apply #'format
               stream
-              "~%Concept ~S is incoherent in TBox ~S."
+              "~%Concept ~S is incoherent in TBox ~S"
               format-args))
       (:concepts-equal
        (apply #'format
               stream
-              "~%Concept ~S is equivalent to concept ~S in TBox ~S."
+              "~%Concept ~S is equivalent to concept ~S in TBox ~S"
               format-args))
       (:cycles-detected
        (apply #'format
               stream 
               "~%Cycles detected in TBox ~S. ~
-               Concept ~S causes a cycle while unfolding ~S." 
+               Concept ~S causes a cycle while unfolding ~S" 
               format-args))
       (:all-concepts-incoherent
        (apply #'format
               stream 
               "~%All concepts are incoherent in TBox ~S. ~
-               General concept inclusions cause the contradiction." 
+               General concept inclusions cause the contradiction" 
               format-args))
       (:top-object-role-incoherent
        (apply #'format
               stream 
               "~%All concepts and roles are incoherent in TBox ~S. ~
-               General concept inclusions and/or role declarations cause the contradiction." 
+               General concept inclusions and/or role declarations cause the contradiction" 
               format-args))
       (:concept-cyclic
        (apply #'format
               stream
-              "~%Concept ~S causes a cycle in TBox ~S."
+              "~%Concept ~S causes a cycle in TBox ~S"
               format-args))
       (:concept-cyclic-gci
        (apply #'format
               stream
-              "~%Concept ~S causes a cycle in TBox ~S due to global axioms."
+              "~%Concept ~S causes a cycle in TBox ~S due to global axioms"
               format-args))
       (:roles-equivalent
        (if (member +bottom-object-role-symbol+ format-args)
            (apply #'format
                   stream
-                  "~%Role ~S is unsatisfiable."
+                  "~%Role ~S is unsatisfiable"
                   (remove +bottom-object-role-symbol+ format-args))
          (apply #'format
                 stream
-                "~%Role ~S and role ~S are equivalents."
+                "~%Role ~S and role ~S are equivalents"
                 format-args)))
       (t (apply #'format
                 stream
@@ -9538,23 +9787,8 @@ Always create a canonical name regardless of the order of the role parents."
                        role
                      (get-tbox-role tbox role))))
     (if (role-satisfiability-checked-p true-role)
-        (not (or (if (role-datatype true-role)
-                     (eq (tbox-datatype-bottom-role tbox) true-role)
-                   (eq (tbox-object-bottom-role tbox) true-role))
-                 (eq (role-domain-restriction true-role) (tbox-bottom-node tbox))))
+        (role-is-satisfiable true-role)
       (test-satisfiability-of-role tbox true-role))))
-
-#|
-(defun get-object-bottom-role (tbox)
-  (setf tbox (find-tbox tbox))
-  (check-type tbox tbox)
-  (tbox-object-bottom-role tbox))
-
-(defun get-data-bottom-role (tbox)
-  (setf tbox (find-tbox tbox))
-  (check-type tbox tbox)
-  (tbox-datatype-bottom-role tbox))
-|#
 
 (defmacro role-subsumes? (role-term-1 
                            role-term-2
@@ -9637,12 +9871,13 @@ Always create a canonical name regardless of the order of the role parents."
                     (if (and role-1-datatype role-2-datatype)
                         (not (datatype-compatible-p role-1-datatype role-2-datatype nil))
                       (or (member role-2 (role-disjoint-roles role-1))
-                          (let ((role-1-name (role-name role-1)))
-                            (if (role-characteristics-checked-p tbox role-1-name ':disjoint)
+                          (let ((role-1-name (role-name role-1))
+                                (role-2-name (role-name role-2)))
+                            (if (role-characteristics-checked-p tbox role-1-name ':disjoint role-2-name)
                                 nil
-                              (let ((role-2-name (role-name role-2)))
-                                (set-role-characteristics-checked-p tbox role-1-name ':disjoint)
-                                (set-role-characteristics-checked-p tbox role-2-name ':disjoint)
+                              (progn
+                                (set-role-characteristics-checked-p tbox role-1-name ':disjoint role-2-name)
+                                (set-role-characteristics-checked-p tbox role-2-name ':disjoint role-1-name)
                                 (when (test-roles-characteristics tbox role-1-name role-2-name ':disjoint)
                                   (push role-2 (role-disjoint-roles role-1))
                                   (push role-1 (role-disjoint-roles role-2))
@@ -9654,11 +9889,11 @@ Always create a canonical name regardless of the order of the role parents."
                 t)))
       
       (when result
-        (let* ((role-1-inverse (role-inverse-internal role-1))
-               (role-1-inverse-name (role-name role-1-inverse)))
-          (unless (role-characteristics-checked-p tbox role-1-inverse-name ':disjoint)
-            (set-role-characteristics-checked-p tbox role-1-inverse-name ':disjoint)
-            (set-role-characteristics-checked-p tbox (role-name (role-inverse-internal role-2)) ':disjoint))))
+        (let* ((role-1-inverse-name (role-name (role-inverse-internal role-1)))
+               (role-2-inverse-name (role-name (role-inverse-internal role-2))))
+          (unless (role-characteristics-checked-p tbox role-1-inverse-name ':disjoint role-2-inverse-name)
+            (set-role-characteristics-checked-p tbox role-1-inverse-name ':disjoint role-2-inverse-name)
+            (set-role-characteristics-checked-p tbox role-2-inverse-name ':disjoint role-1-inverse-name))))
       result)))
 
 (defun concept-subsumes-p (subsumer subsumee tbox)
@@ -10152,7 +10387,7 @@ Always create a canonical name regardless of the order of the role parents."
                             (concept-name-reverse-filter orig-concept-name)
                             own-children children
                             (and children (set-exclusive-or children own-children :test #'safe-set-xor-test)))))
-                (break)
+                #+:macosx (break)
                 nil)
             t))))))
 
@@ -10182,7 +10417,7 @@ Always create a canonical name regardless of the order of the role parents."
         finally (return (not error-p))))
 
 (defun print-concept-tree (&key (stream t) (tbox *current-tbox*) (mapping nil) (only-parents t)
-                                   (as-list t))
+                                (as-list t))
   (ensure-knowledge-base-state ':tbox-classified tbox)
   (with-concept-definition-mapping tbox
     (let ((top
@@ -10241,6 +10476,70 @@ Always create a canonical name regardless of the order of the role parents."
     (if stream
       (print relatives stream)
       relatives)))
+
+(defun ore-name (name prefix)
+  (let* ((name-string (symbol-name name))
+         (new-name-string nil))
+    (when prefix
+      (let ((sharp-position (position #\# name-string)))
+        (when sharp-position
+          (let ((prefix-length (length prefix)))
+            (when (char= (char prefix (- prefix-length 1)) #\#)
+              (when (string= prefix (subseq name-string 0 (min prefix-length (length name-string))))
+                (setf new-name-string (concatenate 'string ":" (subseq name-string (1+ sharp-position))))))))))
+    (or new-name-string
+        (concatenate 'string "<" name-string ">"))))
+
+(defun print-ore-prefixes (stream namespace-prefix)
+  (when namespace-prefix
+    (format stream "Prefix(:=<~A>)~%" namespace-prefix))
+  (format stream "Prefix(owl:=<http://www.w3.org/2002/07/owl#>)~%~
+                        Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)~%~
+                        Prefix(xml:=<http://www.w3.org/XML/1998/namespace>)~%~
+                        Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)~%~
+                        Prefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)~%"))
+
+(defun print-ore-concept-tree (sat-p &key (filename nil) (stream t) (tbox *current-tbox*))
+  (flet ((map-name (concept concept-name prefix)
+           (cond
+            ((is-top-concept-p concept) "owl:Thing")
+            ((is-bottom-concept-p concept) "owl:Nothing")
+            (t (ore-name concept-name prefix)))))
+    (ensure-knowledge-base-state ':tbox-classified tbox)
+    (with-concept-definition-mapping tbox
+      (let ((namespace-prefix (when sat-p 
+                                (get-namespace-prefix tbox))))
+        (print-ore-prefixes stream namespace-prefix)
+        (format stream "Ontology(")
+        (if filename
+            (format stream "<file:~A>~2%" filename)
+          (format stream "<http://a.com>~2%"))
+        (if (not sat-p)
+            (format stream "SubClassOf(owl:Thing owl:Nothing)~%")
+          (loop for concept in `(,(tbox-top-node tbox)
+                                 ,@(tbox-encoded-concept-list tbox)
+                                 ,(tbox-bottom-node tbox))
+                for synonyms = (concept-name-set concept)
+                for concept-name = (first synonyms)
+                do
+                (when (and (concept-visible-p concept)
+                           (eq concept (get-tbox-concept tbox concept-name)))
+                  (let ((short-concept-name (map-name concept concept-name namespace-prefix)))
+                    (when (rest synonyms)
+                      (loop for synonym-name in synonyms do
+                            (unless (or (eq synonym-name concept-name)
+                                        (is-predefined-concept-p concept))
+                              (format stream "EquivalentClasses(~A ~A)~%"
+                                      short-concept-name (map-name concept synonym-name namespace-prefix)))))
+                    (unless (is-bottom-concept-p concept)
+                      (loop for parent in (concept-parents-internal concept)
+                            for parent-name = (first (concept-name-set parent))
+                            do
+                            (when (and (concept-visible-p parent)
+                                       (eq parent (get-tbox-concept tbox parent-name)))
+                              (format stream "SubClassOf(~A ~A)~%"
+                                      short-concept-name (map-name parent parent-name namespace-prefix)))))))))
+        (format stream ")~%")))))
 
 (defun dump-concept-tree (filename &key (tbox *current-tbox*) (only-parents t))
   (let ((*print-pretty* nil))
@@ -11617,61 +11916,98 @@ Always create a canonical name regardless of the order of the role parents."
                                   (format ':ascii)
                                   (tex-filename nil)
                                   (max-width 40)
-                                  (print-width nil))
-  (with-tbox-defined-check *current-tbox*
-    (ensure-knowledge-base-state :tbox-classified tbox)
-    (let ((table (make-array 100 :initial-element nil :adjustable t :fill-pointer 0)))
-      (let ((children (concept-children-internal (tbox-top-node tbox))))
-        (vector-push-extend 1 table)
-        (when children
-          (collect-tbox-width-info table children)))
-      (let ((max-tree-width (loop for width across table
-                                  maximize width))
-            (height (length table)))
-        (if (eq format ':tex)
-            (with-open-file (stream
-                             (or tex-filename (format nil "~A.tex" (tbox-name tbox)))
-                             :direction :output
-                             :if-does-not-exist :create
-                             :if-exists :supersede)
-              (format stream "\\documentstyle{article}~%")
-              (format stream "\\begin{document}~%")
-              (format stream "% Tbox ~A ~%"
-                      (if tex-filename 
-                          (pathname-name tex-filename)
+                                  (print-width t))
+  (flet ((number-width (number)
+           (let ((width (log number 10)))
+             (if (integerp width)
+                 width
+               (1+ (truncate width))))))
+    (with-tbox-defined-check *current-tbox*
+      (ensure-knowledge-base-state :tbox-classified tbox)
+      (let ((all-table (make-array 20 :initial-element nil :adjustable t :fill-pointer 0))
+            (cd-table (make-array 20 :initial-element nil :adjustable t :fill-pointer 0))
+            (el-table (make-array 20 :initial-element nil :adjustable t :fill-pointer 0)))
+        (let ((children (concept-children-internal (tbox-top-node tbox))))
+          (vector-push-extend 1 all-table 10)
+          (vector-push-extend 0 cd-table 10)
+          (vector-push-extend 0 el-table 10)
+          (when children
+            (collect-tbox-width-info all-table cd-table el-table children)))
+        (let* ((max-tree-width (loop for width across all-table
+                                     maximize width))
+               (height (length all-table)))
+          (if (eq format ':tex)
+              (with-open-file (stream
+                               (or tex-filename (format nil "~A.tex" (tbox-name tbox)))
+                               :direction :output
+                               :if-does-not-exist :create
+                               :if-exists :supersede)
+                (format stream "\\documentstyle{article}~%")
+                (format stream "\\begin{document}~%")
+                (format stream "% Tbox ~A ~%"
+                        (if tex-filename 
+                            (pathname-name tex-filename)
                           (tbox-name tbox)))
-              (format stream "%~A" (print-tbox-info tbox nil))
-              (format stream "\\setlength{\\unitlength}{1mm}~%")
-              (format stream "\\begin{picture}(~D,~D)~%" (+ max-width 4) (+ 4 (* 2 height)))
-              (format stream "\\put(-1,-2){\\framebox(~D,~D){}}~%" (+ max-width 4) (+ 4 (* 2 height)))
-              (loop for width across table
-                for number-of-chars = (max 1 (round (* max-width (/ width max-tree-width))))
-                for space-chars = (truncate (/ (- max-width number-of-chars) 2))
-                for y from (* 2 (1- height)) downto 0 by 2
-                do
-                (format stream "\\put(~D,~D){\\line(1,0){~D}}~%" (1+ space-chars) y number-of-chars)
-                (when print-width
-                  (format stream "\\put(~D,~D){\\scriptsize ~D}~%" (+ max-width 4) (1- y) width)))
-              (format stream "\\end{picture}~%")
-              (format stream "\\end{document}~%"))
-          (loop for width across table
-                for number-of-chars = (round (* max-width (/ width max-tree-width)))
-                for space-chars = (truncate (/ (- max-width number-of-chars) 2))
-                do
-                (format t "~%")
-                (loop for i from 1 to space-chars do
-                      (format t " "))
-                (loop for i from 1 to number-of-chars do
-                      (format t "*"))))))))
+                (format stream "%~A" (print-tbox-info tbox nil))
+                (format stream "\\setlength{\\unitlength}{1mm}~%")
+                (format stream "\\begin{picture}(~D,~D)~%" (+ max-width 4) (+ 4 (* 2 height)))
+                (format stream "\\put(-1,-2){\\framebox(~D,~D){}}~%" (+ max-width 4) (+ 4 (* 2 height)))
+                (loop for width across all-table
+                      for number-of-chars = (max 1 (round (* max-width (/ width max-tree-width))))
+                      for space-chars = (truncate (/ (- max-width number-of-chars) 2))
+                      for y from (* 2 (1- height)) downto 0 by 2
+                      do
+                      (format stream "\\put(~D,~D){\\line(1,0){~D}}~%" (1+ space-chars) y number-of-chars)
+                      (when print-width
+                        (format stream "\\put(~D,~D){\\scriptsize ~D}~%" (+ max-width 4) (1- y) width)))
+                (format stream "\\end{picture}~%")
+                (format stream "\\end{document}~%"))
+            (loop with max-number-width = (number-width max-tree-width)
+                  for width across all-table
+                  for cd-width across cd-table
+                  for el-width across el-table
+                  for number-of-chars = (max 1 (round (* max-width (/ width max-tree-width))))
+                  for space-chars = (+ (truncate (/ (- max-width number-of-chars) 2))
+                                       (if print-width
+                                           (- max-number-width (number-width width))
+                                         0))
+                  for cd-chars = (truncate (* max-width (/ cd-width max-tree-width)))
+                  for el-chars = (truncate (* max-width (/ el-width max-tree-width)))
+                  initially (print-tbox-info tbox)
+                  do
+                  (format t "~%(~D) " width)
+                  (loop for i from 1 to space-chars do
+                        (format t " "))
+                  (loop for i from 1 to cd-chars do
+                        (format t "c"))
+                  (loop for i from 1 to el-chars do
+                        (format t "e"))
+                  (loop for i from 1 to (- number-of-chars cd-chars el-chars) do
+                        (format t "*")))))))))
 
-(defun collect-tbox-width-info (table nodes)
-  (vector-push-extend (length nodes) table)
-  (loop for node in nodes
-        append (concept-children-internal node) into children
-        finally
-        (when children
-          (setf children (remove-duplicates children))
-          (collect-tbox-width-info table children))))
+(defun collect-tbox-width-info (all-table cd-table el-table nodes)
+  (if nodes
+      (loop with cd-count = 0
+            with el-count = 0
+            for node in nodes
+            for language = (concept-language node)
+            append (concept-children-internal node) into children
+            do
+            (if (subset-l-minus-p language)
+                (incf cd-count)
+              (when (subset-el+-p language)
+                (incf el-count)))
+            finally
+            (vector-push-extend (length nodes) all-table 10)
+            (vector-push-extend cd-count cd-table 10)
+            (vector-push-extend el-count el-table 10)
+            (when children
+              (setf children (remove-duplicates children))
+              (collect-tbox-width-info all-table cd-table el-table children)))
+    (progn
+      (vector-push-extend 0 all-table 10)
+      (vector-push-extend 0 cd-table 10)
+      (vector-push-extend 0 el-table 10))))
 
 ;;; ======================================================================
 

@@ -156,6 +156,7 @@
 (defparameter *tableaux-caching* t)         ; enables caching of expanded subtableaux
 (defparameter *tableaux-sat-caching* t)
 (defparameter *tableaux-unsat-caching* t)
+(defparameter *tableaux-inverse-unsat-caching* t) ; enables unsat caching for inverse roles
 (racer-defparameter *tableaux-cached-models* nil)       ; enables caching of models
 (racer-defparameter *use-equal-tableaux-cache* t)   ; use equal hash table cache
 (racer-defparameter *use-subset-superset-cache* t)    ; use subset/superset cache
@@ -562,6 +563,7 @@
                 *tableaux-caching*
                 *tableaux-sat-caching*
                 *tableaux-unsat-caching*
+                *tableaux-inverse-unsat-caching*
                 *tableaux-cached-models*
                 *use-equal-tableaux-cache*
                 *use-subset-superset-cache*

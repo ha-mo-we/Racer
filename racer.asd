@@ -25,7 +25,7 @@
 ;;; CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
 ;;; BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
 ;;; FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL
-;;; VOLKER HAARSLEV, RALF MÖLLER, NOR MICHAEL WESSEL BE LIABLE FOR ANY
+;;; VOLKER HAARSLEV, RALF MOELLER, NOR MICHAEL WESSEL BE LIABLE FOR ANY
 ;;; DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
 ;;; DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
 ;;; GOODS OR SERVICES, LOSS OF USE, DATA, OR PROFITS, OR BUSINESS
@@ -95,6 +95,9 @@
 
 ;;; ========================================================================================
 
+#| 
+;;; Compilation settings are now controlled in user config files
+;;; Otherwise the default setting is used
 #-:debug 
 (proclaim '(optimize
             (safety 0)		        ; Run time error checking level
@@ -138,7 +141,7 @@
        (debug 2))))
   #+:lispworks
   (set-optimization-settings))
-
+|#
 
 ;;; ========================================================================================
 
@@ -225,6 +228,7 @@
                                      (:file "concept-structures")
                                      (:file "role-structures")
                                      (:file "individual-structures")
+                                     (:file "subgraph-structure")
                                      (:file "concrete-domains")
                                      (:file "termination")
                                      (:file "racer-parameters")
@@ -406,21 +410,6 @@
                #-:nrql-dev
                (:file "docgen-stubs")
                (:file "setup-readtable")))
-
-
-
-(asdf:defsystem "racer-test"
-  :description "Test support for RACER"
-  :license "BSD 3"
-  :pathname #P"racer:tests;"
-  :serial t
-  :depends-on ((:require "racer"))
-  :components ((:file "test-support")
-               (:file "test-kb-support")
-               (:file "owl-tests")
-               (:file "owlapi-tests")
-               (:file "test-queries")
-               (:file "test-test-tboxes")))
 
 
 

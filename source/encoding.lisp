@@ -119,68 +119,89 @@
   (when *use-subset-superset-cache*
     (make-cache "UNSAT")))
 
-(race-inline (get-model))
+(race-inline (get-equal-cache-model
+              get-subset-unsat-cache-model
+              get-superset-sat-cache-model))
+
+(defun get-equal-cache-model (list-term cache)
+  (gethash list-term cache))
+
+(defun get-subset-unsat-cache-model (list-term cache)
+  (find-subset list-term cache))
+
+(defun get-superset-sat-cache-model (list-term cache)
+  (when (superset-exists-p list-term cache)
+    t))
 
 (defun get-model (list-term)
-  (if *inverse-roles*
-    (get-model-2 list-term)
-    (get-model-1 list-term)))
+  (when (and *use-equal-tableaux-cache* *tableaux-cache*)
+    (let ((result (get-equal-cache-model list-term *tableaux-cache*)))
+      (when result
+        (if (consp result)
+            (return-from get-model (values-list result))
+          (return-from get-model result)))))
+  (when *use-subset-superset-cache*
+    (when (and *tableaux-sat-caching* *tableaux-cache-sat*)
+      (let ((result (get-superset-sat-cache-model list-term *tableaux-cache-sat*)))
+        (when result
+          (return-from get-model result))))
+    (when (and (first *tableaux-unsat-caching*) *tableaux-cache-unsat*)
+      (multiple-value-bind (match-p subset-label)
+          (get-subset-unsat-cache-model list-term *tableaux-cache-unsat*)
+        (when match-p
+          (if subset-label
+              (values *bottom-concept* subset-label)
+            *bottom-concept*))))))
 
-(defun get-model-1 (list-term)
-  (or (and *tableaux-cache*
-           (let ((result (gethash list-term *tableaux-cache*)))
-             (when result
-               (if (consp result)
-                   (return-from get-model-1 (values-list result))
-                 (return-from get-model-1 result)))))
-      (and *use-subset-superset-cache*
-           (or (and (superset-exists-p list-term *tableaux-cache-sat*) t)
-               (multiple-value-bind (match-p subset-label)
-                   (find-subset list-term *tableaux-cache-unsat*)
-                 (when match-p
-                   (if subset-label
-                       (values *bottom-concept* subset-label)
-                     *bottom-concept*)))))))
+(race-inline (add-equal-cache-sat-model
+              add-equal-cache-unsat-model
+              add-superset-sat-cache-model
+              add-subset-unsat-cache-model))
 
-(defun get-model-2 (list-term)
-  ;;; return 3 values: found-p, satisfiable, role-label-list
-  (let ((result1 (and *tableaux-cache* (gethash list-term *tableaux-cache*))))
-    (if result1
-      (values t (car result1) (cdr result1))
-      (when *use-subset-superset-cache*
-        (let ((result2 (superset-exists-p list-term *tableaux-cache-sat*)))
-          (if result2
-            (values t (car result2) (cdr result2))
-            (let ((result3 (find-subset list-term *tableaux-cache-unsat*)))
-              (values t (car result3) (cdr result3)))))))))
+(defun add-equal-cache-sat-model (list-term cache)
+  (incf-statistics *added-tableaux-sat-cache-entries*)
+  (setf (gethash list-term cache) t))
 
-(race-inline (add-sat-model add-unsat-model retract-model))
+(defun add-equal-cache-unsat-model (list-term dependencies cache)
+  (incf-statistics *added-tableaux-unsat-cache-entries*)
+  (setf (gethash list-term cache) (list *bottom-concept* dependencies)))
 
-(defun add-sat-model (list-term &optional (new-value t))
-  (if (and (rest list-term) (not (every #'cd-concept-p list-term))) ; avoid cd predicates in superset cache !!!
-    (when *tableaux-cache-sat*
-      (incf-statistics *added-sat-cache-entries*)
-      (insert-into-cache list-term *tableaux-cache-sat*))
-    (when *tableaux-cache*
-      (incf-statistics *added-tableaux-sat-cache-entries*)
-      (setf (gethash list-term *tableaux-cache*) new-value))))
+(defun add-superset-sat-cache-model (list-term cache)
+  (incf-statistics *added-sat-cache-entries*)
+  (insert-into-cache list-term cache))
 
-(defun add-unsat-model (list-term &optional (dependencies nil))
-  (when *tableaux-cache*
+(defun add-subset-unsat-cache-model (list-term dependencies cache)
+  (incf-statistics *added-unsat-cache-entries*)
+  (insert-into-cache list-term cache dependencies))
+
+(defun add-sat-model (list-term)
+  (when (and *use-equal-tableaux-cache* *tableaux-cache*)
+    (add-equal-cache-sat-model list-term *tableaux-cache*))
+  (when (and *use-subset-superset-cache*
+             *tableaux-sat-caching*
+             *tableaux-cache-sat*
+             (rest list-term)
+             (not (every #'cd-concept-p list-term))) ; avoid cd predicates in superset cache !!!
+    (add-superset-sat-cache-model list-term *tableaux-cache-sat*)))
+
+(defun add-unsat-model (list-term dependencies)
+  (when (and *use-equal-tableaux-cache* *tableaux-cache*)
     (incf-statistics *added-tableaux-unsat-cache-entries*)
-    (setf (gethash list-term *tableaux-cache*) (list *bottom-concept* dependencies)))
-  (when *tableaux-cache-unsat*
-    (insert-into-cache list-term *tableaux-cache-unsat*)))
+    (add-equal-cache-unsat-model list-term dependencies *tableaux-cache*))
+  (when (and *use-subset-superset-cache* (first *tableaux-unsat-caching*) *tableaux-cache-unsat*)
+    (add-subset-unsat-cache-model list-term dependencies *tableaux-cache-unsat*)))
 
 (defun retract-model (list-term)
-  (if (and (rest list-term) (not (every #'cd-concept-p list-term)))
-    (let ((tableaux-cache-sat *tableaux-cache-sat*))
-      (when tableaux-cache-sat
-        (when (remove-from-cache list-term tableaux-cache-sat)
-          (incf-statistics *retracted-sat-cache-entries*))))
-    (when *tableaux-cache*
-      (when (remhash list-term *tableaux-cache*)
-        (incf-statistics *retracted-tableaux-cache-entries*)))))
+  (when (and *use-equal-tableaux-cache* *tableaux-cache*)
+    (when (remhash list-term *tableaux-cache*)
+      (incf-statistics *retracted-tableaux-cache-entries*)))
+  (when (and *use-subset-superset-cache*
+             *tableaux-sat-caching*
+             *tableaux-cache-sat*
+             (rest list-term)
+             (not (every #'cd-concept-p list-term))
+             (remove-from-cache list-term *tableaux-cache-sat*))
+    (incf-statistics *retracted-sat-cache-entries*)))
 
 (defmacro with-racer-structure-id-counter ((&key variable initial-value) &body body)
   (if (null variable)

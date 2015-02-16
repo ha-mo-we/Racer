@@ -40,9 +40,9 @@
             :load-toplevel
             :execute)
 
-(defparameter *product-version* "2-0")
+(defparameter *product-version* "3-0")
 
-(defparameter *build-version* "2014-01-04") ;; YEAR MONTH DAY !!!!
+(defparameter *build-version* "2015-01-05") ;; YEAR MONTH DAY !!!!
 
 (defparameter *build-id* 60) ; for OWLlink2, increase in case changes were made to OWLlink.
 

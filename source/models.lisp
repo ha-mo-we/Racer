@@ -577,7 +577,10 @@
                         (setf non-deterministic-p t)))
                      ((exists-concept-p concept)
                       (if (constraint-negated-p constraint)
-                          (push (concept-negated-concept concept) restrict-models)
+                          (unless (and (at-least-concept-p concept)
+                                       (role-feature-p (concept-role concept)))
+                            ;; ignore redundant at-most concepts for features
+                            (push (concept-negated-concept concept) restrict-models))
                         (progn
                           (push concept exists-models)
                           (when (and (some-concept-p concept)
@@ -649,8 +652,10 @@
                                    :individual individual
                                    :det-positive-literals det-positive-literals
                                    :det-negative-literals det-negative-literals
-                                   :positive-literals positive-literals
-                                   :negative-literals negative-literals
+                                   :positive-literals 
+                                   (concept-set-difference positive-literals det-positive-literals)
+                                   :negative-literals 
+                                   (concept-set-difference negative-literals det-negative-literals)
                                    :exists-models exists-models
                                    :restrict-models restrict-models
                                    :attributes attributes
@@ -713,8 +718,6 @@
      :individual individual
      :det-positive-literals (individual-told-subsumers individual)
      :exists-models (el+-collect-some-concepts-from-role-members individual role-members-table))))
-
-(defvar *ind-counter-some-satisfiable* +ind-counter-init+)
 
 (defun create-tableau-model (concept labels)
   (declare (ignore labels))
@@ -788,7 +791,8 @@
           (cond
            ((atomic-concept-p concept)
             (let ((definition (concept-encoded-definition concept)))
-              (if (and (concept-model *top-concept*)
+              (if (and (null (concept-encoded-negated-definition concept))
+                       (concept-model *top-concept*)
                        (or (null definition) (eq definition *top-concept*)))
                   (or (setf (concept-model concept)
                             (copy-to-primitive-model *top-concept* concept))

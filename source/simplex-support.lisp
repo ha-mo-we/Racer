@@ -145,11 +145,14 @@
                            (if sat-p
                                t
                              (progn
-                               (when (and (first *collected-dependencies*)
-                                          *catching-clash-dependencies*)
+                               #+:debug (assert (or (null *catching-clash-dependencies*)
+                                                    (and (consp *collected-dependencies*)
+                                                         (listp (first *collected-dependencies*)))))
+                               (when (and *catching-clash-dependencies* (consp *collected-dependencies*))
                                  (setf (first *collected-dependencies*)
                                        (union-dependencies *catching-clash-dependencies*
-                                                           (first *collected-dependencies*))))
+                                                           (first *collected-dependencies*)))
+                                 (race-trace ("~&New *collected-dependencies*=~S~%" *collected-dependencies*)))
                                nil))))
                     (let* ((new-state-2 (copy-to-basic-kernel-state new-state-1))
                            (new-partially-expanded-or-stack

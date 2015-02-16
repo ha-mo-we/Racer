@@ -377,21 +377,32 @@
 
 (defun find-subset-1 (ordered-set successors top-level-p)
   (if (null ordered-set)
-    nil
-    (let ((entry-key (concept-hash-id (first ordered-set))))
-      (if top-level-p
-        (let ((top-entry (gethash entry-key successors)))
+      nil
+    (if top-level-p
+        (multiple-value-bind (top-entry selected-element)
+            (find-top-level-entry ordered-set successors)
           (when top-entry
-            (find-subset-3 ordered-set top-entry)))
-        (loop-over-successors node successors
-          for node-key = (cache-entry-key node)
-          do
-          (cond ((eql entry-key node-key)
-                 (return-from find-subset-1
-                   (find-subset-3 ordered-set node)))
-                ((< entry-key node-key)
-                 (return-from find-subset-1 
-                   (find-subset-1 (rest ordered-set) successors nil)))))))))
+            (let ((new-ordered-set
+                   (if (eql selected-element (first ordered-set))
+                       ordered-set
+                     (cons selected-element (remove selected-element ordered-set)))))
+              (find-subset-3 new-ordered-set top-entry))))
+      (loop-over-successors node successors
+        with entry-key = (concept-hash-id (first ordered-set))
+        for node-key = (cache-entry-key node)
+        do
+        (cond ((eql entry-key node-key)
+               (return-from find-subset-1
+                 (find-subset-3 ordered-set node)))
+              ((< entry-key node-key)
+               (return-from find-subset-1 
+                 (find-subset-1 (rest ordered-set) successors nil))))))))
+
+(defun find-top-level-entry (ordered-set successors)
+  (loop for element in ordered-set
+        for key = (gethash (concept-hash-id element) successors)
+        when key
+        do (return (values key element))))
 
 (defun find-subset-3 (ordered-set node)
   (let ((marker (cache-null-marker node)))

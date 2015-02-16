@@ -110,7 +110,7 @@
 (defparameter *file-external-format* ; files 
   #+:allegro (find-external-format '(:e-crlf   :latin1-base))
   #+:lispworks :latin-1
-  #+:ccl :latin-1
+  #+:ccl :utf-8
   #+:abcl "UTF-8"
   #+:sbcl :latin-1)
 
@@ -821,8 +821,20 @@
   (when verbose
     (format t "~%")))
 
-(defun process-in-file-run-function (in-filename syntax out-filename 
-                                                 queries-filename verbose xml unsafe-mode
+(defconstant +ore-consistency+ 'cl-user::consistency)
+(defconstant +ore-classification+ 'cl-user::classification)
+(defconstant +ore-realisation+ 'cl-user::realisation)
+(defconstant +ore-reasoning-tasks+ (list +ore-consistency+ +ore-classification+ +ore-realisation+))
+
+(defun process-in-file-run-function (in-filename
+                                     syntax
+                                     out-filename 
+                                     queries-filename
+                                     verbose
+                                     xml
+                                     unsafe-mode
+                                     ore-task
+                                     ore-result-file
 				     &optional (process-init-file nil))
   #+(or :ccl :allegro) (declare (ignore process-init-file))
   (handler-case
@@ -838,76 +850,129 @@
 		(*unsafe-mode* unsafe-mode)
 		#+:lispworks (system:*sg-default-size* *stack-size*))
 
-	    (if out-filename
-		(with-open-file (out-stream out-filename :direction :output
-				 :if-exists :supersede)
-		  (let ((*standard-output* out-stream)
-                        (*error-output* out-stream))
-		    (when *xml-output*
-		      (format out-stream "<?xml version=\"1.0\"?>")
-		      (terpri out-stream)
-		      (terpri out-stream)
-		      (format out-stream "<ANSWERS>")
-		      (terpri out-stream)
-		      (terpri out-stream)
-		      (force-output out-stream))
-		    (let ((*package* package))
-		      (process-in-file in-filename syntax verbose)
-		      (when queries-filename
-			(let* ((extension (pathname-type queries-filename))
-			       (syntax (find extension 
-					     '(xml dig owllink lisp krss racer)
-					     :test #'string-equal)))
-			  (case syntax
-			    ((racer krss lisp)
-			     (process-in-file queries-filename 'racer verbose))
-			    ((dig xml)
-			     (let ((*standard-output* out-stream)
-				   ;;(*standard-error* out-stream)
-				   )
-			       (dig-read-file queries-filename :init nil)))
-			    (owllink
-                             (owl-read-file queries-filename :init nil))
-			    (t (error "Queries may be posed only in ~A syntax ~
+	    (cond
+             (out-filename
+              (with-open-file (out-stream out-filename :direction :output
+                                          :if-exists :supersede)
+                (let ((*standard-output* out-stream)
+                      (*error-output* out-stream))
+                  (when *xml-output*
+                    (format out-stream "<?xml version=\"1.0\"?>")
+                    (terpri out-stream)
+                    (terpri out-stream)
+                    (format out-stream "<ANSWERS>")
+                    (terpri out-stream)
+                    (terpri out-stream)
+                    (force-output out-stream))
+                  (let ((*package* package))
+                    (process-in-file in-filename syntax verbose)
+                    (when queries-filename
+                      (let* ((extension (pathname-type queries-filename))
+                             (syntax (find extension 
+                                           '(xml dig owllink lisp krss racer)
+                                           :test #'string-equal)))
+                        (case syntax
+                          ((racer krss lisp)
+                           (process-in-file queries-filename 'racer verbose))
+                          ((dig xml)
+                           (let ((*standard-output* out-stream))
+                             (dig-read-file queries-filename :init nil)))
+                          (owllink
+                           (owl-read-file queries-filename :init nil))
+                          (t (error "Queries may be posed only in ~A syntax ~
                                               (file extension .lisp, .racer, or .krss) ~
                                               or in DIG syntax (file extension .dig .owllink)."
-				      (get-product-name)))))))
-		    (when *xml-output*
-		      (terpri out-stream)
-		      (format out-stream "</ANSWERS>")
-		      (terpri out-stream)
-		      (force-output out-stream))))
-	      (progn
-		(when *xml-output*
-		  (format t "<?xml version=\"1.0\"?>")
-		  (terpri)
-		  (terpri)
-		  (format t "<ANSWERS>")
-		  (terpri)
-		  (force-output t))
-		(let ((*package* package))
-		  (process-in-file in-filename syntax verbose)
-		  (when queries-filename
-		    (let* ((extension (pathname-type queries-filename))
-			   (syntax (find extension 
-					 '(xml dig owllink lisp krss racer)
-					 :test #'string-equal)))
-		      (case syntax
-			((racer krss lisp)
-			 (process-in-file queries-filename 'racer verbose))
-			((xml dig)
-			 (dig-read-file queries-filename :init nil))
-			(owllink
-                         (owl-read-file queries-filename :init nil))
-                        (t (error "Queries may be posed only in ~A syntax ~
+                                    (get-product-name)))))))
+                  (when *xml-output*
+                    (terpri out-stream)
+                    (format out-stream "</ANSWERS>")
+                    (terpri out-stream)
+                    (force-output out-stream)))))
+             (ore-result-file
+              (with-open-file (error-stream 
+                               (concatenate 'string ore-result-file "_err")
+                               :direction :output
+                               :if-exists :supersede)
+                (let ((console *standard-output*)
+                      (*standard-output* error-stream))
+                  (format console "Started ~A on ~A.~%" ore-task in-filename)
+                  (let ((*package* package))
+                    (owlapi-read-ontology in-filename :verbose verbose))
+                  (let* ((tbox *current-tbox*)
+                         (abox *current-abox*)
+                         (matching-abox-p (eq tbox (abox-tbox abox))))
+                    (with-open-file (out-stream ore-result-file :direction :output :if-exists :supersede)
+                      (let ((start-time (get-internal-run-time)))
+                        (flet ((print-operation-time ()
+                                 (format console "Operation time: ~D~%"
+                                         (- (get-internal-run-time) start-time))))
+                          (cond
+                           ((eq ore-task +ore-consistency+)
+                            (let ((sat-p (if matching-abox-p
+                                             (abox-consistent-p abox)
+                                           (concept-satisfiable-p +top-symbol+ tbox))))
+                              (print-operation-time)
+                              (if sat-p
+                                  (format out-stream "true~%")
+                                (format out-stream "false~%"))))
+                           ((eq ore-task +ore-classification+)
+                            (let ((sat-p (if matching-abox-p
+                                             (abox-consistent-p abox)
+                                           (concept-satisfiable-p +top-symbol+ tbox))))
+                              (if (not sat-p)
+                                  (progn
+                                    (print-operation-time)
+                                    (print-ore-concept-tree nil :filename in-filename :stream out-stream :tbox tbox))
+                                (progn
+                                  (classify-tbox tbox)
+                                  (print-operation-time)
+                                  (print-ore-concept-tree t :filename in-filename :stream out-stream :tbox tbox)))))
+                           ((eq ore-task +ore-realisation+)
+                            (let ((sat-p (when matching-abox-p
+                                           (abox-consistent-p abox))))
+                              (if (not matching-abox-p)
+                                  (racer-warn "Illegal ORE realisation request for input file ~A" in-filename)
+                                (when sat-p
+                                  (realize-abox abox)))
+                              (print-operation-time)
+                              (print-ore-individual-instantiators sat-p
+                                                                  :filename in-filename
+                                                                  :stream out-stream
+                                                                  :abox abox)))
+                           (t (error "unknown -ore-task parameter ~A: expected one of ~A"
+                                     ore-task +ore-reasoning-tasks+)))
+                          (format console "Completed ~A on ~A" ore-task in-filename))))))))
+             (t
+              (when *xml-output*
+                (format t "<?xml version=\"1.0\"?>")
+                (terpri)
+                (terpri)
+                (format t "<ANSWERS>")
+                (terpri)
+                (force-output t))
+              (let ((*package* package))
+                (process-in-file in-filename syntax verbose)
+                (when queries-filename
+                  (let* ((extension (pathname-type queries-filename))
+                         (syntax (find extension 
+                                       '(xml dig owllink lisp krss racer)
+                                       :test #'string-equal)))
+                    (case syntax
+                      ((racer krss lisp)
+                       (process-in-file queries-filename 'racer verbose))
+                      ((xml dig)
+                       (dig-read-file queries-filename :init nil))
+                      (owllink
+                       (owl-read-file queries-filename :init nil))
+                      (t (error "Queries may be posed only in ~A syntax ~
                             (file extension .lisp, .racer, or .krss) ~
                             or in DIG syntax (file extension .dig or .owllink)."
-				  (get-product-name)))))))
-		(when *xml-output*
-		  (terpri)
-		  (format t "</ANSWERS>")
-		  (terpri)
-		  (force-output t))))
+                                (get-product-name)))))))
+              (when *xml-output*
+                (terpri)
+                (format t "</ANSWERS>")
+                (terpri)
+                (force-output t))))
 	    #+:lispworks
 	    (unless process-init-file
 	       (lispworks:quit))))
@@ -965,6 +1030,8 @@
     "-owllink-input-syntax"
     "-owllink-output-syntax"
     "-dig"
+    "-ore-task"
+    "-ore-result-file"
     "-q"
     "-o"
     "-silent"
@@ -1001,7 +1068,6 @@
     "-update"
     "-update-from"))
 
-
 #+(or :lispworks :allegro :ccl)
 (defun racer-toplevel (&optional (command-line nil))
   
@@ -1028,6 +1094,8 @@
 				      #+:lispworks system:*line-arguments-list*
 				      #+:allegro (system:command-line-arguments #+:mswindows :application #+:mswindows t)
 				      #+:ccl ccl:*command-line-argument-list*))
+             (ore-task (member "-ore-task" line-arguments-list :test #'string=))
+             (ore-result-file (member "-ore-result-file" line-arguments-list :test #'string=))
 	     #+:lispworks
 	     (stack-size (member "-s" line-arguments-list :test #'string=))
 	     (timeout (member "-t" line-arguments-list :test #'string=))
@@ -1237,6 +1305,8 @@
                    -owl read input from specified OWL filename~%~
                    -owllink read input from specified OWLlink filename~%~
                    -dig read input from specified DIG filename~%~
+                   -ore-task ORE reasoning task: consistency, classification, realisation~%~
+                   -ore-result-file ORE reasoning resut file~%~
                    -p port number used by clients (default=~D)~%~
                    -proxy to specify a proxy server, e.g. \"http://www.myproxy.com:80\" ~%~
                    -http http port number used by clients (default=~D, use 0 for no http service)~%~
@@ -1275,6 +1345,13 @@
 	      #+:allegro (exit)
               #+:ccl (ccl:quit))
 
+            (when ore-task
+              (setf ore-task (read-from-string (second ore-task)))
+              (unless (member ore-task +ore-reasoning-tasks+)
+                (error "Specified value ~A for -ore-task is not element of ~A"
+                       ore-task +ore-reasoning-tasks+)))
+            (when ore-result-file
+              (setf ore-result-file (second ore-result-file)))
 	    #+:lispworks
 	    (when stack-size
 	      (setf *stack-size* (read-from-string (second stack-size))))
@@ -1350,18 +1427,21 @@
 		     #+:lispworks
 		     (system:*sg-default-size* *stack-size*)
 		     (racer-process (#+(or :lispworks :allegro)
-                                       mp:process-run-function
-                                       #+:ccl ccl:process-run-function
-                                       "RACER"
-				      #+:lispworks '()
-				      'process-in-file-run-function
-				      init-file syntax 
-				      out-filename
-				      queries-filename
-				      verbose 
-				      xml-file 
-				      unsafe-mode
-				      t)))
+                                     mp:process-run-function
+                                     #+:ccl ccl:process-run-function
+                                     "RACER"
+                                     #+:lispworks '()
+                                     'process-in-file-run-function
+                                     init-file
+                                     syntax 
+                                     out-filename
+                                     queries-filename
+                                     verbose 
+                                     xml-file 
+                                     unsafe-mode
+                                     ore-task
+                                     ore-result-file
+                                     t)))
 		#+(or :lispworks :allegro)
                 (mp:process-wait "WAITING FOR RACER TO FINISH"
                   'wait-for-racer
@@ -1492,16 +1572,21 @@
 			 (queries-filename (second queries-file))
 			 #+:lispworks (system:*sg-default-size* *stack-size*)
 			 (racer-process (#+(or :lispworks :allegro)
-                                           mp:process-run-function 
-                                           #+:ccl
-                                           ccl:process-run-function
-                                           "RACER"
-					  #+:lispworks '()
-					  'process-in-file-run-function
-					  in-filename syntax out-filename
-					  queries-filename verbose
-					  xml-file
-					  unsafe-mode)))
+                                         mp:process-run-function 
+                                         #+:ccl
+                                         ccl:process-run-function
+                                         "RACER"
+                                         #+:lispworks '()
+                                         'process-in-file-run-function
+                                         in-filename
+                                         syntax
+                                         out-filename
+                                         queries-filename
+                                         verbose
+                                         xml-file
+                                         unsafe-mode
+                                         ore-task
+                                         ore-result-file)))
 		    (if timeout
 			(progn
 			  (#+(or :lispworks :allegro) 

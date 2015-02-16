@@ -124,6 +124,10 @@
                (format stream "+")))
    (t (format stream "~S" (decode-role object)))))
 
+(defun role-is-satisfiable (role)
+  (let ((domain (role-domain-restriction role)))
+    (or (null domain) (not (is-bottom-concept-p domain)))))
+
 (defun decode-role (role)
   (if (role-node-p role)
     (let ((inverse (role-inverse-internal role)))
@@ -272,3 +276,5 @@
 (defun user-defined-role-reflexive-p (role)
   (and (role-reflexive-p role) (not (is-predefined-role-p role))))
 
+(defun user-defined-role-reflexive-feature-p (role)
+  (and (user-defined-role-reflexive-p role) (role-feature-p role)))

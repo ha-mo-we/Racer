@@ -366,6 +366,26 @@ The slot term contains the role name."
             (constraint-ind-1 object) (constraint-ind-2 object)
             (constraint-term object))))
 
+(defun relation-constraint-equal-synonym-test (constraint-1 constraint-2)
+  (and (eq (constraint-term constraint-1) (constraint-term constraint-2))
+       (eql (constraint-ind-1 constraint-1) (constraint-ind-1 constraint-2))
+       (eql (constraint-ind-2 constraint-1) (constraint-ind-2 constraint-2))
+       (let ((synonyms-1 (constraint-ind-1-synonyms constraint-1))
+             (synonyms-2 (constraint-ind-1-synonyms constraint-2)))
+         (or (and (null synonyms-1) (null synonyms-2))
+             (and (eql (length synonyms-1) (length synonyms-2))
+                  (subsetp synonyms-1 synonyms-2))))
+       (let ((synonyms-1 (constraint-ind-2-synonyms constraint-1))
+             (synonyms-2 (constraint-ind-2-synonyms constraint-2)))
+         (or (and (null synonyms-1) (null synonyms-2))
+             (and (eql (length synonyms-1) (length synonyms-2))
+                  (subsetp synonyms-1 synonyms-2))))))
+        
+(defun relation-constraint-equal-test (constraint-1 constraint-2)
+  (and (eq (constraint-term constraint-1) (constraint-term constraint-2))
+       (eql (constraint-ind-1 constraint-1) (constraint-ind-1 constraint-2))
+       (eql (constraint-ind-2 constraint-1) (constraint-ind-2 constraint-2))))
+
 (defun reset-relation-constraint (constraint)
   (setf (constraint-term constraint) nil)
   (setf (constraint-dependencies constraint) nil)
@@ -499,12 +519,6 @@ The slot term contains the role name."
   (and (constraint-negated-p constraint)
        (exists-concept-p (constraint-term constraint))))
 
-#|
-(defun all-constraint-p (constraint)
-  (and (constraint-negated-p constraint)
-       (some-concept-p (constraint-term constraint))))
-|#
-
 (defun some-constraint-p (constraint)
   (and (not (constraint-negated-p constraint))
        (some-concept-p (constraint-term constraint))))
@@ -516,16 +530,6 @@ The slot term contains the role name."
 (defun cd-concept-constraint-p (constraint)
   (and (not (constraint-negated-p constraint))
        (cd-concept-p (constraint-term constraint))))
-
-#|
-(defun at-least-constraint-p (constraint)
-  (and (not (constraint-negated-p constraint))
-       (at-least-concept-p (constraint-term constraint))))
-
-(defun at-most-constraint-p (constraint)
-  (and (constraint-negated-p constraint)
-       (at-least-concept-p (constraint-term constraint))))
-|#
 
 (defun defined-deterministic-constraint-p (constraint el+-transformed-table)
   (let ((term (constraint-term constraint)))

@@ -100,6 +100,7 @@
   (complete-index-entries (racer-make-hash-table))
   (individual-identity-disjointness-assertions nil)
   (model-individual-synonyms (racer-make-hash-table))
+  (reverse-model-individual-synonyms (racer-make-hash-table))
   (current-una-assumption nil)
   (version (new-abox-version))
   (annotation-individual-axioms nil)
@@ -241,11 +242,9 @@
                             do
                             (setf (individual-subgraph new-individual) new-subgraph)))))
     (setf (abox-model-individual-synonyms clone)
-          (racer-make-hash-table :size (hash-table-count (abox-model-individual-synonyms original))))
-    (loop with table = (abox-model-individual-synonyms clone)
-          for ind-name being the hash-key of (abox-model-individual-synonyms original)
-          using (hash-value individual)
-          do (setf (gethash ind-name table) (gethash individual ind-table)))))
+          (copy-hash-table (abox-model-individual-synonyms original)))
+    (setf (abox-reverse-model-individual-synonyms clone)
+          (copy-hash-table (abox-reverse-model-individual-synonyms original)))))
           
 
 (defun find-individual (abox individual-name &optional (errorp t) (tbox nil))
@@ -1775,6 +1774,7 @@
     (setf (abox-subgraphs old-abox) nil
           (abox-index-structures-complete-p old-abox) nil)
     (setf (abox-model-individual-synonyms old-abox) (racer-make-hash-table))
+    (setf (abox-reverse-model-individual-synonyms old-abox) (racer-make-hash-table))
     (setf (abox-concept-individuals old-abox) (racer-make-hash-table))
     (setf (abox-concept-non-individuals old-abox) (racer-make-hash-table))
     (setf (abox-complete-index-entries old-abox) (racer-make-hash-table))
@@ -2909,6 +2909,7 @@
                      t)
                    (compute-initial-constraint-state abox)
                    (loop with synonym-table = (abox-model-individual-synonyms abox)
+                         with reverse-synonym-table = (abox-reverse-model-individual-synonyms abox)
                          with use-unique-name-assumption = *use-unique-name-assumption*
                          for subgraph in (abox-subgraphs abox)
                          for start = (when *debug*
@@ -2958,7 +2959,8 @@
                                                   (null subgraph-synonym-table))
                                         (add-subgraph-synonyms abox
                                                                subgraph-synonym-table
-                                                               synonym-table)))
+                                                               synonym-table
+                                                               reverse-synonym-table)))
                                     t))))
                          finally (setf (abox-distribute-individual-constraints-p abox) t)))))
            (time (when *debug*
@@ -2967,12 +2969,13 @@
         (format t "~S (~,3F secs)~%" result time))
       result)))
 
-(defun add-subgraph-synonyms (abox completion-synonym-table abox-synonym-table)
+(defun add-subgraph-synonyms (abox completion-synonym-table abox-synonym-table abox-reverse-synonym-table)
   (loop for ind-name being the hash-key of completion-synonym-table
         using (hash-value synonym-name)
         when (and (true-old-individual-p ind-name) (true-old-individual-p synonym-name))
-        do (setf (gethash ind-name abox-synonym-table)
-                 (find-individual abox synonym-name))))
+        do
+        (setf (gethash ind-name abox-synonym-table) (find-individual abox synonym-name))
+        (setf (gethash synonym-name abox-reverse-synonym-table) (find-individual abox ind-name))))
 
 (defun compute-initial-constraint-state (abox)
   "The initial constraint state encompasses the constraints for object names.
@@ -3545,10 +3548,9 @@
 
 
 (defun realize-individuals (abox)
-  (if (or (not *smart-realization*)
-          (and *use-elh-model-embedding* *use-elh-transformation*))
-    (realize-individuals-1 abox)
-    (realize-individuals-2 abox)))
+  (if *smart-realization*
+      (realize-individuals-2 abox)
+    (realize-individuals-1 abox)))
 
 (defun realize-individuals-1 (abox)
   (let* ((tbox (abox-tbox abox))
@@ -3715,17 +3717,21 @@
                 nconc (compute-individual-ancestors-1 concept-1)))))
 
 (defun update-ind-pseudo-model-det-pos-literals (ind concept abox)
-  (let* ((synonym-ind (gethash (first (individual-name-set ind))
-                               (abox-model-individual-synonyms abox)))
+  (let* ((model (get-cached-individual-model ind abox))
+         (ind-name (first (individual-name-set ind)))
+         (synonym-ind (or (gethash ind-name (abox-model-individual-synonyms abox))
+                          (gethash ind-name (abox-reverse-model-individual-synonyms abox))))
          (synonym-ind-model (when synonym-ind
-                              (individual-model synonym-ind))))
-    (when (and synonym-ind-model (eq synonym-ind-model (individual-model ind)))
-      (if (full-model-info-p synonym-ind-model)
-          (progn
-            (setf (individual-model ind) (copy-full-model-info synonym-ind-model))
-            (setf (model-individual (individual-model ind)) ind))
-        (setf (individual-model ind) (copy-model-info synonym-ind-model)))))
-  (let ((model (individual-model ind)))
+                              (get-cached-individual-model synonym-ind abox))))
+      (when (and synonym-ind-model (eq synonym-ind-model model))
+        ; we need to copy the model before modifying it
+        (if (full-model-info-p model)
+            (progn
+              (setf (individual-model ind) (copy-full-model-info model))
+              (setf (model-individual (individual-model ind)) ind))
+          (setf (individual-model ind) (copy-model-info model)))))
+  ;; ind model might have been changed
+  (let ((model (get-cached-individual-model ind abox)))
     (when (model-info-p model)
       #+:debug (assert (atomic-concept-p concept))
       #+:debug (assert (not (member concept (model-det-positive-literals model))))
@@ -4621,17 +4627,17 @@
                              :trace-result t)
     (if (or (eq concept-term +krss-top-symbol+) (eq concept-term +top-symbol+))
         (all-individuals abox)
-      (if nil ;(and (symbolp concept-term) (abox-el+-transformed-table abox))
+      (if (and (symbolp concept-term) (abox-el+-transformed-table abox))
           (progn
-            (ensure-knowledge-base-state ':tbox-classified (abox-tbox abox))
-            (el+-concept-instances concept-term abox))
+            (ensure-knowledge-base-state ':abox-realized abox)
+            (collect-individual-names (el+-concept-instances concept-term abox)))
         (progn
           (unless (ensure-abox-is-coherent abox)
             (error "ABox ~A is incoherent." (abox-name abox)))
           (setf (abox-last-tbox-changed-mark abox) nil)
           (cond ((or *use-realization-based-instance-retrieval*
                      (abox-realized-p-internal abox))
-                 (when nil ;(abox-el+-transformed-table abox)
+                 (when (abox-el+-transformed-table abox)
                    (ensure-knowledge-base-state ':tbox-classified (abox-tbox abox)))
                  (ensure-knowledge-base-state ':abox-realized abox)
                  (if candidates-supplied-p
@@ -5736,45 +5742,6 @@ the constant ~A cannot be determined."
     `(with-abox-defined-check *current-abox*
        (retrieve-individual-antonyms ',individual ',told-only *current-abox*))))
 
-(defun test-role-characteristics (tbox role-term characteristic)
-  (flet ((get-test-concept ()
-           (let* ((name (create-tbox-internal-marker-concept tbox))
-                  (concept (encode-concept-term name)))
-             (setf (concept-visible-p concept) nil)
-             concept)))
-    (with-concept-definition-mapping tbox
-      (let ((role (if (consp role-term)
-                      (role-inverse-internal (get-tbox-role tbox (second role-term)))
-                    (if (role-node-p role-term)
-                        role-term
-                      (get-tbox-role tbox role-term)))))
-        (if (role-satisfiable-p role tbox)
-            (ecase characteristic
-              (:feature
-               (let ((test-concept (get-test-concept)))
-                 (not (concept-satisfiable-p `(and (some ,role-term ,test-concept) 
-                                                   (some ,role-term (not ,test-concept)))
-                                             tbox))))
-              (:transitive
-               (let ((test-concept (get-test-concept)))
-                 (not (concept-satisfiable-p `(and (some ,role-term (some ,role-term ,test-concept))
-                                                   (all ,role-term (not ,test-concept)))
-                                             tbox))))
-              (:asymmetric
-               (not (temporary-abox-satisfiable tbox nil `((i j ,role-term) (j i ,role-term)))))
-              (:reflexive
-               (let* ((test-concept (get-test-concept)))
-                 (not (concept-satisfiable-p `(and ,test-concept (all ,role-term (not ,test-concept)))
-                                             tbox))))
-              (:irreflexive
-               (not (concept-satisfiable-p `(self-reference ,role-term) tbox))))
-          t)))))
-
-(defun test-roles-characteristics (tbox role-name-1 role-name-2 feature)
-  (ecase feature
-    (:disjoint
-     (not (temporary-abox-satisfiable tbox nil `((i j ,role-name-1) (i j ,role-name-2)))))))
-
 (defun temporary-abox-satisfiable (tbox ind-assertions role-assertions)
   (let* ((abox-name (gensym))
          (abox (make-abox abox-name tbox))
@@ -6349,6 +6316,32 @@ the constant ~A cannot be determined."
                                      :if-exists if-exists 
                                      :if-does-not-exist if-does-not-exist)
                (save-abox-1 abox stream)))))))))
+
+(defun print-ore-individual-instantiators (sat-p &key (filename nil) (stream t) (abox *current-abox*))
+  (ensure-knowledge-base-state :abox-prepared abox)
+  (with-abox-settings abox
+    (with-concept-definition-mapping (abox-tbox abox) 
+      (let ((namespace-prefix (when sat-p
+                                (get-namespace-prefix (abox-tbox abox)))))
+        (print-ore-prefixes stream namespace-prefix)
+        (format stream "Ontology(")
+        (if filename
+            (format stream "<file:~A>~2%" filename)
+          (format stream "<http://a.com>~2%"))
+        (if (not sat-p)
+            (format stream "SubClassOf(owl:Thing owl:Nothing)~%")
+          (progn
+            (ensure-knowledge-base-state :abox-realized abox)
+            (loop for individual in (abox-individuals-list abox)
+                  for individual-name = (first (individual-name-set individual))
+                  for true-individual = (find-individual abox individual-name)
+                  do
+                  (loop for instantiator in (individual-ancestor-concepts true-individual) do
+                        (unless (is-top-concept-p instantiator)
+                          (format stream "ClassAssertion(~A ~A)~%"
+                                  (ore-name (first (concept-name-set instantiator)) namespace-prefix)
+                                  (ore-name individual-name namespace-prefix)))))))
+        (format stream ")~%")))))
 
 ;;; ======================================================================
 
