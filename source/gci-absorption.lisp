@@ -776,70 +776,54 @@
                   (setf (role-range-concept role) (decode-concept range))))))))
   (tbox-nary-absorption-table tbox))
 
-
-#|(defun create-nary-disjointness-axioms (tbox gcis)
-  (loop with bottom = (tbox-bottom-node tbox)
-        with created-pairs = (racer-make-hash-table :test 'equal :structure-p t)
-        with new-gcis = gcis
-        for concept in (tbox-encoded-concept-list tbox)
-        for asserted-disjoints = (concept-asserted-disjoints concept)
-        do
-        (loop for asserted-disjoint in asserted-disjoints
-              for key = (cons concept asserted-disjoint)
-              do
-              (unless (gethash key created-pairs)
-                (setf (gethash key created-pairs) t)
-                (setf (gethash (cons asserted-disjoint concept) created-pairs) t)
-                (push (list (list concept asserted-disjoint) bottom) new-gcis)))
-        finally (return new-gcis)))|#
-
 (defun create-nary-disjointness-axioms (tbox gcis)
-  (let ((disjoint-set (tbox-disjoint-set tbox)))
-    (if (eql (hash-table-count disjoint-set) 0)
+  (let ((disjoint-sets (tbox-disjoint-set tbox)))
+    (if (eql (hash-table-count disjoint-sets) 0)
         gcis
-      (let ((disjoints-table (racer-make-hash-table))
+      (let ((disjoint-sets-list
+             (loop for set being the hash-value of disjoint-sets
+                   collect (sort-concept-list (mapcar #'encode-concept-term set))))
             (new-gcis nil))
         (loop with bottom = (tbox-bottom-node tbox)
-              for key-list being the hash-value of disjoint-set
-              for key = (sort-concept-list (mapcar #'encode-concept-term key-list))
+              for set in disjoint-sets-list
               do
-              (push (list key bottom) new-gcis)
-              (loop for elem in key do
-                    (setf (gethash elem disjoints-table)
-                          (union (remove elem key) (gethash key disjoints-table)))))
-        (if (null new-gcis)
-            gcis
-          (loop with changed-p = nil
-                for gci in gcis
-                for (lhs rhs) = gci
-                for key-list = (when (atomic-concept-p lhs)
-                                 (if (negated-concept-p rhs)
-                                     (list (concept-term rhs))
-                                   (loop with new-rhs = (remove lhs 
-                                                                (if (listp rhs)
-                                                                    rhs
-                                                                  (when (and-concept-p rhs)
-                                                                    (concept-term rhs))))
-                                         with key-list = nil
-                                         for conjunct in new-rhs
-                                         do
-                                         (if (negated-concept-p conjunct)
-                                             (push (concept-term conjunct) key-list)
-                                           (return nil))
-                                         finally
-                                         (return (nreverse key-list)))))
-                for key = (when key-list
-                            (sort-concept-list key-list))
-                if (or (null key) (not (subsetp key (gethash lhs disjoints-table))))
-                collect gci into remaining-gcis
-                else
-                unless changed-p
-                do (setf changed-p t)
-                finally
-                (if changed-p
-                    (return (nconc new-gcis remaining-gcis))
-                  (return (nconc new-gcis gcis)))))))))
-
+              (loop for remaining-set on set
+                    for concept-1 = (first remaining-set)
+                    do
+                    (loop for concept-2 in (rest remaining-set) do
+                          (push (list (list concept-1 concept-2) bottom) new-gcis))))
+        (loop with changed-p = nil
+              for gci in gcis
+              for (lhs rhs) = gci
+              for key-list = (when (atomic-concept-p lhs)
+                               (if (negated-concept-p rhs)
+                                   (list (concept-term rhs))
+                                 (loop with new-rhs = (remove lhs 
+                                                              (if (listp rhs)
+                                                                  rhs
+                                                                (when (and-concept-p rhs)
+                                                                  (concept-term rhs))))
+                                       with key-list = nil
+                                       for conjunct in new-rhs
+                                       do
+                                       (if (negated-concept-p conjunct)
+                                           (push (concept-term conjunct) key-list)
+                                         (return nil))
+                                       finally
+                                       (return (nreverse key-list)))))
+              for key = (when key-list
+                          (sort-concept-list key-list))
+              if (or (null key)
+                     (loop for set in disjoint-sets-list
+                           never (concept-set-subsetp key set)))
+              collect gci into remaining-gcis
+              else
+              unless changed-p
+              do (setf changed-p t)
+              finally
+              (if changed-p
+                  (return (nconc new-gcis remaining-gcis))
+                (return (nconc new-gcis gcis))))))))
 
 (defun transform-nary-compositions-to-binary (tbox)
   (loop for role in (tbox-encoded-role-list tbox)
