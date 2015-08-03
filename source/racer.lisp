@@ -2922,8 +2922,9 @@ Return the selected element."
       (setf (constraint-backpropagated-p new-constraint) t))
     (when (and *model-merging* (or *use-alternate-models* *use-alternate-ind-models*))
       (setf (constraint-derived-from new-constraint)
-            (loop for dependency in (signature-dependencies signature)
-                  with result = nil do
+            (loop with result = nil
+                  for dependency in (signature-dependencies signature)
+                  do
                   (setf result (union (constraint-derived-from dependency) result))
                   finally (return result)))
       #+:debug (assert (constraint-derived-from new-constraint)))
@@ -2939,8 +2940,9 @@ Return the selected element."
     (setf (constraint-or-dependencies new-constraint) (list new-constraint))
     (when (and *model-merging* (or *use-alternate-models* *use-alternate-ind-models*))
       (setf (constraint-derived-from new-constraint)
-            (loop for dependency in (signature-dependencies signature)
-                  with result = nil do
+            (loop with result = nil
+                  for dependency in (signature-dependencies signature)
+                  do
                   (setf result (union (constraint-derived-from dependency) result))
                   finally (return result)))
       #+:debug (assert (constraint-derived-from new-constraint)))
@@ -4614,9 +4616,9 @@ Return 3 values: selected clause, positive weight, negative weight."
                                   (append new-constraints copied-violated-exists)))))))))))))))
 
 (defun copy-labels-list (back-propagation-list labels)
-  (loop for label in labels
+  (loop with new-label = nil
+        for label in labels
         for update = (assoc (label-info-ind label) back-propagation-list)
-        with new-label = nil
         if (and update
                 (not (member-of-label-p (cdr update) (label-info-back-propagated-concepts label))))
         do (setf new-label (let ((new-label (copy-label-info label)))
@@ -7885,6 +7887,7 @@ Return 3 values: selected clause, positive weight, negative weight."
 
 (defun elh-subsumption-test-p (subsumer subsumee)
   (and *use-elh-model-embedding*
+       *use-elh-transformation*
        (null *meta-constraint-concepts*)
        (let* ((atomic-subsumer-p (atomic-concept-p subsumer))
               (bucket-subsumer-p (unless atomic-subsumer-p
@@ -7929,7 +7932,9 @@ Return 3 values: selected clause, positive weight, negative weight."
   (let ((bottom *bottom-concept*))
     (if (or (eq subsumee bottom)
             (and (atomic-concept-p subsumee)
-                 (eq (concept-encoded-definition subsumee) bottom))
+                 (or (eq (concept-encoded-definition subsumee) bottom)
+                     (and (atomic-concept-p subsumer)
+                          (member subsumer (concept-told-subsumers subsumee)))))
             (and (concept-p-internal subsumer)
                  (or (eq subsumer *top-concept*)
 		     (and (atomic-concept-p subsumer)
@@ -7978,11 +7983,14 @@ Return 3 values: selected clause, positive weight, negative weight."
                  (get-cached-concept-model (concept-negated-concept subsumer)))))
       (incf-statistics *obvious-subsumptions*)
       t)
-     (t (if *model-merging*
-            (progn
-              (incf-statistics *model-subsumption-tests*)
-              (concept-not-subsumes subsumer subsumee))
-          (values nil t))))))
+     (t (or (and (atomic-concept-p subsumer)
+                 (atomic-concept-p subsumee)
+                 (member subsumer (concept-told-disjoints subsumee)))
+            (if *model-merging*
+                (progn
+                  (incf-statistics *model-subsumption-tests*)
+                  (concept-not-subsumes subsumer subsumee))
+              (values nil t)))))))
 
 (defun create-new-encoded-concept (original concept-term negated-concept-term)
   (let ((new-concept (copy-concept-internal original))
@@ -8000,12 +8008,12 @@ Return 3 values: selected clause, positive weight, negative weight."
                                :concept-1 (concept-negated-concept encoded-subsumer)
                                :concept-2 encoded-subsumee)
     (loop with negated-subsumer = (concept-negated-concept encoded-subsumer)
-          for subsumer-term in (concept-term encoded-subsumer)
-          for neg-term in (concept-term negated-subsumer)
           with modified = nil
           with subsumee-terms = (if (atomic-concept-p encoded-subsumee)
-                                  (list encoded-subsumee)
+                                    (list encoded-subsumee)
                                   (concept-term encoded-subsumee))
+          for subsumer-term in (concept-term encoded-subsumer)
+          for neg-term in (concept-term negated-subsumer)
           if (member neg-term subsumee-terms :test #'concept-clash-p)
           do (setf modified t)
           else
@@ -8014,12 +8022,12 @@ Return 3 values: selected clause, positive weight, negative weight."
           finally
           (return
            (if modified
-             (cond
-              ((null neg-terms) nil)
-              ((null (rest neg-terms)) (first neg-terms))
-              (t (create-new-encoded-concept negated-subsumer
-                                             terms
-                                             neg-terms)))
+               (cond
+                ((null neg-terms) nil)
+                ((null (rest neg-terms)) (first neg-terms))
+                (t (create-new-encoded-concept negated-subsumer
+                                               terms
+                                               neg-terms)))
              negated-subsumer)))))
 
 (race-inline (get-encoded-definition))

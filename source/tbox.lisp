@@ -858,8 +858,8 @@ are automatically installed.")
     (loop for child in children do
           (when (and (not (eq child *bottom-concept*)) (concept-buckets child))
             (delete-concept-from-bucket tbox child))))
-  (loop for child in children
-        with bottom = *bottom-concept*
+  (loop with bottom = *bottom-concept*
+        for child in children
         do
         (loop for parent in parents
               for parent-children = (concept-children-internal parent)
@@ -3978,14 +3978,14 @@ Always create a canonical name regardless of the order of the role parents."
            (role-domain-concept (role-inverse-internal role)))))
 
 (defun encode-roles (tbox encoded-role-list lists-only-p)
-  (loop for role in encoded-role-list
-        with blocking-possibly-required = nil
+  (loop with blocking-possibly-required = nil
         with hierarchy-p = nil
         with complex-roles-p = nil
         with top = (tbox-object-top-role tbox)
         with bottom = (tbox-object-bottom-role tbox)
         with datatype-top = (tbox-datatype-top-role tbox)
         with datatype-bottom = (tbox-datatype-bottom-role tbox)
+        for role in encoded-role-list
         do
         (unless (role-cd-attribute role)
           (unless (or (member role (role-ancestors-internal role))
@@ -4010,11 +4010,11 @@ Always create a canonical name regardless of the order of the role parents."
 	  (setf (tbox-language tbox) (add-dl-simple-role-inclusions (tbox-language tbox))))
 	(when complex-roles-p
 	  (setf (tbox-language tbox) (add-dl-complex-role-inclusions (tbox-language tbox)))))
-  (loop for role in encoded-role-list
-        with top = (tbox-object-top-role tbox)
+  (loop with top = (tbox-object-top-role tbox)
         with bottom = (tbox-object-bottom-role tbox)
         with datatype-top = (tbox-datatype-top-role tbox)
         with datatype-bottom = (tbox-datatype-bottom-role tbox)
+        for role in encoded-role-list
         do
         (unless (or (eq role top) (eq role bottom)
                     (eq role datatype-top) (eq role datatype-bottom))
@@ -4048,8 +4048,8 @@ Always create a canonical name regardless of the order of the role parents."
                                                  (concept-language (role-range-restriction role)))))
           finally
           (setf (tbox-language tbox) (union-dl-descriptors language (tbox-language tbox))))
-    (loop for role in all-roles
-          with blocking-possibly-required = (tbox-blocking-possibly-required tbox)
+    (loop with blocking-possibly-required = (tbox-blocking-possibly-required tbox)
+          for role in all-roles
           while (not blocking-possibly-required)
           do
           (when (and (not (role-cd-attribute role))
@@ -4093,8 +4093,8 @@ Always create a canonical name regardless of the order of the role parents."
                                                  (concept-language (role-range-restriction role)))))
           finally
           (setf (tbox-language tbox) (union-dl-descriptors language (tbox-language tbox))))
-    (loop for role being the hash-values of role-store
-          with blocking-possibly-required = (tbox-blocking-possibly-required tbox)
+    (loop with blocking-possibly-required = (tbox-blocking-possibly-required tbox)
+          for role being the hash-values of role-store
           while (not blocking-possibly-required)
           do
           (when (and (not (role-cd-attribute role))
@@ -4190,9 +4190,9 @@ Always create a canonical name regardless of the order of the role parents."
     (setf (role-has-ancestors-p role) (consp ancestors))
     (pushnew role ancestors)
     (setf (role-ancestors-internal role) ancestors)
-    (loop for ancestor in ancestors
-          with top = (tbox-object-top-role tbox)
+    (loop with top = (tbox-object-top-role tbox)
           with datatype-top = (tbox-datatype-top-role tbox)
+          for ancestor in ancestors
           do
           (unless (or (eq ancestor top) (eq ancestor datatype-top))
             (add-to-role-descendants ancestor role only-lists)))
@@ -5632,7 +5632,8 @@ Always create a canonical name regardless of the order of the role parents."
     (let ((concept-term (concept-term concept)))
       (ecase (type-of concept)
         ((and-concept or-concept)
-         (loop with changed-p = first-pass
+         (loop with language-or-inverse-roles-changed-p = first-pass
+               with told-info-changed-p = first-pass
                for elem in concept-term do
                (unless (eql (concept-visited-mark elem) visited-mark)
                  (update-encoded-definition tbox
@@ -5648,11 +5649,18 @@ Always create a canonical name regardless of the order of the role parents."
                          (update-full-referencing-p what)
                          (update-referencing-p what))
                  (propagate-info concept elem visited-mark first-pass what :told-disjoints-p t)
-                 (when (and (not changed-p)
+                 (when (and (not language-or-inverse-roles-changed-p)
                             (language-or-inverse-roles-changed-p elem))
-                   (setf changed-p t)))
-               finally (when changed-p
-                         (set-language concept visited-mark))))
+                   (setf language-or-inverse-roles-changed-p t))
+                 (when (and (not told-info-changed-p)
+                            (or (told-subsumers-changed-p elem)
+                                (told-disjoints-changed-p elem)))
+                   (setf told-info-changed-p t)))
+               finally
+               (when (or language-or-inverse-roles-changed-p told-info-changed-p)
+                 (when told-info-changed-p
+                   (update-told-info concept))
+                 (set-language concept visited-mark))))
         ((some-concept at-least-concept)
          (let ((changed-p first-pass))
            (let ((role-domain (concept-role-domain concept)))
@@ -6162,8 +6170,6 @@ Always create a canonical name regardless of the order of the role parents."
                                           encoded-concept-list))
           (setf *provisionally-inserted-atomic-concepts* nil))
         (setf (tbox-encoded-concept-list tbox) encoded-concept-list)
-        (unless true-tbox-el+-p
-          (race-time (reencode-all-exists-cd-concepts tbox)))
         (loop for concept in (cons (tbox-bottom-node tbox) encoded-concept-list)
               when (concept-nary-unfold-sets concept)
               do (setf (concept-nary-unfold-sets concept) nil))
@@ -6171,6 +6177,8 @@ Always create a canonical name regardless of the order of the role parents."
           (loop for lhs being the hash-key of nary-absorption-table do
                 (loop for concept in lhs do
                       (push lhs (concept-nary-unfold-sets concept)))))
+        (unless true-tbox-el+-p
+          (race-time (reencode-all-exists-cd-concepts tbox)))
         (if (and *use-elh-transformation* *use-elh-model-embedding* true-tbox-el+-p)
             (progn
               (when *provisionally-inserted-roles*
@@ -6183,10 +6191,10 @@ Always create a canonical name regardless of the order of the role parents."
           (race-time (update-encoded-definitions tbox)))
         (setf (tbox-meta-constraint-concepts tbox)
               (let ((*concept-changed-p* nil))
-                (loop for concept in meta-constraint-concepts
-                      with top = (tbox-top-node tbox)
+                (loop with top = (tbox-top-node tbox)
                       with bottom = (tbox-bottom-node tbox)
                       with mark = (incf *tbox-classification-counter*)
+                      for concept in meta-constraint-concepts
                       if (eq concept bottom)
                       do
                       (return (list bottom))
@@ -6201,13 +6209,14 @@ Always create a canonical name regardless of the order of the role parents."
         (when (tbox-meta-constraint-concepts tbox)
           (setf (tbox-meta-constraint-concept tbox)
                 (encode-concept-term `(and .,(tbox-meta-constraint-concepts tbox)))))
-        (loop for concept in encoded-concept-list
-              for encoded-definition = (concept-encoded-definition concept)
-              with table = (tbox-taxonomic-encoding-table tbox)
+        (loop with table = (tbox-taxonomic-encoding-table tbox)
               with empty-p = t
               with contains-cyclic-concepts = nil
               with language = (tbox-language tbox)
-              when encoded-definition do
+              for concept in encoded-concept-list
+              for encoded-definition = (concept-encoded-definition concept)
+              when encoded-definition
+              do
               (unless (concept-primitive-p concept)
                 (when empty-p
                   (setf empty-p nil))
@@ -6242,12 +6251,12 @@ Always create a canonical name regardless of the order of the role parents."
 
 (defun transform-cyclical-concepts (tbox concept-list)
   "Returns 2 values: added-gcis, cyclic-concepts"
-  (loop for concept in concept-list
-        for encoded-definition = (concept-encoded-definition concept)
-        with added-gcis = nil
+  (loop with added-gcis = nil
         with cyclic-concepts = nil
         with top = (tbox-top-node tbox)
         with bottom = (tbox-bottom-node tbox)
+        for concept in concept-list
+        for encoded-definition = (concept-encoded-definition concept)
         do
         (cond ((eq concept encoded-definition)          ; transform to atomic concept
                (setf (concept-definition concept) nil)
@@ -6904,7 +6913,7 @@ Always create a canonical name regardless of the order of the role parents."
             (tbox-classification-report stream ':all-concepts-incoherent (tbox-name tbox))))
         (values (or top-bottom-p top-role-bottom-p) roles-classified-p synonyms-changed-p)))))
 
-(defun add-missing-role-parents-children (tbox)
+(defun add-missing-role-parents-children (tbox &optional (roles nil))
   (loop with object-top = (tbox-object-top-role tbox)
         with object-bottom = (tbox-object-bottom-role tbox)
         with data-top = (tbox-datatype-top-role tbox)
@@ -6913,7 +6922,7 @@ Always create a canonical name regardless of the order of the role parents."
         with new-object-bottom-parents = nil
         with new-data-top-children = nil
         with new-data-bottom-parents = nil
-        for role in (tbox-encoded-role-list tbox)
+        for role in (or roles (tbox-encoded-role-list tbox))
         for parents = (role-parents-internal role)
         for children = (role-children-internal role)
         do
@@ -6923,16 +6932,22 @@ Always create a canonical name regardless of the order of the role parents."
               (progn
                 (unless parents
                   (setf (role-parents-internal role) (list data-top))
+                  (setf (role-ancestors-internal role) (list role data-top))
                   (push role new-data-top-children))
                 (unless children
                   (setf (role-children-internal role) (list data-bottom))
+                  (setf (role-descendants-internal role) (list role data-bottom))
                   (push role new-data-bottom-parents)))
             (progn
+              (when (and (role-feature-p role) (null (role-feature-ancestors role)))
+                (setf (role-feature-ancestors role) (list role)))
               (unless parents
                 (setf (role-parents-internal role) (list object-top))
+                (setf (role-ancestors-internal role) (list role object-top))
                 (push role new-object-top-children))
               (unless children
                 (setf (role-children-internal role) (list object-bottom))
+                (setf (role-descendants-internal role) (list role object-bottom))
                 (push role new-object-bottom-parents)))))
         finally
         (when new-object-top-children
@@ -7705,7 +7720,11 @@ Always create a canonical name regardless of the order of the role parents."
                                 (progn
                                   (setf role-sat-checked-p t)
                                   (set-role-ancestors-sat-checked-p role)))))
-                        #|(unless role-sat-checked-p
+                        (when (and (not role-sat-checked-p)
+                                   (or feature-p
+                                       (and meta-concept (not *absorb-domains-ranges*))
+                                       (role-domain-restriction role)
+                                       (role-range-restriction role)))
                           (setf role-sat-checked-p t)
                           (if (and role-to-concept-name (gethash role role-to-concept-name))
                               (setf role-sat-p
@@ -7718,7 +7737,7 @@ Always create a canonical name regardless of the order of the role parents."
                           (if role-sat-p
                               (set-role-ancestors-sat-checked-p role)
                             (multiple-value-setq (data-bottom-roles object-bottom-roles)
-                                (process-unsat-role role data-bottom-roles object-bottom-roles))))|#))))
+                                (process-unsat-role role data-bottom-roles object-bottom-roles))))))))
                 when top-role-bottom
                 do
                 (loop for role in (tbox-encoded-role-list tbox)
@@ -8047,11 +8066,17 @@ Always create a canonical name regardless of the order of the role parents."
                   (multiple-value-bind (reflexivity-added new-irreflexive-roles new-feature-roles)
                       (race-time (absorb-simple-domain-range-restrictions tbox))
                     (when *provisionally-inserted-roles*
-                      (add-provisionally-encoded-roles tbox *provisionally-inserted-roles*)
-                      (preencode-roles-3 tbox *provisionally-inserted-roles*))
+                      (let ((add-p (loop for role in (tbox-encoded-role-list tbox)
+                                         thereis (not (or (role-cd-attribute role)
+                                                          (is-predefined-role-p role))))))
+                        (add-provisionally-encoded-roles tbox *provisionally-inserted-roles*)
+                        (preencode-roles-3 tbox *provisionally-inserted-roles*)
+                        (when add-p
+                          (add-missing-role-parents-children tbox *provisionally-inserted-roles*))))
                     (when (or reflexivity-added new-irreflexive-roles new-feature-roles)
                       (loop for role in new-feature-roles do
-                            (when (role-symmetric-p role)
+                            (when (or (role-symmetric-p role)
+                                      (role-feature-p (role-inverse-internal role)))
                               (setf (role-inverse-feature-p role) t)))
                       (propagate-role-characteristics-to-parents-children tbox)))))
                 (let ((*provisionally-inserted-atomic-concepts* nil)
@@ -8063,6 +8088,7 @@ Always create a canonical name regardless of the order of the role parents."
                   (when *provisionally-inserted-roles*
                     (add-provisionally-encoded-roles tbox *provisionally-inserted-roles*)
                     (preencode-roles-3 tbox *provisionally-inserted-roles*)
+                    (add-missing-role-parents-children tbox *provisionally-inserted-roles*)
                     (encode-roles tbox *provisionally-inserted-roles* t))))
             (setf-statistics *taxonomic-encoding-hits* 0) ;we don't want the preencoding results
             (prog2
@@ -10790,8 +10816,9 @@ Always create a canonical name regardless of the order of the role parents."
           for count = 1 then (1+ count)
           do (setf (gethash role-name role-mapping) (intern (format nil "R~D" count))))
     (loop with specials = (list +top-symbol+ +krss-top-symbol+ +bottom-symbol+ +krss-bottom-symbol+)
+          with count = 1
           for concept-name in ordered-concept-names
-          with count = 1 do
+          do
           (if (member concept-name specials)
             (setf (gethash concept-name concept-mapping) concept-name)
             (progn
@@ -10993,8 +11020,8 @@ Always create a canonical name regardless of the order of the role parents."
                                     (decode-concept (first qualifications))))
                        stream)))
         (when (rest name-set)
-          (loop for name in (rest name-set)
-                with representative = (first name-set)
+          (loop with representative = (first name-set)
+                for name in (rest name-set)
                 do (print-concept-definition stream name representative nil))))
   (loop for meta-constraint-concept in (tbox-meta-constraint-concepts tbox) do
         (print `(implies ,+top-symbol+ ,(decode-concept meta-constraint-concept)) stream))

@@ -274,8 +274,8 @@
   )
 
 (defun add-to-srole-partition (role vars)
-  (loop for var in vars
-        with partition = (srole-partitions role)
+  (loop with partition = (srole-partitions role)
+        for var in vars
         do
         (cond ((null partition) (push var partition))
               ((consp (first partition))
@@ -292,8 +292,8 @@
   (add-new-vars-to-srole-ancestors (get-srole-ancestors start-partition) new-vars))
 
 (defun get-srole-ancestors (start-partition)
-  (loop for name in start-partition
-        with ancestors = nil
+  (loop with ancestors = nil
+        for name in start-partition
         do (setf ancestors (union (srole-ancestors (gethash name *roles*)) ancestors))
         finally (return ancestors)))
 

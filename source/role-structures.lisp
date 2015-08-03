@@ -125,8 +125,10 @@
    (t (format stream "~S" (decode-role object)))))
 
 (defun role-is-satisfiable (role)
-  (let ((domain (role-domain-restriction role)))
-    (or (null domain) (not (is-bottom-concept-p domain)))))
+  (let ((domain (role-domain-restriction role))
+        (range (role-range-restriction role)))
+    (and (or (null domain) (not (is-bottom-concept-p domain)))
+         (or (null range) (not (is-bottom-concept-p range))))))
 
 (defun decode-role (role)
   (if (role-node-p role)

@@ -158,61 +158,61 @@
   (when catching-clash-dependencies
     (if *use-signature-backjumping*
       (loop for constraint in catching-clash-dependencies
-        for constraint-signature = (if (qualified-role-signature-p constraint)
-                                     constraint
-                                     (constraint-signature constraint))
-        for successful-signature = constraint-signature
-        when (or (and constraint-signature
-                      (member constraint-signature signatures))
-                 (when *use-refined-signature-clash-dependencies*
-                   (setf successful-signature nil)
-                   (if (and (concept-constraint-p constraint) (exists-constraint-p constraint))
-                     (loop for signature in signatures
-                       with constraint-ind = (constraint-ind constraint)
-                       when (and (eql constraint-ind (signature-ind signature))
-                                 (member constraint (signature-dependencies signature))
-                                 (let ((exists-concept (constraint-term constraint)))
-                                   (and (eq (concept-role exists-concept)
-                                            (signature-role signature))
-                                        (>= (concept-number-restriction exists-concept)
-                                            (signature-cardinality signature))
-                                        (let ((concepts (signature-concepts signature))
-                                              (term (concept-term exists-concept)))
-                                          (or (if (null (rest concepts))
-                                                (eq (first concepts) term)
-                                                (when (and-concept-p term)
-                                                  (concept-set-equal concepts (concept-term term))))
-                                              (let ((found (rest (assoc term (signature-concept-dependencies
-                                                                              signature)))))
-                                                (when (and found (member constraint found))
+            for constraint-signature = (if (qualified-role-signature-p constraint)
+                                           constraint
+                                         (constraint-signature constraint))
+            for successful-signature = constraint-signature
+            when (or (and constraint-signature
+                          (member constraint-signature signatures))
+                     (when *use-refined-signature-clash-dependencies*
+                       (setf successful-signature nil)
+                       (if (and (concept-constraint-p constraint) (exists-constraint-p constraint))
+                           (loop with constraint-ind = (constraint-ind constraint)
+                                 for signature in signatures
+                                 when (and (eql constraint-ind (signature-ind signature))
+                                           (member constraint (signature-dependencies signature))
+                                           (let ((exists-concept (constraint-term constraint)))
+                                             (and (eq (concept-role exists-concept)
+                                                      (signature-role signature))
+                                                  (>= (concept-number-restriction exists-concept)
+                                                      (signature-cardinality signature))
+                                                  (let ((concepts (signature-concepts signature))
+                                                        (term (concept-term exists-concept)))
+                                                    (or (if (null (rest concepts))
+                                                            (eq (first concepts) term)
+                                                          (when (and-concept-p term)
+                                                            (concept-set-equal concepts (concept-term term))))
+                                                        (let ((found (rest (assoc term (signature-concept-dependencies
+                                                                                        signature)))))
+                                                          (when (and found (member constraint found))
                                                   ;(break "~S ~S" constraint signature)
-                                                  t)))))))
-                       do
-                       (setf successful-signature signature)
-                       (return t))
-                     (when (relation-constraint-p constraint)
-                       (setf successful-signature nil) 
-                       (loop for signature in signatures
-                         with constraint-ind-1 = (constraint-ind-1 constraint)
-                         when (and (eql constraint-ind-1 (signature-ind signature))
-                                   (member (constraint-ind-2 constraint)
-                                           (signature-successor-ind-set signature))
-                                   (eq (signature-role signature) (constraint-term constraint))
-                                   (member constraint (signature-dependencies signature)))
-                         do
-                         (setf successful-signature signature)
-                         (return t))))))
-        do 
-        (progn
-          (race-trace ("~&Backjump dependencies succeeded: dep=~S, sig=~S, deps=~S, sigs=~S~%"
-                       constraint successful-signature catching-clash-dependencies signatures))
-          successful-signature
+                                                            t)))))))
+                                 do
+                                 (setf successful-signature signature)
+                                 (return t))
+                         (when (relation-constraint-p constraint)
+                           (setf successful-signature nil) 
+                           (loop with constraint-ind-1 = (constraint-ind-1 constraint)
+                                 for signature in signatures
+                                 when (and (eql constraint-ind-1 (signature-ind signature))
+                                           (member (constraint-ind-2 constraint)
+                                                   (signature-successor-ind-set signature))
+                                           (eq (signature-role signature) (constraint-term constraint))
+                                           (member constraint (signature-dependencies signature)))
+                                 do
+                                 (setf successful-signature signature)
+                                 (return t))))))
+            do 
+            (progn
+              (race-trace ("~&Backjump dependencies succeeded: dep=~S, sig=~S, deps=~S, sigs=~S~%"
+                           constraint successful-signature catching-clash-dependencies signatures))
+              successful-signature
           
-          (return t))
-        finally
-        (race-trace ("~&Backjump dependencies failed ~S for signatures ~S~%"
-                     catching-clash-dependencies signatures))
-        (return nil))
+              (return t))
+            finally
+            (race-trace ("~&Backjump dependencies failed ~S for signatures ~S~%"
+                         catching-clash-dependencies signatures))
+            (return nil))
       (progn
         (race-trace ("~&Ignoring backjump dependencies ~S for signatures ~S~%"
                      catching-clash-dependencies signatures))
@@ -2995,8 +2995,8 @@
                     ;(format t "~&Disjoints: wrong selection ~S for ~S~%" negated-at-most-qualification selected-signature)
                     t)
                   (when (and (and-concept-p negated-at-most-qualification)
-                             (loop for concept in concepts
-                                   with term = (concept-term negated-at-most-qualification)
+                             (loop with term = (concept-term negated-at-most-qualification)
+                                   for concept in concepts
                                    thereis
                                    (concept-set-simple-clash-p (concept-told-subsumers concept) term)))
                     ;(break)

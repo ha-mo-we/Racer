@@ -194,10 +194,10 @@
              (member role (role-ancestors-internal (constraint-term rel-constraint))))))
 
 (defun compute-relation-role-list (signatures top-concept at-most-bounds)
-  (loop for signature in signatures
+  (loop with rel-list = nil
+        for signature in signatures
         for role = (signature-role signature)
         for ind-name = (first (signature-successor-ind-set signature))
-        with rel-list = nil
         do
         #+:debug (assert (null (rest (signature-successor-ind-set signature))))
         (when ind-name
@@ -231,7 +231,9 @@
         finally (return rel-list)))
 
 (defun compute-srole-list (signatures relation-role-list top-concept)
-  (loop for signature in (remove-if #'signature-successor-ind-set signatures)
+  (loop with at-least-list = nil
+        with some-list = relation-role-list
+        for signature in (remove-if #'signature-successor-ind-set signatures)
         for role = (signature-role signature)
         for role-name = (role-name (signature-role signature))
         for some-constraint = (find-if #'(lambda (constraint)
@@ -246,8 +248,6 @@
                         (concept-number-restriction (constraint-term some-constraint)))
         for old-srole = (or (find role-name some-list :key #'srole-name)
                             (find role-name at-least-list :key #'srole-name))
-        with at-least-list = nil
-        with some-list = relation-role-list
         do
         (if some-constraint
             (if old-srole
@@ -516,8 +516,8 @@
                        (make-nary-and-role roles)
                        (first roles)))
                (dependencies
-                (loop for signature in signatures
-                      with result = nil do
+                (loop with result = nil
+                      for signature in signatures do
                       (loop for dependency in (signature-dependencies signature) do
                             (setf result (union (constraint-derived-from dependency)
                                                 result)))

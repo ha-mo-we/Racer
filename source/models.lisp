@@ -1269,9 +1269,9 @@
         (loop for restrict in restricts-list
               always 
               (if (some-concept-p restrict)
-                (loop for exists in exists-list
-                      with restrict-role = (concept-role restrict)
+                (loop with restrict-role = (concept-role restrict)
                       with restrict-ancestors = (role-feature-ancestors restrict-role)
+                      for exists in exists-list
                       for exists-role = (concept-role exists)
                       always (if (role-feature-p exists-role)
                                (lists-disjoint-p restrict-ancestors
@@ -1941,12 +1941,12 @@
           (return (values t partial-p)))))
 
 (defun get-ind-upper-bounds-from-models (role selected-model model-list)
-  (loop for model in model-list
-        for restrict-models = (when (full-model-info-p model)
-                                (model-restrict-models model))
-        with role-ancestors = (and (role-has-ancestors-p role)
+  (loop with role-ancestors = (and (role-has-ancestors-p role)
                                    (role-ancestors-internal role))
         with at-most-concepts = nil
+        for model in model-list
+        for restrict-models = (when (full-model-info-p model)
+                                (model-restrict-models model))
         unless (eq model selected-model) do
         (loop for concept in restrict-models
               when (and (at-most-concept-p concept)
@@ -2054,7 +2054,8 @@ hierarchies-used-p"
               (return t))))))
 
 (defun submodels-mergable-p (model-list labels)
-  (loop for selected-model in model-list
+  (loop with processed-feature-exists = nil
+        for selected-model in model-list
         for selected-model-p = (model-info-p selected-model)
         for full-selected-model-p = (full-model-info-p selected-model-p)
         for selected-exists = (and selected-model-p
@@ -2065,7 +2066,6 @@ hierarchies-used-p"
         then (or partial-p (and selected-model-p
                                 full-selected-model-p
                                 (model-non-deterministic-p selected-model)))
-        with processed-feature-exists = nil
         do
         (when selected-exists
           (loop for exists-concept in selected-exists
@@ -2176,12 +2176,13 @@ hierarchies-used-p"
                          model-list
                          labels)
   "Returns 3 values: collected-models culprit-model feature-exists"
-  (loop for model in model-list
+  (loop with all-collected-models = nil
+        with all-feature-exists = nil
+        for model in model-list
         for model-concept = (if (model-info-p model)
                               (model-concept model)
                               model)
-        with all-collected-models = nil
-        with all-feature-exists = nil do
+        do
         (unless (or (eq model excluded-model)
                     (not (full-model-info-p model))
                     (null (model-restrict-models model)))
@@ -2231,9 +2232,9 @@ hierarchies-used-p"
         (collected-feature-exists nil)
         (role-ancestors (and (role-has-ancestors-p role) (role-ancestors-internal role))))
     (if (role-feature-p role)
-      (loop for concept in (model-restrict-models model)
+      (loop with feature-ancestors = (role-feature-ancestors role)
+            for concept in (model-restrict-models model)
             for concept-role = (concept-role concept)
-            with feature-ancestors = (role-feature-ancestors role)
             do
             (if (at-most-concept-p concept)
               (when (concept-clash-p exists-concept concept)

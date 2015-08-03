@@ -668,27 +668,66 @@
 
 (defun set-language-to-alci (concept &optional (term nil))
   (unless (dl-inverse (concept-language concept))
-    (let ((role (concept-role concept)))
+    (let ((role (concept-role concept))
+          (alci-found nil))
       (if (inverse-role-in-descendants-compositions-p role)
           (setf (concept-language concept) (add-dl-inverse (concept-language concept)))
-        (loop with role-ancestors = (remove-top-object-role (role-ancestors-internal role))
-              with alci-found = nil
-              for inv-role-elem in (concept-inverse-roles (or term (concept-term concept)))
-              for inv-role = (role-inverse-internal (car inv-role-elem))
-              do
-              (when inv-role
-                (if (lists-not-disjoint-p role-ancestors
-                                          (remove-top-object-role (role-ancestors-internal inv-role)))
-                    (setf alci-found t)
-                  (let ((inv-role-compositions (role-compositions inv-role)))
-                    (when (and inv-role-compositions
-                               (role-interaction-in-compositions-p role-ancestors inv-role-compositions))
-                      (setf alci-found t))))
-                (when alci-found
-                  (setf (concept-language concept) (add-dl-inverse (concept-language concept)))))
-              until alci-found))))
+        (progn
+          (loop with role-ancestors = (remove-top-object-role (role-ancestors-internal role))
+                for inv-role-elem in (concept-inverse-roles (or term (concept-term concept)))
+                for inv-role = (role-inverse-internal (car inv-role-elem))
+                do
+                (when inv-role
+                  (if (lists-not-disjoint-p role-ancestors
+                                            (remove-top-object-role (role-ancestors-internal inv-role)))
+                      (setf alci-found t)
+                    (let ((inv-role-compositions (role-compositions inv-role)))
+                      (when (and inv-role-compositions
+                                 (role-interaction-in-compositions-p role-ancestors inv-role-compositions))
+                        (setf alci-found t))))
+                  (when alci-found
+                    (setf (concept-language concept) (add-dl-inverse (concept-language concept)))))
+                until alci-found)
+          (unless alci-found
+            (loop with role-ancestors = (remove-top-object-role (role-ancestors-internal role))
+                  with tbox = *use-tbox*
+                  with nary-absorption-table = (when tbox
+                                                 (tbox-nary-absorption-table tbox))
+                  with concepts = (when (and nary-absorption-table (some-concept-p concept))
+                                    (let ((term (concept-term concept)))
+                                      (if (atomic-concept-p term)
+                                          (list term)
+                                        (when (or (and-concept-p term) (or-concept-p term))
+                                          (concept-term term)))))
+                  for inv-role-elem in (concept-inverse-roles concept)
+                  for inv-role = (role-inverse-internal (car inv-role-elem))
+                  do
+                  (when (and inv-role concepts)
+                    (setf alci-found
+                          (role-interaction-in-unfold-sets-p concepts role-ancestors nary-absorption-table)))
+                  until alci-found))
+          (when alci-found
+            (setf (concept-language concept) (add-dl-inverse (concept-language concept))))))))
   #+:debug 
   (concept-language concept))
+
+(defun role-interaction-in-unfold-sets-p (concepts role-ancestors unfolding-table)
+  (loop for concept in concepts
+        thereis
+        (when (and (atomic-concept-p concept) (not (is-top-concept-p concept)))
+          (let ((nary-unfold-sets (concept-nary-unfold-sets concept)))
+            (when (consp nary-unfold-sets)
+              (loop for unfold-set in nary-unfold-sets
+                    for unfolding = (gethash unfold-set unfolding-table)
+                    thereis
+                    (when (all-concept-p unfolding)
+                      (loop for inv-role-elem in (concept-inverse-roles unfolding)
+                            for inv-role = (role-inverse-internal (car inv-role-elem))
+                            thereis
+                            (when inv-role
+                              (lists-not-disjoint-p role-ancestors
+                                                    (remove-top-object-role
+                                                     (role-ancestors-internal inv-role))))))))))))
 
 (defun role-interaction-in-compositions-p (role-ancestors role-compositions)
   (loop for composition in role-compositions
@@ -1714,8 +1753,8 @@ counterpart of the concept is always registered."
         (at-most
          (let ((qualification (fourth list-term)))
            (if qualification
-               `(at-least ,(first list-term) ,(1+ (second list-term)) ,(third list-term) ,qualification)
-             `(at-least ,(first list-term) ,(1+ (second list-term)) ,(third list-term)))))
+               `(at-least ,(1+ (second list-term)) ,(third list-term) ,qualification)
+             `(at-least ,(1+ (second list-term)) ,(third list-term)))))
         (d-at-most
          (let ((qualification (fourth list-term)))
            (if qualification
@@ -1883,6 +1922,18 @@ counterpart of the concept is always registered."
                                            :concept-node concept-node))))))))
            (t (error "unexpected")))))))
 
+(defun update-told-info (concept)
+  (let ((subsumers (concept-told-subsumers concept))
+        (disjoints (concept-told-disjoints concept))
+        (referenced-disjoints (concept-referenced-disjoints concept)))
+    (if (and-concept-p concept)
+        (set-told-subsumer-of-and concept)
+      (set-told-subsumer-of-or concept nil))
+    (setf (concept-told-subsumers concept) (concept-set-union subsumers (concept-told-subsumers concept)))
+    (setf (concept-told-disjoints concept) (concept-set-union disjoints (concept-told-disjoints concept)))
+    (setf (concept-referenced-disjoints concept)
+          (concept-set-union referenced-disjoints (concept-referenced-disjoints concept)))))
+
 (defun set-told-subsumer-of-and (and-concept)
   (if (and-concept-p and-concept)
     (loop for concept in (concept-term and-concept)
@@ -1899,27 +1950,29 @@ counterpart of the concept is always registered."
 
 (defun set-told-subsumer-of-or (or-concept or-concept-node)
   (if (or-concept-p or-concept)
-    (loop for concept in (concept-term or-concept)
-          for concept-p = (concept-p-internal concept)
-          for concept-subsumers = (concept-told-subsumers concept)
-          for concept-disjoints = (concept-told-disjoints concept)
-          with subsumers = concept-subsumers
-          with disjoints = concept-disjoints
-          with referenced-disjoints = nil
-          do
-          (setf subsumers (intersection concept-subsumers subsumers))
-          (setf disjoints (intersection concept-disjoints disjoints))
-          (setf referenced-disjoints (concept-set-union (concept-referenced-disjoints concept)
-                                                        referenced-disjoints))
-          when (and concept-p
-                    or-concept-node
-                    (not (concept-primitive-p or-concept-node)))
-          do (pushnew or-concept-node (concept-told-subsumers concept))
-          finally
-          (setf (concept-told-subsumers or-concept) subsumers)
-          (setf (concept-told-disjoints or-concept) disjoints)
-          (setf (concept-referenced-disjoints or-concept) referenced-disjoints)
-          (return or-concept))
+      (loop with referenced-disjoints = nil
+            with add-or-concept = (and or-concept-node
+                                       (not (concept-primitive-p or-concept-node)))
+            for concept in (concept-term or-concept)
+            for concept-subsumers = (concept-told-subsumers concept)
+            for concept-disjoints = (concept-told-disjoints concept)
+            for subsumers = concept-subsumers then subsumers
+            for disjoints = concept-disjoints then disjoints
+            do
+            (unless (eq concept-subsumers subsumers)
+              (setf subsumers (concept-set-intersection concept-subsumers subsumers)))
+            (unless (eq concept-disjoints disjoints)
+              (setf disjoints (concept-set-intersection concept-disjoints disjoints)))
+            (setf referenced-disjoints (concept-set-union (concept-referenced-disjoints concept)
+                                                          referenced-disjoints))
+            (when add-or-concept
+              (pushnew or-concept-node (concept-told-subsumers concept)))
+            finally
+            (setf (concept-told-subsumers or-concept) subsumers)
+            (setf (concept-told-disjoints or-concept) disjoints)
+            (setf (concept-referenced-disjoints or-concept) referenced-disjoints)
+            #+:debug (return (values or-concept subsumers disjoints))
+            #-:debug (return or-concept))
     or-concept))
 
 (declaim (notinline prepend-prefix))

@@ -38,7 +38,7 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defvar *structure-id-lock*
-    #+(and :lispworks :lispworks6)
+    #+(and :lispworks (or :lispworks6 :lispworks7))
     (mp:make-lock :name "Global Structure Id" :sharing t)
     #+(and :allegro :smp-macros)
     (mp:make-sharable-lock :name "Global Structure Id"
@@ -54,12 +54,12 @@
   (declare (ignore body))
   (error "unexpected use of with-racer-exclusive-lock for lock ~S" lock))
 
-#+(and :lispworks :lispworks6)
+#+(and :lispworks (or :lispworks6 :lispworks7))
 (defmacro racer-with-exclusive-lock ((lock) &body body)
   `(mp:with-exclusive-lock (,lock)
      . ,body))
 
-#+(and :lispworks (not :lispworks6))
+#+(and :lispworks (not (or :lispworks6 :lispworks7)))
 (defmacro racer-with-exclusive-lock ((lock) &body body)
   (declare (ignore lock))
   `(lw:without-interrupts
@@ -84,7 +84,7 @@
        . ,body)
      ,result-sym))
 
-#+(and :lispworks :lispworks6)
+#+(and :lispworks (or :lispworks6 :lispworks7))
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defvar *without-interrupts-lock*
     (mp:make-lock :name "without-interrupts" :recursivep nil :important-p t))
@@ -104,10 +104,10 @@
   #+(and :allegro :smp-macros)
   `(excl:with-delayed-interrupts
     . ,forms)
-  #+(and :lispworks :lispworks6)
+  #+(and :lispworks (or :lispworks6 :lispworks7))
   `(mp:with-exclusive-lock (*without-interrupts-lock*)
      . ,forms)
-  #+(and :lispworks (not :lispworks6))
+  #+(and :lispworks (not (or :lispworks6 :lispworks7)))
   `(lw:without-interrupts
      . ,forms)
   #+:ccl
@@ -119,10 +119,10 @@
      . ,forms))
 
 (defmacro racer-atomic-incf (place &optional (delta 1))
-  #+(or :ccl (and :lispworks :lispworks6))
+  #+(or :ccl (and :lispworks (or :lispworks6 :lispworks7)))
   `(racer-with-exclusive-lock (*structure-id-lock*)
      (incf ,place ,delta))
-  #+(and :lispworks (not :lispworks6))
+  #+(and :lispworks (not (or :lispworks6 :lispworks7)))
   `(racer-without-interrupts
      (incf ,place ,delta))
   #+(and :allegro :smp-macros :allegro-v8.2)
@@ -138,10 +138,10 @@
   )
 
 (defmacro racer-atomic-setf (place value)
-  #+(or :ccl (and :lispworks :lispworks6))
+  #+(or :ccl (and :lispworks (or :lispworks6 :lispworks7)))
   `(racer-with-exclusive-lock (*structure-id-lock*)
      (setf ,place ,value))
-  #+(and :lispworks (not :lispworks6))
+  #+(and :lispworks (not (or :lispworks6 :lispworks7)))
   `(racer-without-interrupts
      (setf ,place ,value))
   #+(and :allegro :smp-macros :allegro-v8.2)
@@ -163,10 +163,10 @@
   )
 
 (defmacro racer-atomic-push (object place)
-  #+(or :ccl (and :lispworks :lispworks6))
+  #+(or :ccl (and :lispworks (or :lispworks6 :lispworks7)))
   `(racer-with-exclusive-lock (*structure-id-lock*)
      (push ,object ,place))
-  #+(and :lispworks (not :lispworks6))
+  #+(and :lispworks (not (or :lispworks6 :lispworks7)))
   `(racer-without-interrupts
      (push ,object ,place))
   #+(and :allegro :smp-macros :allegro-v8.2)
@@ -182,10 +182,10 @@
   )
 
 (defmacro racer-atomic-pop (place)
-  #+(or :ccl (and :lispworks :lispworks6))
+  #+(or :ccl (and :lispworks (or :lispworks6 :lispworks7)))
   `(racer-with-exclusive-lock (*structure-id-lock*)
      (pop ,place))
-  #+(and :lispworks (not :lispworks6))
+  #+(and :lispworks (not (or :lispworks6 :lispworks7)))
   `(racer-without-interrupts
      (pop ,place))
   #+(and :allegro :smp-macros :allegro-v8.2)
@@ -201,10 +201,10 @@
   )
 
 (defmacro racer-shared-read (place)
-  #+(and :lispworks :lispworks6)
+  #+(and :lispworks (or :lispworks6 :lispworks7))
   `(mp:with-sharing-lock (*structure-id-lock*)
     ,place)
-  #+(and :lispworks (not :lispworks6))
+  #+(and :lispworks (not (or :lispworks6 :lispworks7)))
   `(racer-without-interrupts
      ,place)
   #+(or :ccl (and :allegro :smp-macros))

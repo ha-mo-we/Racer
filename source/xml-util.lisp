@@ -152,7 +152,7 @@
   destructor)
 
 (defvar *resource-pool-lock* 
-  #+(and :lispworks :lispworks6)
+  #+(and :lispworks (or :lispworks6 :lispworks7))
   (mp:make-lock :name "NOX Resource Pool")
   #+(and :allegro :smp-macros)
   (mp:make-sharable-lock :name "NOX Resource Pool")
@@ -161,19 +161,19 @@
 
 
 #|
-#-(or :ccl :excl :sbcl (and :lispworks (not :lispworks6)))
+#-(or :ccl :excl :sbcl (and :lispworks (not (or :lispworks6 :lispworks7))))
 (defmacro without-interrupts (&body body)
   (warn "No working WITHOUT-INTERRUPTS in this implementation")
   `(progn ,@body))
 
-#+(and :lispworks (not :lispworks6))
+#+(and :lispworks (not (or :lispworks6 :lispworks7)))
 (defmacro without-interrupts (&body forms)
   `(lw:without-interrupts .,forms))
 |#
 
 #-:ccl
 (defmacro nox-atomic-push (thing place)
-  #+(and :lispworks :lispworks6)
+  #+(and :lispworks (or :lispworks6 :lispworks7))
   `(mp:with-lock (*resource-pool-lock*)
      (push ,thing ,place))
   #+(and :allegro :smp-macros :allegro-v8.2)
@@ -189,7 +189,7 @@
 
 #-:ccl
 (defmacro nox-atomic-pop (place)
-  #+(and :lispworks :lispworks6)
+  #+(and :lispworks (or :lispworks6 :lispworks7))
   `(mp:with-lock (*resource-pool-lock*)
      (pop ,place))
   #+(and :allegro :smp-macros :allegro-v8.2)

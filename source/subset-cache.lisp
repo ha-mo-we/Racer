@@ -387,16 +387,16 @@
                        ordered-set
                      (cons selected-element (remove selected-element ordered-set)))))
               (find-subset-3 new-ordered-set top-entry))))
-      (loop-over-successors node successors
-        with entry-key = (concept-hash-id (first ordered-set))
-        for node-key = (cache-entry-key node)
-        do
-        (cond ((eql entry-key node-key)
-               (return-from find-subset-1
-                 (find-subset-3 ordered-set node)))
-              ((< entry-key node-key)
-               (return-from find-subset-1 
-                 (find-subset-1 (rest ordered-set) successors nil))))))))
+      (let ((entry-key (concept-hash-id (first ordered-set))))
+        (loop-over-successors node successors
+          for node-key = (cache-entry-key node)
+          do
+          (cond ((eql entry-key node-key)
+                 (return-from find-subset-1
+                   (find-subset-3 ordered-set node)))
+                ((< entry-key node-key)
+                 (return-from find-subset-1 
+                   (find-subset-1 (rest ordered-set) successors nil)))))))))
 
 (defun find-top-level-entry (ordered-set successors)
   (loop for element in ordered-set

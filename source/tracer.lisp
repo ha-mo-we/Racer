@@ -829,7 +829,7 @@
                               (make-instance 'tracer-trace-menu-item
                                              :mnemonic-title "Expand/Collapse"
                                              :enabling-entry-classes '(folder-history)
-                                             :accelerator #\right
+                                             :accelerator "Accelerator-Right"
                                              :callback (lambda (&rest args)
                                                          (declare (ignore args))
                                                          (expand-collapse-trace-entry trace-dialog)

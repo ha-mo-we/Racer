@@ -87,8 +87,8 @@
   #+:lispworks
   (defun make-lock ()
     (mp:make-lock :important-p nil
-                  #+:lispworks6 :safep #+:lispworks6 t
-                  #+:lispworks6 :recursivep #+:lispworks6 t
+                  #+(or :lispworks6 :lispworks7) :safep #+(or :lispworks6 :lispworks7) t
+                  #+(or :lispworks6 :lispworks7) :recursivep #+(or :lispworks6 :lispworks7) t
                   ))
 
   #+:ccl
@@ -213,8 +213,8 @@
   #+:lispworks
   (defun make-lock ()
     (mp:make-lock :important-p nil
-                  #+:lispworks6 :safep #+:lispworks6 t
-                  #+:lispworks6 :recursivep #+:lispworks6 t
+                  #+(or :lispworks6 :lispworks7) :safep #+(or :lispworks6 :lispworks7) t
+                  #+(or :lispworks6 :lispworks7) :recursivep #+(or :lispworks6 :lispworks7) t
                   ))
 
   #+:ccl
@@ -282,12 +282,12 @@
   ;;;
   ;;;
   
-  #+(and :lispworks (not :lispworks5.1) (not :lispworks6))
+  #+(and :lispworks (not :lispworks5.1) (not (or :lispworks6 :lispworks7)))
   (defun release-locks ()
     (mp:release-lock *process-lock*)
     (mp:release-lock *lifecycle-lock*))
 
-  #+(and :lispworks (or :lispworks5.1 :lispworks6))
+  #+(and :lispworks (or :lispworks5.1 (or :lispworks6 :lispworks7)))
   (defun release-locks ()
     (mp:process-unlock *process-lock* nil)
     (mp:process-unlock *lifecycle-lock* nil))

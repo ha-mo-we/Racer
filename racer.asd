@@ -40,8 +40,7 @@
                                 (directory-namestring *load-pathname*)
                                 "**/*.*")))
   (setf (logical-pathname-translations "racer")
-        `(("**;*.*.*" ,translation))))
-
+    `(("**;*.*.*" ,translation))))
 
 ;;; ========================================================================================
 
@@ -92,56 +91,6 @@
 #+(and :lispworks (not :application-generation))
 (pushnew :tracer-window *features*)
 
-
-;;; ========================================================================================
-
-#| 
-;;; Compilation settings are now controlled in user config files
-;;; Otherwise the default setting is used
-#-:debug 
-(proclaim '(optimize
-            (safety 0)		        ; Run time error checking level
-            (speed 3)			; Speed of the compiled source
-            (compilation-speed 0)	; Speed of compilation
-            (space 0)			; Space of both intermediate files and object
-            (debug 0)
-            ))
-
-#+(and :debug :ccl)
-(proclaim '(optimize (debug 2) (safety 3)))
-
-#+(and :allegro :debug)
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  (declaim
-   (optimize
-    (safety 1)		        ; Run time error checking level
-    (speed 2)			; Speed of the compiled code
-    (compilation-speed 0)	; Speed of compilation
-    (space 1)			; Space of both intermediate files and object
-    (debug 1))))                ; switches TAIL-CALL-SELF-MERGE-SWITCH on
-
-(eval-when (:compile-toplevel :load-toplevel :execute)
-  #+(and :lispworks (not :debug))
-  (defun set-optimization-settings ()
-    (proclaim '(optimize
-                (safety 0)		        ; Run time error checking level
-                (speed 3)			; Speed of the compiled code
-                (compilation-speed 0)           ; Speed of compilation
-                (space 0)			; Space of both intermediate files and object
-                (debug 0)
-                )))
-  #+(and :lispworks :debug)
-  (defun set-optimization-settings ()
-    (proclaim
-     '(optimize
-       (safety 3)		        ; Run time error checking level
-       (speed 1)			; Speed of the compiled code
-       (compilation-speed 1)	        ; Speed of compilation
-       (space 0)			; Space of both intermediate files and object
-       (debug 2))))
-  #+:lispworks
-  (set-optimization-settings))
-|#
 
 ;;; ========================================================================================
 

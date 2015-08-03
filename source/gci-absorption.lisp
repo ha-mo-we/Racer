@@ -61,9 +61,9 @@
             for ant = (first gci) do
             (push gci (gethash ant ant-index)))
       (loop with record-gci-absorption-dependencies = *record-gci-absorption-dependencies*
-	    for gci in gcis
+	    with deleted-gcis = nil
+            for gci in gcis
             for (ant con) = gci
-            with deleted-gcis = nil
             do
             (when (and (atomic-concept-p con)
                        (concept-primitive-p con)
@@ -516,14 +516,14 @@
                              :arguments (list gci-list)
                              :expanded nil
                              :trace-result t)
-    (loop for modified-p = nil
-	  with record-gci-absorption-dependencies = *record-gci-absorption-dependencies*
+    (loop with record-gci-absorption-dependencies = *record-gci-absorption-dependencies*
+	  for modified-p = nil
 	  do
-          (loop for gcis on gci-list
-                for gci-1 = (first gcis)
-                with removed-gcis = nil
+          (loop with removed-gcis = nil
                 with added-gcis = nil
                 with bottom = *bottom-concept*
+                for gcis on gci-list
+                for gci-1 = (first gcis)
                 if (or-concept-p gci-1)
                 do
                 (loop for gci-2 in (rest gcis)
