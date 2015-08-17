@@ -1199,12 +1199,13 @@
 				 ;;((and (not (literal-p object)) (ontology-node-p object node-ht)
 				 ;;      (node-eq predicate !owl:imports))
 				 ;; (break))
-				 ((and (not (literal-p object))
+				 #|((and (not (literal-p object))
 				       (ontology-node-p object node-ht)
 				       (not (eq subject object)))
 				  ;; Ontology appears in object position?
 				  ;; Then it is a second-level-ontology
-				  (push (owl-as-ontology object node-ht) second-level-ontologies)))))
+				  (push (owl-as-ontology object node-ht) second-level-ontologies))|#
+                                 )))
 		
 		   ;; (format *trace-output* "~%Phase 2~%")
 
