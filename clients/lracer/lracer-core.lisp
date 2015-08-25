@@ -80,8 +80,10 @@
 
   #+:clisp
   :utf-8
+
+  #+:ccl :utf-8
     
-  #-(or :allegro :sbcl :clisp)
+  #-(or :allegro :sbcl :clisp :ccl)
   :ignored
 
   )
@@ -185,6 +187,13 @@
 		    (external-format *external-format*))
   
   (declare (ignorable external-format))
+
+  #+:ccl
+  (ccl:make-socket 
+   :connect :active 
+   :remote-port port 
+   :remote-host host
+   :external-format external-format)
   
   #+:allegro
   (let ((external-format (excl:find-external-format external-format))
