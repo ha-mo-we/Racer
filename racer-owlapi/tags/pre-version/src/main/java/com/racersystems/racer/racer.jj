@@ -1,0 +1,1389 @@
+options {
+    STATIC=false;
+    LOOKAHEAD=3;
+}
+
+PARSER_BEGIN(RacerOWLParser)
+
+package com.racersystems.racer;
+import java.util.*;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.vocab.*;
+import org.semanticweb.owlapi.reasoner.*;
+import org.semanticweb.owlapi.reasoner.impl.*;
+import java.net.*;
+
+public class RacerOWLParser {
+
+    private java.util.logging.Logger logger = java.util.logging.Logger.getLogger(RacerOWLParser.class.getName());
+    private OWLDataFactory dataFactory;
+
+    public final void setUp(OWLDataFactory dataFactory) {
+        this.dataFactory = dataFactory;
+    }
+   public final void errorRecovery() {
+        try {
+            consumeTokensUntilLineEnd();
+        } catch (ParseException e) {
+        }
+    }
+
+      final private String consumeTokensUntilLineEnd() throws ParseException {
+            Token oldToken;
+            StringBuffer buffer = null;
+            if ((oldToken = token).next != null) token = token.next;
+            else token = token.next = token_source.getNextToken();
+
+            jj_ntk = -1;
+            if (token.kind == NEWLINE) {
+                jj_gen++;
+                if (++jj_gc > 100) {
+                    jj_gc = 0;
+                    for (int i = 0; i < jj_2_rtns.length; i++) {
+                        JJCalls c = jj_2_rtns[i];
+                        while (c != null) {
+                            if (c.gen < jj_gen) c.first = null;
+                            c = c.next;
+                        }
+                    }
+                }
+                return null;
+            }
+            buffer = new StringBuffer();
+            while (true) {
+                if ((oldToken = token).next != null) {
+                    token = token.next;
+                }
+                else token = token.next = token_source.getNextToken();
+                buffer.append(oldToken.image+" ");
+                jj_ntk = -1;
+                if (token.kind == NEWLINE) {
+                    jj_gen++;
+                    if (++jj_gc > 100) {
+                        jj_gc = 0;
+                        for (int i = 0; i < jj_2_rtns.length; i++) {
+                            JJCalls c = jj_2_rtns[i];
+                            while (c != null) {
+                                if (c.gen < jj_gen) c.first = null;
+                                c = c.next;
+                            }
+                        }
+                    }
+                    return buffer.toString();
+                }
+            }
+        }
+
+}
+
+PARSER_END(RacerOWLParser)
+
+TOKEN_MGR_DECLS : {
+
+    int commentNestingDepth ;
+
+}
+
+SKIP: {" " | "\t" | "\r"|  "|" }
+//SKIP: {" " | "\t" | "\r" }
+
+TOKEN:
+{
+   <NEWLINER : "\\\\N">
+}
+
+TOKEN:
+{
+    <INT: (["0"-"9"])+>
+}
+
+    TOKEN:
+{
+    <TOP: "top" | "*top*" | "*TOP*" >
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <BOTTOM: "bottom" | "*bottom*"| "*BOTTOM*">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <DBOTTOM: "bottom-datatype-role" | "*bottom-datatype-role*">
+}
+TOKEN[IGNORE_CASE]:
+{
+    <OBOTTOM: "bottom-object-role" | "*bottom-object-role*"| "*BOTTOM*">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <DTOP: "top-datatype-role" | "*top-datatype-role*">
+}
+TOKEN[IGNORE_CASE]:
+{
+    <OTOP: "top-object-role" | "*top-object-role*"| "*BOTTOM*">
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+TOKEN[IGNORE_CASE]:
+{
+    <ABORTED: ":aborted">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <ATLEAST: "at-least">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <DATLEAST: "d-at-least">
+}
+
+
+TOKEN[IGNORE_CASE]:
+{
+    <ATMOST: "at-most">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <DATMOST: "d-at-most">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <EXACTLY: "exactly">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <DEXACTLY: "dexactly">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <AND: "and">
+}
+TOKEN[IGNORE_CASE]:
+{
+    <OR: "or">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <NOT: "not">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <ALL: "all">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <DALL: "d-all">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <SOME: "some">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <DSOME: "dsome">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <INV :"inv">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <DBASETYPE :"d-base-type">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <DLITERAL : "d-literal">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <DCOMPLEMENT : "d-complement">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+   <DDATARANGE :"d-data-range">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+   <DPOSSIBLEVALUES :"d-possible-values">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <booleanValue: "RACER-INTERNAL%HAS-BOOLEAN-VALUE">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <realValue: "RACER-INTERNAL%HAS-REAL-VALUE">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <stringValue: "RACER-INTERNAL%HAS-STRING-VALUE">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <integerValue: "RACER-INTERNAL%HAS-INTEGER-VALUE">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <noValue: "NO">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <ANSWER: ":answer">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <INCONSISTENTABOX: ":abox-inconsistent">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <VOID: ":void">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <OK: ":ok">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <ERROR: ":error">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <ROLEFILLERS: ":role-fillers">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <ASSERTIONS: ":assertions" >
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <TOLDATTRIBUTEFILLERS: ":told-attribute-fillers">
+}
+TOKEN[IGNORE_CASE]:
+{
+    <TOLDDATATYPEFILLERS: ":told-datatype-fillers" >
+}
+TOKEN[IGNORE_CASE]:
+{
+    <ANNOTATIONDATATYPEPROPERTYFILLERS: ":annotation-datatype-property-fillers">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <ANNOTATIONPROPERTYFILLERS: ":annotation-property-fillers" >
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <DIRECTTYPES:  ":direct-types">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <TOBECOMPUTED: ":to-be-computed" >
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+TOKEN:
+{
+    <NEWLINE: "\n">
+}
+
+TOKEN:
+{
+    <OPENPAR: "(">
+}
+
+TOKEN:
+{
+    <CLOSEPAR: ")">
+}
+
+TOKEN[IGNORE_CASE]:
+{
+    <NIL: "NIL">
+}
+
+
+TOKEN[IGNORE_CASE]:
+{
+    <TRUE : "t">
+}
+
+TOKEN:
+{
+    <NCNAME1: (<INT>|<NCCHAR1>) (<NCCHAR_FULL>)*>
+}
+
+
+TOKEN:
+{
+    <NCCHAR_FULL: <NCCHAR1> | "_" | "," | "." | "-" |"<" |"=" |">"| ["0"-"9"] | "\u00B7" | "%" >
+}
+
+TOKEN:
+{
+    <NCCHAR1: ["A"-"Z"]
+        | ["a"-"z"]
+        | [":"]
+        | ["/"]
+        | ["#"]
+        | ["-"]
+        | ["+"]
+        | ["%"]
+        | ["$"]
+        | ["&"]
+        | ["'"]
+        | ["!"]
+        | [":"]
+        | ["\u0011" - "\u001F"]
+        | ["\u003A" - "\u0040"]
+        | ["\u00C0" - "\u00D6"]
+        | ["\u00D8"-"\u00F6"]
+        | ["\u00F8"-"\u02FF"]
+        | ["\u0370"-"\u037D"]
+        | ["\u037F"-"\u1FFF"]
+        | ["\u200C"-"\u200D"]
+       | ["\u2070"-"\u218F"]
+       | ["\u2C00"-"\u2FEF"]
+       | ["\u3001"-"\uD7FF"]
+        | ["\uF900"-"\uFFFF"]
+    >
+}
+
+TOKEN:
+{<QUOTED_STRING: "\\S" ( ("\\S")* | (~["\""]) )+ "\"" >
+}
+
+TOKEN: {
+< STRING_LITERAL:
+"\""
+      (   (~["\"","\\"])
+        | ("\\"
+            ( ["S","s", "N", "n","t","b","r","f","\\","'","\""]
+            )
+          )
+        
+      )*
+      "\""
+  >
+
+     }
+
+
+TOKEN: {
+< STRING_LITERAL2:
+      "\""
+      (   (~["\"","\\","\r"])
+        | ("\\"
+            ( ["S","s", "n","t","b","r","f","\\","'","\""]
+            | ["0"-"7"] ( ["0"-"7"] )?
+            | ["0"-"3"] ["0"-"7"] ["0"-"7"]
+            )
+          )
+      )*
+      "\""
+  >
+
+     }
+
+
+TOKEN:
+{
+    <VAR : "?"<NCNAME1> >
+}
+
+void InconsistentABox() throws InconsistentOntologyException :
+{
+}
+{
+  {String s = consumeTokensUntilLineEnd();
+            if (s != null)
+            logger.severe(s);
+            //throw new InconsistentOntologyException("Racer can not reasoning with inconsistent ontologies.");
+            throw new InconsistentOntologyException();
+  }
+}
+
+void Warning() :
+{
+}
+{
+  {String s = consumeTokensUntilLineEnd();
+            if (s != null)
+            logger.warning(s);
+  }
+}
+
+String readNativeLine() :
+{
+}
+{
+  {return consumeTokensUntilLineEnd();}
+}
+
+
+void Error() :
+{
+}
+{
+ {String s = consumeTokensUntilLineEnd();
+            if (s != null)
+                logger.severe(s);
+ }
+}
+
+void parseOWLAnswer() throws InconsistentOntologyException:
+{
+}
+{
+ (<NEWLINE>| <VOID><NEWLINE>| (<INT>)+<NEWLINE>|(<ERROR>Error()) | <INCONSISTENTABOX>InconsistentABox()
+ | (<ABORTED><NEWLINE>){throw new ReasonerInterruptedException();}
+ )
+}
+
+
+
+void parseOWLError() :
+{
+}
+{
+(<ERROR>(<INT>)*Error())
+}
+
+void parseInconsistentABox() throws InconsistentOntologyException:
+{
+}
+{
+    <INCONSISTENTABOX>InconsistentABox()
+}
+
+void parseOWLErrorOrInconsistentAbox() throws InconsistentOntologyException:
+{
+}
+{
+   (parseOWLError()|parseInconsistentABox())
+}
+
+String parseOWLStringAnswer():
+{ String s = null;
+}
+{
+  (s = Name() <NEWLINE>|  (<ERROR>Error())){return s;}
+}
+
+void parseNotSimplifiedOKAnswer() :
+{
+}
+{
+(<ANSWER>| <OK>)(<INT>)*Warning()<NEWLINE>
+}
+
+void parseNotSimplifiedError() :
+{
+}
+{
+(<ERROR>(<INT>)*Error())
+}
+
+String parseStringResult():
+{
+String s = "";
+}
+{
+ ((<ANSWER><INT>s= Name() Warning())|parseError())   {return s;}
+}
+
+String parseSimpleProtocolStringResult():
+{
+String s = "";
+}
+{
+ ((s= Name() Warning())|parseError())   {return s;}
+}
+
+
+
+void parseError() :
+{
+}
+{
+(<ERROR>(<INT>)*Error())
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+//
+//  SetofSetof OWLClass | OWLObjectProperty | OWLDataProperty
+//
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+Set<Set<OWLClass>> parseConceptSoSResult()  :
+{
+Set<Set<OWLClass>> sos = new HashSet<Set<OWLClass>>();
+ Set<OWLClass> s;
+ String def;
+}
+{
+  (
+  ((<NIL>|(<OPENPAR>(<OPENPAR>(s = ConceptSet())<CLOSEPAR>{sos.add(s);})+<CLOSEPAR>) )
+   Warning() )
+    |parseOWLErrorOrInconsistentAbox())
+  {
+    return sos;
+  }
+}
+
+Set<OWLClass> parseConceptSetResult()   :
+{
+ Set<OWLClass> descs = new HashSet<OWLClass>();
+ OWLClass owlClass;
+}
+{
+   (( (<NIL>|(<OPENPAR>(descs = ConceptSet())<CLOSEPAR>))Warning()) |parseOWLErrorOrInconsistentAbox()){
+    return descs;
+    }
+}
+
+Node<OWLClass> parseClassNodeResult()  :
+{
+ Set<OWLClass> descs = new HashSet<OWLClass>();
+ OWLClass owlClass;
+}
+{
+   (( (<NIL>|(<OPENPAR>(descs = ConceptSet())<CLOSEPAR>))Warning()) |parseOWLErrorOrInconsistentAbox()){
+    return new OWLClassNode(descs);
+    }
+}
+
+Set<OWLClass> ConceptSet() :
+{
+ Set<OWLClass> descs = new HashSet<OWLClass>();
+ OWLClass owlClass;
+}
+{
+    ((owlClass=ConceptName() {descs.add(owlClass);})+) {
+        return descs;
+    }
+}
+
+Node<OWLClass> ClassNodeSet() :
+{
+ Set<OWLClass> descs = new HashSet<OWLClass>();
+ OWLClass owlClass;
+}
+{
+    ((owlClass=ConceptName() {descs.add(owlClass);})+) {
+        return new OWLClassNode(descs);
+    }
+}
+
+Set<OWLLiteral> ConstantSet() :
+{
+ Set<OWLLiteral> constants = new HashSet<OWLLiteral>();
+ OWLLiteral constant;
+ String name;
+}
+{
+  ((<OPENPAR>((constant=Constant(){constants.add(constant);})+ | <NIL>)<CLOSEPAR> )| <NIL>){
+    return constants;
+  }
+}
+
+Set<OWLLiteral> parseConstantSetResult()  :
+{
+ Set<OWLLiteral> constants = new HashSet<OWLLiteral>();
+ OWLLiteral constant;
+ String name;
+}
+{
+    ((<OPENPAR>((constant=Constant(){constants.add(constant);})+ | <NIL>)<CLOSEPAR>Warning() )| <NIL>Warning() | parseOWLErrorOrInconsistentAbox()){
+    return constants;
+  }
+}
+
+Set<OWLDatatype> parseDatatypeSetResult()  :
+{
+  Set<OWLDatatype> types = new HashSet<OWLDatatype>();
+  OWLDatatype type;
+}
+{
+   (( ( <NIL>|(type = DataType(){types.add(type);})*)Warning()) | parseOWLErrorOrInconsistentAbox() ){
+        return types;
+    }
+}
+
+OWLDatatype DataType():
+{
+    IRI uri;
+}
+{
+ <OPENPAR>( (<DBASETYPE>uri=IRI()<CLOSEPAR>{return dataFactory.getOWLDatatype(uri);})
+           |(<TRUE><CLOSEPAR>{return dataFactory.getTopDatatype();})
+          ){}
+}
+
+OWLLiteral Constant():
+{
+    String literal;
+    OWLDatatype datatype = null;
+}
+{
+ <OPENPAR><DLITERAL>literal = LiteralValue()(datatype = DataType())?<CLOSEPAR>{
+    if (datatype == null)
+        return dataFactory.getOWLStringLiteral(literal);
+    else
+        return dataFactory.getOWLTypedLiteral(literal, datatype);
+    }
+}
+
+OWLDataOneOf DataOneOf():
+{
+    OWLLiteral constant;
+    Set<OWLLiteral> constants = new HashSet<OWLLiteral>();
+}
+{
+ <OPENPAR><DPOSSIBLEVALUES>(constant = Constant(){constants.add(constant);})+<CLOSEPAR>{
+    return dataFactory.getOWLDataOneOf(constants);
+ }
+}
+
+
+OWLDataComplementOf DataComplementOf():
+{
+    OWLDataRange dataRange;
+}
+{
+    <OPENPAR><DCOMPLEMENT>dataRange=DataRange()<CLOSEPAR>{
+        return dataFactory.getOWLDataComplementOf(dataRange);
+    }
+}
+
+OWLDataRange DataRange():
+{
+    OWLDataRange range;
+}
+{
+    (range = DataType() | range = DataOneOf() | range = DataComplementOf()) {
+        return range;
+    }
+}
+
+
+Set<Set<OWLClassExpression>> parseDescriptionSoSResult()  :
+{
+Set<Set<OWLClassExpression>> sos = new HashSet<Set<OWLClassExpression>>();
+Set<OWLClassExpression> s ;
+}
+{
+ (<NIL>Warning()|((<OPENPAR>(<OPENPAR>(s = ConceptExpressionSet())<CLOSEPAR>{sos.add(s);})+<CLOSEPAR>Warning())) | parseOWLErrorOrInconsistentAbox()) {
+    return sos;
+ }
+}
+
+NodeSet<OWLClass> parseOWLClassNodeSetResult()  :
+{
+Set<Node<OWLClass>> sos = new HashSet<Node<OWLClass>>();
+Set<OWLClass> s ;
+}
+{
+ (<NIL>Warning()|((<OPENPAR>(<OPENPAR>(s = ConceptSet())<CLOSEPAR>{sos.add(new OWLClassNode(s));})+<CLOSEPAR>Warning())) | parseOWLErrorOrInconsistentAbox()) {
+    return new OWLClassNodeSet(sos);
+ }
+}
+
+Set<OWLClassExpression> parseConceptExpressionSetResult()  :
+{
+    Set<OWLClassExpression>result;
+}
+{
+(( (result = ConceptExpressionSet())Warning()) {
+    return result;
+ }) | (parseOWLErrorOrInconsistentAbox(){ return new HashSet<OWLClassExpression>();})
+}
+
+
+Set<OWLClassExpression> ConceptExpressionSet() :
+{
+ Set<OWLClassExpression> descs = new HashSet<OWLClassExpression>();
+ OWLClassExpression desc;
+}
+{
+    ((desc = ConceptExpression() {  descs.add(desc);})+) {
+        return descs;
+    }
+}
+
+
+OWLClassExpression ConceptExpression() :
+{
+    OWLClassExpression desc;
+}
+{
+    (desc=ConceptName() | desc=And() | desc=Or() | desc=Not() | desc=All() | desc=Some() | desc=AtLeast() | desc=AtMost() | desc=Exactly() ) {
+        return desc;
+    }
+}
+
+
+OWLPropertyRange PropertyRange() :
+{
+    OWLPropertyRange range;
+}
+{
+    ((range = ConceptExpression()) |( range = DataType())) {
+        return range;
+    }
+}
+
+OWLClassExpression And():
+{
+    Set<OWLClassExpression> operands;
+}
+{
+    <OPENPAR><AND>(operands=ConceptExpressionSet())<CLOSEPAR> {
+        return dataFactory.getOWLObjectIntersectionOf(operands);
+    }
+}
+
+OWLClassExpression Or():
+{
+    Set<OWLClassExpression> operands;
+}
+{
+    <OPENPAR><OR>(operands=ConceptExpressionSet())<CLOSEPAR> {
+        return dataFactory.getOWLObjectUnionOf(operands);
+    }
+}
+
+OWLClassExpression Not() :
+{
+    OWLClassExpression operand;
+}
+{
+    <OPENPAR><NOT>(operand=ConceptExpression())<CLOSEPAR> {
+        return dataFactory.getOWLObjectComplementOf(operand);
+    }
+}
+
+OWLClassExpression All() :
+{
+    OWLProperty prop;
+    OWLPropertyRange filler;
+}
+{
+    <OPENPAR> (<ALL>prop=ObjectPropertyName() filler=PropertyRange()<CLOSEPAR> {
+        return dataFactory.getOWLObjectAllValuesFrom( (OWLObjectProperty) prop, (OWLClassExpression) filler);
+        } | <DALL>prop=DataPropertyName() filler=PropertyRange()<CLOSEPAR> {
+            return dataFactory.getOWLDataAllValuesFrom( (OWLDataProperty) prop, (OWLDataRange) filler);
+        })
+}
+
+OWLClassExpression Some() :
+{
+    OWLProperty prop;
+    OWLPropertyRange filler;
+}
+{
+    <OPENPAR>(<SOME>prop=ObjectPropertyName() filler=PropertyRange()<CLOSEPAR>{
+           return dataFactory.getOWLObjectSomeValuesFrom( (OWLObjectProperty) prop, (OWLClassExpression) filler);
+        } | <DSOME>prop=DataPropertyName() filler=PropertyRange()<CLOSEPAR>{
+           return dataFactory.getOWLDataSomeValuesFrom( (OWLDataProperty) prop, (OWLDataRange) filler);
+        })
+
+}
+
+
+OWLClassExpression AtLeast():
+{
+    OWLProperty prop;
+    OWLPropertyRange filler = null;
+    int card;
+}
+{
+    <OPENPAR>(<ATLEAST>card=Integer() prop=ObjectPropertyName() (filler=PropertyRange())?<CLOSEPAR>{
+        return filler == null ? dataFactory.getOWLObjectMinCardinality( card,(OWLObjectProperty) prop) :
+                                    dataFactory.getOWLObjectMinCardinality(card,(OWLObjectProperty)prop, (OWLClassExpression) filler);
+        }
+        | <DSOME>card=Integer() prop=DataPropertyName() (filler=PropertyRange())?<CLOSEPAR> {
+            return filler == null ? dataFactory.getOWLDataMinCardinality(card, (OWLDataProperty)prop) :
+                                    dataFactory.getOWLDataMinCardinality(card, (OWLDataProperty)prop, (OWLDataRange) filler);
+        })
+}
+
+OWLClassExpression AtMost():
+{
+    OWLProperty prop;
+    OWLPropertyRange filler = null;
+    int card;
+}
+{
+    <OPENPAR>(<ATMOST>card=Integer() prop=ObjectPropertyName() (filler=PropertyRange())?<CLOSEPAR>{
+            return filler == null ? dataFactory.getOWLObjectMaxCardinality(card, (OWLObjectProperty) prop):
+                                    dataFactory.getOWLObjectMaxCardinality(card, (OWLObjectProperty) prop, (OWLClassExpression) filler);
+        }
+        | <DATMOST>card=Integer() prop=DataPropertyName() (filler=PropertyRange())?<CLOSEPAR>{
+            return filler == null ? dataFactory.getOWLDataMaxCardinality(card,(OWLDataProperty) prop) :
+                                    dataFactory.getOWLDataMaxCardinality(card, (OWLDataProperty) prop, (OWLDataRange) filler);
+        })
+}
+
+
+OWLClassExpression Exactly():
+{
+    OWLProperty prop;
+    OWLPropertyRange filler=null;
+    int card;
+}
+{
+    <OPENPAR>(<EXACTLY>card=Integer() prop=ObjectPropertyName() (filler=PropertyRange())?<CLOSEPAR>{
+             return filler == null ? dataFactory.getOWLObjectExactCardinality(card, (OWLObjectProperty) prop):
+                dataFactory.getOWLObjectExactCardinality(card, (OWLObjectProperty) prop, (OWLClassExpression) filler);
+             }
+             |
+             <DEXACTLY>card=Integer() prop=DataPropertyName() (filler=PropertyRange())?<CLOSEPAR>{
+                 return filler == null ? dataFactory.getOWLDataExactCardinality(card, (OWLDataProperty) prop):
+                   dataFactory.getOWLDataExactCardinality(card, (OWLDataProperty) prop, (OWLDataRange)filler);
+             })
+}
+
+
+Set<Set<OWLObjectProperty>> parseRoleSoSResult()  :
+{
+Set<Set<OWLObjectProperty>> sos = new HashSet<Set<OWLObjectProperty>>();
+ Set<OWLObjectProperty> s;
+}
+{
+  (<NIL><NEWLINE>|(<OPENPAR>(<OPENPAR>(s = RoleSet())<CLOSEPAR>{sos.add(s);})+<CLOSEPAR>Warning()) |parseOWLErrorOrInconsistentAbox())
+  {
+    return sos;
+  }
+}
+
+NodeSet<OWLObjectPropertyExpression> parseObjectPropertyNodeSetResult()  :
+{
+ final Set<Node<OWLObjectPropertyExpression>> sos = new HashSet<Node<OWLObjectPropertyExpression>>();
+ Set<OWLObjectPropertyExpression> s;
+}
+{
+  (<NIL><NEWLINE>|(<OPENPAR>(<OPENPAR>(s = RoleExpressionSet())<CLOSEPAR>{sos.add(new OWLObjectPropertyNode(s));})+<CLOSEPAR>Warning()) |parseOWLErrorOrInconsistentAbox())
+  {
+    return new OWLObjectPropertyNodeSet(sos);
+  }
+}
+
+
+Set<OWLObjectProperty> parseRoleSetResult()   :
+{
+Set<OWLObjectProperty> s = new HashSet<OWLObjectProperty>();
+OWLObjectProperty p;
+}
+{
+ (((<NIL>|<OPENPAR>s=RoleSet()<CLOSEPAR>)Warning())|parseOWLErrorOrInconsistentAbox()) { return s;}
+}
+
+Node<OWLObjectPropertyExpression> parseObjectPropertyNodeResult()   :
+{
+Set<OWLObjectPropertyExpression> s = new HashSet<OWLObjectPropertyExpression>();
+OWLObjectProperty p;
+}
+{
+ (((<NIL>|<OPENPAR>s=RoleExpressionSet()<CLOSEPAR>)Warning())|parseOWLErrorOrInconsistentAbox()) { return new OWLObjectPropertyNode(s);}
+}
+
+
+
+Set<OWLObjectProperty> RoleSet() :
+{
+ Set<OWLObjectProperty> descs = new HashSet<OWLObjectProperty>();
+ OWLObjectProperty owlProp;
+}
+{
+     ((owlProp=ObjectPropertyName() {descs.add(owlProp);}) |
+     (<OPENPAR><INV>ObjectPropertyName()<CLOSEPAR>)
+     )* {
+        return descs;
+    }
+}
+
+Set<OWLObjectPropertyExpression> RoleExpressionSet() :
+{
+ Set<OWLObjectPropertyExpression> descs = new HashSet<OWLObjectPropertyExpression>();
+ OWLObjectPropertyExpression owlProp;
+}
+{
+     ((owlProp=ObjectPropertyName() {descs.add(owlProp);}) |
+     (<OPENPAR><INV>owlProp=ObjectPropertyName()<CLOSEPAR>{descs.add(dataFactory.getOWLObjectInverseOf(owlProp));})
+     )* {
+        return descs;
+    }
+}
+
+
+
+Node<OWLObjectPropertyExpression> ObjectPropertyNode() :
+{
+ Set<OWLObjectPropertyExpression> descs = new HashSet<OWLObjectPropertyExpression>();
+ OWLObjectPropertyExpression owlProp;
+}
+{
+     ((owlProp=ObjectPropertyName() {descs.add(owlProp);}) |
+     (<OPENPAR><INV>ObjectPropertyName()<CLOSEPAR>)
+     )* {
+        return new OWLObjectPropertyNode(descs);
+    }
+}
+
+Set<Set<OWLDataProperty>> parseOWLDataRoleSoSResult()  :
+{
+Set<Set<OWLDataProperty>> sos = new HashSet<Set<OWLDataProperty>>();
+ Set<OWLDataProperty> s;
+}
+{
+  ((<NIL><NEWLINE>|<OPENPAR>(<OPENPAR>(s = DataRoleSet())<CLOSEPAR>{sos.add(s);})+<CLOSEPAR>Warning())|parseOWLErrorOrInconsistentAbox())
+  {
+    return sos;
+  }
+}
+
+NodeSet<OWLDataProperty> parseOWLDataPropertyNodeSetResult()  :
+{
+Set<Node<OWLDataProperty>> sos = new HashSet<Node<OWLDataProperty>>();
+ Set<OWLDataProperty> s;
+}
+{
+  ((<NIL><NEWLINE>|<OPENPAR>(<OPENPAR>(s = DataRoleSet())<CLOSEPAR>{sos.add(new OWLDataPropertyNode(s));})+<CLOSEPAR>Warning())|parseOWLErrorOrInconsistentAbox())
+  {
+    return new OWLDataPropertyNodeSet(sos);
+  }
+}
+
+
+Set<Set<OWLDataProperty>> parseDataRoleSoSResult()  :
+{
+Set<Set<OWLDataProperty>> sos = new HashSet<Set<OWLDataProperty>>();
+ Set<OWLDataProperty> s;
+}
+{
+  ((<ANSWER><INT><OPENPAR>(<OPENPAR>(s = DataRoleSet())<CLOSEPAR>{sos.add(s);})+<CLOSEPAR>Warning())|parseOWLErrorOrInconsistentAbox())
+  {
+    return sos;
+  }
+}
+
+
+Set<OWLDataProperty> parseOWLDataRoleSetResult()  :
+{
+Set<OWLDataProperty> s = new HashSet<OWLDataProperty>();
+OWLDataProperty p;
+}
+{
+ ((<NIL>Warning())|(<OPENPAR>s=DataRoleSet()<CLOSEPAR>Warning())|parseOWLErrorOrInconsistentAbox()) { return s;}
+}
+
+Node<OWLDataProperty> parseOWLDataPropertyNodeResult()  :
+{
+Set<OWLDataProperty> s = new HashSet<OWLDataProperty>();
+OWLDataProperty p;
+}
+{
+ ((<NIL>Warning())|(<OPENPAR>s=DataRoleSet()<CLOSEPAR>Warning())|parseOWLErrorOrInconsistentAbox()) { return new OWLDataPropertyNode(s);}
+}
+
+
+Set<OWLDataProperty> parseDataRoleSetResult()  :
+{
+Set<OWLDataProperty> s = new HashSet<OWLDataProperty>();
+OWLDataProperty p;
+}
+{
+ ((<ANSWER><INT>(<NIL>|<OPENPAR>s=DataRoleSet()<CLOSEPAR>)Warning())|parseOWLErrorOrInconsistentAbox()) { return s;}
+}
+
+
+Set<OWLDataProperty> DataRoleSet() :
+{
+ Set<OWLDataProperty> descs = new HashSet<OWLDataProperty>();
+ OWLDataProperty owlProp;
+}
+{
+    ((owlProp=DataPropertyName() { descs.add(owlProp);})*) {
+        return descs;
+    }
+}
+
+OWLObjectPropertyExpression parseOWLInverseRoleSetResult()  :
+{
+ OWLObjectPropertyExpression prop = null;
+}
+{
+    (((<NIL>)|(prop = InverseRole()Warning()))|parseOWLErrorOrInconsistentAbox()){return prop;}
+}
+
+OWLObjectPropertyExpression parseInverseRoleSetResult()  :
+{
+ OWLObjectPropertyExpression prop = null;
+}
+{
+    ((<ANSWER><INT>prop = InverseRole()Warning())|parseOWLErrorOrInconsistentAbox()){return prop;}
+}
+
+
+OWLObjectPropertyExpression InverseRole() :
+{
+    OWLObjectPropertyExpression prop;
+}
+{
+     (prop = ObjectPropertyName(){return prop;} ) |(<OPENPAR><INV>prop=ObjectPropertyName()<CLOSEPAR>{
+        return dataFactory.getOWLObjectInverseOf(prop);
+     })
+}
+
+Set<OWLIndividual> parseOWLIndividualSetResult()  :
+{
+ Set<OWLIndividual> individuals = new HashSet<OWLIndividual>();
+
+}
+{
+  (((<NIL>|<OPENPAR>individuals = IndividualSet()<CLOSEPAR>)Warning())|parseOWLErrorOrInconsistentAbox()) {return individuals;}
+}
+
+Set<OWLNamedIndividual> parseOWLNamedIndividualSetResult()  :
+{
+ Set<OWLNamedIndividual> individuals = new HashSet<OWLNamedIndividual>();
+
+}
+{
+  (((<NIL>|<OPENPAR>individuals = NamedIndividualSet()<CLOSEPAR>)Warning())|parseOWLErrorOrInconsistentAbox()) {return individuals;}
+}
+
+Node<OWLNamedIndividual> parseOWLNamedIndividualNodeResult()  :
+{
+ Set<OWLNamedIndividual> individuals = new HashSet<OWLNamedIndividual>();
+
+}
+{
+  (((<NIL>|<OPENPAR>individuals = NamedIndividualSet()<CLOSEPAR>)Warning())|parseOWLErrorOrInconsistentAbox()) {return new OWLNamedIndividualNode(individuals);}
+}
+
+NodeSet<OWLNamedIndividual> parseOWLNamedIndividualNodeSetResult()  :
+{
+Set<Node<OWLNamedIndividual>> sos = new HashSet<Node<OWLNamedIndividual>>();
+Set<OWLNamedIndividual> s ;
+}
+{
+ (<NIL>Warning()|((<OPENPAR>(<OPENPAR>(s = NamedIndividualSet())<CLOSEPAR>{sos.add(new OWLNamedIndividualNode(s));})+<CLOSEPAR>Warning())) | parseOWLErrorOrInconsistentAbox()) {
+    return new OWLNamedIndividualNodeSet(sos);
+ }
+}
+
+
+Set<OWLIndividual> parseIndividualSetResult()   :
+{
+ Set<OWLIndividual> individuals = new HashSet<OWLIndividual>();
+
+}
+{
+  ((<ANSWER><INT>(<NIL>|<OPENPAR>individuals = IndividualSet()<CLOSEPAR>)Warning())|parseOWLErrorOrInconsistentAbox()) {return individuals;}
+}
+
+
+
+Set<OWLIndividual> IndividualSet()  :
+{
+ Set<OWLIndividual> individuals = new HashSet<OWLIndividual>();
+ OWLIndividual individual;
+}
+{
+ ((individual=IndividualName() { individuals.add(individual);})*) {
+    return individuals;
+ }
+}
+
+Set<OWLNamedIndividual> NamedIndividualSet()  :
+{
+ Set<OWLNamedIndividual> individuals = new HashSet<OWLNamedIndividual>();
+ OWLNamedIndividual individual;
+}
+{
+ ((individual=IndividualName() { individuals.add(individual);})*) {
+    return individuals;
+ }
+}
+
+
+
+Set<OWLIndividual> parseSingleIndividualnRQLSetResult()   :
+        {
+         Set<OWLIndividual> individuals = new HashSet<OWLIndividual>();
+         OWLIndividual individual;
+        }
+        {
+          <ANSWER><INT>(<NIL> | <OPENPAR>(<OPENPAR>(individual = parseIndividualTupel()){individuals.add(individual);}<CLOSEPAR>)*<CLOSEPAR> )<NEWLINE> { return individuals;}
+
+       }
+
+
+OWLIndividual parseIndividualTupel()  :
+{
+ OWLIndividual individual;
+}
+{
+   <OPENPAR><VAR>(individual = IndividualName())<CLOSEPAR>{ return individual;}
+}
+
+
+
+
+
+
+Set<OWLObjectProperty> parseRelatedRoleFillersForIndividualViaDescribeResult()   :
+{
+ Set<OWLObjectProperty> properties = new HashSet<OWLObjectProperty>();
+ OWLObjectProperty prop;
+}
+{
+ (
+  ( <ANSWER><INT><OPENPAR>IndividualName()
+  <ASSERTIONS>((<OPENPAR>
+  (<OPENPAR>ConceptSet()<CLOSEPAR>)*
+  <CLOSEPAR>)|<NIL>)
+ <ROLEFILLERS>(<NIL> | <OPENPAR>(prop = RoleFromRoleFillers() { properties.add(prop);})*<CLOSEPAR>)
+ <TOLDATTRIBUTEFILLERS><NIL>
+ <TOLDDATATYPEFILLERS><NIL>
+ <ANNOTATIONDATATYPEPROPERTYFILLERS><NIL>
+ <ANNOTATIONPROPERTYFILLERS><NIL>
+ <DIRECTTYPES>(<TOBECOMPUTED> | (<OPENPAR> (<OPENPAR>(Name())*<CLOSEPAR>)* <CLOSEPAR>) ) <CLOSEPAR> <NEWLINE>)|parseOWLErrorOrInconsistentAbox()) { return properties;}
+}
+
+OWLObjectProperty RoleFromRoleFillers()  :
+{
+OWLObjectProperty prop;
+}
+{
+<OPENPAR>(prop = ObjectPropertyName())<OPENPAR>(Name())*<CLOSEPAR><CLOSEPAR>{ return prop;}
+}
+
+
+Map<OWLObjectProperty, Set<OWLIndividual>> parseObjectPropertyFillerMapResult()  :
+{
+ Map<OWLObjectProperty, Set<OWLIndividual>> map = new HashMap<OWLObjectProperty, Set<OWLIndividual>>();
+ OWLObjectProperty prop = null;
+ Set<OWLIndividual> indis = null;
+}
+{
+ (parseOWLErrorOrInconsistentAbox() | (<NIL>| (<OPENPAR>(<OPENPAR>prop = ObjectPropertyName()<OPENPAR>indis = IndividualSet()<CLOSEPAR>{map.put(prop, indis);}<CLOSEPAR>)*<CLOSEPAR>))Warning()) {
+    return map;
+ }
+}
+
+Map<OWLDataProperty, Set<OWLLiteral>> parseDataPropertyValueMapResult()  :
+{
+ Map<OWLDataProperty, Set<OWLLiteral>> map = new HashMap<OWLDataProperty, Set<OWLLiteral>>();
+ OWLDataProperty prop = null;
+ Set<OWLLiteral> values = null;
+}
+{
+ ((<NIL>Warning()| (<OPENPAR>(<OPENPAR>prop = DataPropertyName()values = ConstantSet(){map.put(prop, values);}<CLOSEPAR>)*<CLOSEPAR>)Warning())|parseOWLErrorOrInconsistentAbox()) {
+    return map;
+ }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+//
+//  Name --> OWLEntity
+//
+///////////////////////////////////////////////////////////////////////////////////////////////
+
+OWLClass ConceptName()  :
+{
+IRI uri;
+}
+{
+    uri = IRI()
+    {
+        return dataFactory.getOWLClass(uri);
+    }
+}
+
+OWLNamedIndividual IndividualName()  :
+{
+IRI uri;
+}
+{
+    uri = IRI()
+    {
+        return dataFactory.getOWLNamedIndividual(uri);
+    }
+}
+
+OWLObjectProperty ObjectPropertyName() :
+{
+IRI uri;
+}
+{
+    uri = IRI()
+    {
+        return dataFactory.getOWLObjectProperty(uri);
+    }
+}
+
+OWLDataProperty DataPropertyName()  :
+{
+IRI uri;
+}
+{
+    uri = IRI()
+    {
+        return dataFactory.getOWLDataProperty(uri);
+    }
+}
+
+
+String LiteralValue2():
+{
+    Token t;
+}
+{
+    (t=<NCNAME1> | t=<INT>){
+        return t.image;
+    }
+}
+
+
+String LiteralValue3():
+{
+    StringBuffer  buffer = new StringBuffer();
+    Token t=null;
+}
+{
+    (<"\"">( (t=<NCNAME1> | t=<INT>){buffer.append(t.image);})?
+             (t=<NEWLINE> {buffer.append("\n");})?
+           ( (t=<NCNAME1> | t=<INT>){buffer.append(" ");buffer.append(t.image);}
+                | (t=<NEWLINE>{buffer.append("\n");}))*
+     <"\"">){
+        return buffer.toString();
+    }
+}
+
+
+String LiteralValue():
+{
+    Token t = null;
+}
+{
+ t=<STRING_LITERAL>{
+  return t.image.substring(1,
+               t.image.length() - 1);
+ }
+}
+
+
+
+String Name() :
+{
+    Token t;
+}
+{
+    ( //"|"
+       t=<NCNAME1>{
+        //return t.image;
+    }   //"|"
+    )
+                 {
+        return t.image;
+    }
+}
+
+IRI IRI()  :
+{
+    Token t;
+}
+{
+    (t=<TOP>{ return OWLRDFVocabulary.OWL_THING.getIRI();}
+    | t=<BOTTOM> {return OWLRDFVocabulary.OWL_NOTHING.getIRI();}
+    | t=<DBOTTOM> {return OWLRDFVocabulary.OWL_BOTTOM_DATA_PROPERTY.getIRI();}
+    | t=<OBOTTOM> {return OWLRDFVocabulary.OWL_BOTTOM_OBJECT_PROPERTY.getIRI();}
+    | t=<DTOP> {return OWLRDFVocabulary.OWL_TOP_DATA_PROPERTY.getIRI();}
+    | t=<OTOP> {return OWLRDFVocabulary.OWL_TOP_OBJECT_PROPERTY.getIRI();}
+    | t=<NCNAME1>) { //NCNAME1
+        return IRI.create(t.image);
+    }
+}
+
+
+boolean BooleanResult() :
+{
+boolean b = false;
+}
+{
+    b=Boolean()<NEWLINE> {
+
+    return b;
+    }
+}
+
+
+boolean Boolean():
+{
+    Token t;
+}
+{
+    (t=<NIL> {
+        //return !t.image.equalsIgnoreCase("nil");
+        return false;
+    } | t = <TRUE> {
+        return true;
+    })
+}
+
+int Integer():
+{
+    Token t;
+}
+{
+    t=<INT> {
+        return Integer.parseInt(t.image);
+    }
+}
+
+int parseIntegerResult():
+{
+ int i=0;
+ }
+ {
+  ((i = Integer() Warning())|(parseError()) ){
+    return i;
+  }
+}

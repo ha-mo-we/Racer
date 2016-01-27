@@ -115,8 +115,11 @@
 ;;; ========================================================================================
 
 (asdf:defsystem "racer"
-  :description "Renamed Abox and Concept Expression Reasoner"
+  :description "Description Logic Reasoner"
+  :author "Volker Haarslev, Ralf Moeller, Michael Wessel"
+  :mailto "haarslev@cs.concordia.ca, moeller@uni-luebeck.de, miacwess@gmail.com"
   :license "BSD 3"
+  :homepage "http://www.racer-systems.com"
   :pathname #P"racer:source;"
   :serial t
   :depends-on (#-:abcl (:require "aserve") 
@@ -359,6 +362,3 @@
                #-:nrql-dev
                (:file "docgen-stubs")
                (:file "setup-readtable")))
-
-
-

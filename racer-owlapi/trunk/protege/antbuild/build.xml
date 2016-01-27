@@ -1,0 +1,229 @@
+<project name="racer-p4" basedir="." default="racer-p4.compile.production.AllInOne.jar">
+
+    <import file="${ant.file.racer-p4}/../../../antbuild/build.xml"/>
+
+    <description>
+        Racer Adapter for Protege 4
+    </description>
+
+    <dirname property="module.racer-p4.ant.file" file="${ant.file.racer-p4}"/>
+    <property name="module.racer-p4.basedir" value="${module.racer-p4.ant.file}/../"/>
+
+    <property name="racer-p4.name" value="com.racersystems.racer"/>
+    <property name="racer-p4.root.dir" value="${module.racer-p4.basedir}"/>
+    <property name="racer-p4.lib.dir" value="${racer-p4.root.dir}/libs"/>
+    <property name="racer-p4.src.dir" value="${racer-p4.root.dir}/src"/>
+
+    <property name="racer-p4.build.dir" value="${racer-p4.root.dir}/build"/>
+    <property name="racer-p4.build.lib.dir" value="${racer-p4.build.dir}/lib"/>
+    <property name="racer-p4.build.classes.dir" value="${racer-p4.build.dir}"/>
+
+    <property name="racer-p4.dist.dir" value="${racer-p4.root.dir}/build"/>
+    <property name="racer-p4.dist.lib.dir" value="${racer-p4.dist.dir}/lib"/>
+    <property name="racer-p4.dist.jar" value="${racer-p4.dist.dir}/${racer-p4.name}.jar"/>
+
+    <property name="ocore.extensionplugin.xmlfile.dir" value="${racer-p4.root.dir}/src/main"/>
+    <property name="ocore.extensionplugin.file.name" value="extensionPlugin.zip"/>
+
+
+    <fileset id="library.racerowl.files" dir="${racer-p4.lib.dir}">
+        <filename name="racer.jar"/>
+    </fileset>
+
+    <path id="library.racerowl.classpath">
+        <fileset refid="library.racerowl.files"/>
+    </path>
+
+    <fileset id="library.p4.files" dir="${racer-p4.lib.dir}">
+        <include name="org.protege.editor.core.application.jar"/>
+        <include name="org.protege.editor.owl.jar"/>
+        <include name="org.protege.common.jar"/>
+        <include name="org.semanticweb.owl.owlapi.jar"/>
+        <include name="org.protege.common.jar"/>
+        <include name="felix.jar"/>
+    </fileset>
+
+    <path id="library.p4.classpath">
+        <fileset refid="library.p4.files"/>
+    </path>
+
+
+    <path id="racer-p4.compile.classpath">
+        <fileset refid="library.racerowl.files"/>
+        <fileset refid="library.p4.files"/>
+    </path>
+
+    <path id="racer-p4.runtime.libpath">
+        <path refid="library.racerowl.classpath"/>
+    </path>
+
+    <path id="racer-p4.runtime.module.classpath">
+        <path refid="racer-p4.runtime.libpath"/>
+        <path location="${racer-p4.build.classes.dir}"/>
+    </path>
+
+
+    <target name="racer-p4.compile.prepare">
+        <delete dir="${racer-p4.build.classes.dir}"/>
+        <delete dir="${racer-p4.build.lib.dir}"/>
+        <delete dir="${racer-p4.build.dir}"/>
+
+        <mkdir dir="${racer-p4.build.dir}"/>
+        <mkdir dir="${racer-p4.build.classes.dir}"/>
+        <mkdir dir="${racer-p4.build.lib.dir}"/>
+        <mkdir dir="${racer-p4.build.dir}/META-INF"/>
+
+        <copy todir="${racer-p4.build.lib.dir}">
+            <path refid="racer-p4.runtime.libpath"/>
+        </copy>
+
+        <copy file="${racer-owlapi.dist.jar}" tofile="${racer-p4.lib.dir}/racer.jar"/>
+
+        <!--    <copy todir="${racer.build.dir}/META-INF">
+            <fileset dir="${racer.root.dir}" excludes="**/*.java">
+                <include name="manifest.mf"/>
+            </fileset>
+        </copy>
+        -->
+
+
+    </target>
+
+
+    <target name="racer-p4.compile.single"
+            depends="racer-p4.compile.prepare">
+        <!-- copy resources -->
+        <copy todir="${racer-p4.build.classes.dir}">
+            <fileset dir="${racer-p4.src.dir}">
+                <type type="file"/>
+                <exclude name="**/*.java"/>
+                <exclude name="**/*.html"/>
+                <exclude name="**/update.properties"/>
+            </fileset>
+        </copy>
+
+        <javac srcdir="${racer-p4.src.dir}" destdir="${racer-p4.build.classes.dir}" target="1.5">
+            <classpath refid="racer-p4.compile.classpath"/>
+        </javac>
+    </target>
+
+
+    <target name="racer-p4.compile.production.jar"
+            depends="racer-p4.compile.single">
+
+        <jar jarfile="${racer-p4.dist.jar}"
+             basedir="${racer-p4.build.classes.dir}"
+             includes="**">
+
+            <manifest>
+                <!-- Who is building this jar? -->
+                <attribute name="Built-By" value="${user.name}"/>
+                <!-- Information about the program itself -->
+                <attribute name="Bundle-ManifestVersion" value="2"/>
+                <attribute name="Bundle-Name" value="RacerPro Adapter Plug-in"/>
+                <attribute name="Bundle-SymbolicName" value="com.racersystems.racer;singleton:=true"/>
+                <attribute name="Bundle-Version" value="1.1.10"/>
+                <attribute name="Bundle-Vendor" value="Racer Systems"/>
+                <attribute name="Bundle-Description" value="RacerPro Adapter for Protege"/>
+                <attribute name="Bundle-ClassPath" value=".,lib/racer.jar"/>
+                <attribute name="Import-Package"
+                           value="org.osgi.framework,org.apache.log4j,javax.swing,javax.swing.border,javax.swing.filechooser"/>
+                <attribute name="Require-Bundle"
+                           value="org.protege.common,org.protege.editor.core.application,org.protege.editor.owl,org.semanticweb.owl.owlapi"/>
+                <attribute name="Bundle-Activator" value="com.racersystems.protege.PluginActivator"/>
+                <attribute name="Update-Url" value="http://www.racer-systems.com/protege/update.properties"/>
+                <attribute name="racer-bin-update-URL" value="http://www.racer-systems.com/protege/update.info"/>
+                <attribute name="required-racer-version" value="2.0.0.20120215"/>
+                <attribute name="Class-Path" value=".,lib/racer.jar"/>
+                <!-- <attribute name="Update-Url" value="http://www.informatik.uni-ulm.de/ki/Noppens/racer/update.properties"/>
+            <attribute name="racer-bin-update-URL" value="http://www.informatik.uni-ulm.de/ki/Noppens/racer/update.info"/>
+            <attribute name="required-racer-version" value="2.0.0.20101228"/>  -->
+            </manifest>
+
+
+        </jar>
+    </target>
+
+    <target name="copyTask">
+    </target>
+
+    <target name="racer-p4.compilefull.production.jar"
+            depends="racer-owlapi.compile.production.jar,racer-p4.compile.production.jar"/>
+
+
+
+    <!--
+
+    Here are the new targets for a combined version that contains both the OWL API classes as
+    well as the P4 classes within a single jar file without a nested lib folder.
+
+    -->
+
+
+    <target name="racer-p4.compile.prepare.AllInOne" depends="racer-owlapi.compile.single">
+        <delete dir="${racer-p4.build.classes.dir}"/>
+        <delete dir="${racer-p4.build.lib.dir}"/>
+        <delete dir="${racer-p4.build.dir}"/>
+
+        <mkdir dir="${racer-p4.build.dir}"/>
+        <mkdir dir="${racer-p4.build.classes.dir}"/>
+      
+        <copy todir="${racer-p4.build.classes.dir}">
+            <fileset dir="${racer-owlapi.build.classes.dir}" includes="**/*.class">
+            </fileset>
+        </copy>
+
+    </target>
+
+    <target name="racer-p4.compile.AllInOne"
+            depends="racer-p4.compile.prepare.AllInOne">
+        <!-- copy resources -->
+        <copy todir="${racer-p4.build.classes.dir}">
+            <fileset dir="${racer-p4.src.dir}">
+                <type type="file"/>
+                <exclude name="**/*.java"/>
+                <exclude name="**/*.html"/>
+                <exclude name="**/update.properties"/>
+            </fileset>
+        </copy>
+
+        <javac srcdir="${racer-p4.src.dir}" destdir="${racer-p4.build.classes.dir}" target="1.5">
+            <classpath refid="racer-p4.compile.classpath"/>
+        </javac>
+    </target>
+
+
+    <target name="racer-p4.compile.production.AllInOne.jar"
+            depends="racer-p4.compile.AllInOne">
+
+        <jar jarfile="${racer-p4.dist.jar}"
+             basedir="${racer-p4.build.classes.dir}"
+             includes="**">
+
+            <manifest>
+                <!-- Who is building this jar? -->
+                <attribute name="Built-By" value="${user.name}"/>
+                <!-- Information about the program itself -->
+                <attribute name="Bundle-ManifestVersion" value="2"/>
+                <attribute name="Bundle-Name" value="RacerPro Adapter Plug-in"/>
+                <attribute name="Bundle-SymbolicName" value="com.racersystems.racer;singleton:=true"/>
+                <attribute name="Bundle-Version" value="100.1.10"/>
+                <attribute name="Bundle-Vendor" value="Racer Systems"/>
+                <attribute name="Bundle-Description" value="RacerPro Adapter for Protege"/>
+               <!-- <attribute name="Bundle-ClassPath" value=".,lib/racer.jar"/>   -->
+                <attribute name="Import-Package"
+                           value="org.osgi.framework,org.apache.log4j,javax.swing,javax.swing.border,javax.swing.filechooser,javax.swing.text"/>
+                <attribute name="Require-Bundle"
+                           value="org.protege.common,org.protege.editor.core.application,org.protege.editor.owl,org.semanticweb.owl.owlapi"/>
+                <attribute name="Bundle-Activator" value="com.racersystems.protege.PluginActivator"/>
+                <attribute name="Update-Url" value="http://www.racer-systems.com/protege/update.properties"/>
+                <attribute name="racer-bin-update-URL" value="http://www.racer-systems.com/protege/update.info"/>
+                <attribute name="required-racer-version" value="2.0.0.20120215"/>
+            </manifest>
+
+
+        </jar>
+    </target>
+
+
+</project>

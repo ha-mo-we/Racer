@@ -35,3 +35,6 @@ TCP service enabled for : http://localhost:8088/
 TCP control enabled for : http://localhost:8089/
 
 You can you your browser with URL [http://localhost:8080/reference-toplevel.html](http://localhost:8080/reference-toplevel.html) in order to access the reference manual online while the Racer server is running.
+
+If you would like to access Racer from the OWLAPI you can find respective code in the directory racer-owlapi.
+Additionally, a Protege plugin is provided there (racer-owlapi/trunk/protege). The Protege plugin was tested with Protege 4.2.

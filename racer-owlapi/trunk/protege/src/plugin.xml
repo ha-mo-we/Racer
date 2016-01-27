@@ -1,0 +1,18 @@
+<?xml version="1.0" ?>
+
+<plugin>
+    <extension id="com.racersystems.reasoner.factory"
+               point="org.protege.editor.owl.inference_reasonerfactory">
+        <name value="RacerPro"/>
+        <class value="com.racersystems.protege.ReasonerInfo"/>
+    </extension>
+
+    <extension
+            id="com.racersystems.RacerPreferencesPanel"
+            point="org.protege.editor.core.application.preferencespanel">
+        <label value="RacerPro"/>
+        <class value="com.racersystems.protege.preferences.RacerProPreferencePanel"/>
+    </extension>
+
+
+</plugin>

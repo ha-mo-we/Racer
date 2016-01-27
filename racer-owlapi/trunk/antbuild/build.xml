@@ -1,0 +1,88 @@
+<project name="racer-owlapi" basedir="." default="racer-owlapi.compile.production.jar">
+    <description>
+        Racer Adapter for OWLAPI
+    </description>
+
+    <dirname property="module.racer-owlapi.ant.file" file="${ant.file.racer-owlapi}"/>
+    <property name="module.racer-owlapi.basedir" value="${module.racer-owlapi.ant.file}/../"/>
+
+    <property name="racer-owlapi.name" value="racer"/>
+    <property name="racer-owlapi.root.dir" value="${module.racer-owlapi.basedir}"/>
+    <property name="racer-owlapi.lib.dir" value="${racer-owlapi.root.dir}/lib"/>
+    <property name="racer-owlapi.src.dir" value="${racer-owlapi.root.dir}/src/main/java"/>
+
+    <property name="racer-owlapi.build.dir" value="${racer-owlapi.root.dir}/build"/>
+    <property name="racer-owlapi.build.lib.dir" value="${racer-owlapi.build.dir}/lib"/>
+    <property name="racer-owlapi.build.classes.dir" value="${racer-owlapi.build.dir}"/>
+
+    <property name="racer-owlapi.dist.dir" value="${racer-owlapi.root.dir}/build"/>
+    <property name="racer-owlapi.dist.lib.dir" value="${racer-owlapi.dist.dir}/lib"/>
+    <property name="racer-owlapi.dist.jar" value="${racer-owlapi.dist.dir}/${racer-owlapi.name}.jar"/>
+
+
+    <fileset id="library.owlapi.files" dir="${racer-owlapi.lib.dir}">
+        <filename name="org.semanticweb.owl.owlapi.jar"/>
+    </fileset>
+
+    <path id="library.owlapi.classpath">
+        <fileset refid="library.owlapi.files"/>
+    </path>
+
+    <path id="racer-owlapi.compile.classpath">
+        <fileset refid="library.owlapi.files"/>
+    </path>
+
+    <path id="racer-owlapi.runtime.libpath">
+        <path refid="racer-owlapi.compile.classpath"/>
+    </path>
+
+    <path id="racer-owlapi.runtime.module.classpath">
+        <path refid="racer-owlapi.runtime.libpath"/>
+        <path location="${racer-owlapi.build.classes.dir}"/>
+    </path>
+
+
+    <target name="racer-owlapi.compile.prepare">
+        <delete dir="${racer-owlapi.build.classes.dir}"/>
+        <delete dir="${racer-owlapi.build.dir}"/>
+
+        <mkdir dir="${racer-owlapi.build.dir}"/>
+        <mkdir dir="${racer-owlapi.build.classes.dir}"/>
+    </target>
+
+
+    <target name="racer-owlapi.compile.single"
+            depends="racer-owlapi.compile.prepare">
+        <!-- copy resources -->
+        <copy todir="${racer-owlapi.build.classes.dir}">
+            <fileset dir="${racer-owlapi.src.dir}">
+                <exclude name="**/*.java"/>
+                <exclude name="**/*.jj"/>
+                <type type="file"/>
+            </fileset>
+        </copy>
+
+        <javac srcdir="${racer-owlapi.src.dir}" destdir="${racer-owlapi.build.classes.dir}" target="1.5">
+            <classpath refid="racer-owlapi.compile.classpath"/>
+        </javac>
+    </target>
+
+
+    <target name="racer-owlapi.compile.production.jar"
+            depends="racer-owlapi.compile.single">
+
+        <jar jarfile="${racer-owlapi.dist.jar}"
+             basedir="${racer-owlapi.build.classes.dir}"
+             includes="**">
+
+            <manifest>
+                <!-- Who is building this jar? -->
+                <attribute name="Built-By" value="${user.name}"/>
+            </manifest>
+
+
+        </jar>
+    </target>
+
+
+</project>
