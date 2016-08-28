@@ -962,7 +962,7 @@
 		  (unless hierarchy-p
 		    (unless role
 		      (setf role (get-tbox-role tbox role-name)))
-		    (when (role-has-ancestors-p role)
+		    (when (rest (rest (role-ancestors-internal role)))
 		      (setf hierarchy-p t)
 		      (setf (abox-language abox) (add-dl-simple-role-inclusions (abox-language abox)))))
 		  (unless complex-roles-p

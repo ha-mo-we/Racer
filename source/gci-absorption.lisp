@@ -715,7 +715,15 @@
              #+:debug (atomic-concept-p qualification)
              (if (is-top-concept-p qualification)
                  (progn
-                   (push rhs-concept (role-domain-concept role))
+                   (let ((domain (role-domain-concept role)))
+                     (unless (listp domain)
+                       (setf (role-domain-concept role) (list domain))))
+                   (pushnew rhs-concept (role-domain-concept role))
+                   (let ((role-inverse (role-inverse-internal role)))
+                     (let ((inverse-range (role-range-concept role-inverse)))
+                       (unless (listp inverse-range)
+                         (setf (role-range-concept role-inverse) (list inverse-range))))
+                     (pushnew rhs-concept (role-range-concept role-inverse)))
                    (race-trace ("~&Absorbing EL+ simple domain restriction (implies ~S ~S) into role ~S~%"
                                 lhs rhs-concept role)))
                (let* ((el+-role-domain-qualifications
@@ -756,24 +764,16 @@
             (encode-concept-term encoded-definition concept))))
   (loop for role in (append *provisionally-inserted-roles* (tbox-encoded-role-list tbox)) do
         (unless (or (is-predefined-role-p role) (role-datatype role))
-          (let ((domain (or (role-domain-restriction role) (role-domain-concept role))))
+          (let ((domain (or (role-domain-concept role) (role-domain-restriction role))))
             (when domain
-              (if (listp domain)
-                  (progn
-                    #+:debug (assert (every #'concept-p-internal domain))
-                    (setf (role-domain-concept role) `(and .,(mapcar #'decode-concept domain))))
-                (progn
-                  ;;#+:debug (concept-p-internal domain) SBCL does not seem to like this!
-                  (setf (role-domain-concept role) (decode-concept domain))))))
-          (let ((range (or (role-range-restriction role) (role-range-concept role))))
+              (if (and (listp domain) (not (eq (first domain) 'not)))
+                  (setf (role-domain-concept role) `(and .,(mapcar #'decode-concept domain)))
+                (setf (role-domain-concept role) (decode-concept domain)))))
+          (let ((range (or (role-range-concept role) (role-range-restriction role))))
             (when range
-              (if (listp range)
-                  (progn
-                    #+:debug (assert (every #'concept-p-internal range))
-                    (setf (role-range-concept role) `(and .,(mapcar #'decode-concept range))))
-                (progn
-                  ;;#+:debug (concept-p-internal range)  SBCL does not seem to like this!
-                  (setf (role-range-concept role) (decode-concept range))))))))
+              (if (and (listp range) (not (eq (first range) 'not)))
+                  (setf (role-range-concept role) `(and .,(mapcar #'decode-concept range)))
+                (setf (role-range-concept role) (decode-concept range)))))))
   (tbox-nary-absorption-table tbox))
 
 (defun create-nary-disjointness-axioms (tbox gcis)

@@ -3999,7 +3999,7 @@ Always create a canonical name regardless of the order of the role parents."
                          (role-range-concept role)
                          ))
             (setf blocking-possibly-required t)))
-	(when (and (not hierarchy-p) (role-has-ancestors-p role))
+	(when (and (not hierarchy-p) (rest (rest (role-ancestors-internal role))))
 	  (setf hierarchy-p t))
 	(when (and (not complex-roles-p) (role-compositions role))
 	  (setf complex-roles-p t))
@@ -9113,9 +9113,11 @@ Always create a canonical name regardless of the order of the role parents."
           (process-subsumption-axiom lhs *bottom-concept* environment))
         (process-subsumption-implied-edges lhs role rhs environment)
         (process-role-domains lhs role rhs environment)
+        (process-role-range lhs role rhs environment)
         (process-role-compositions lhs role rhs environment)
         (loop for (l-lhs . l-rhs) in added-transitive-edges do
               (process-role-domains l-lhs role l-rhs environment)
+              (process-role-range l-lhs role l-rhs environment)
               (process-role-compositions l-lhs role l-rhs environment))
         (process-super-role-edges (cons (cons lhs rhs) added-transitive-edges) role environment)))))
 
@@ -9165,6 +9167,17 @@ Always create a canonical name regardless of the order of the role parents."
               (loop for (domain-role . domains) in (concept-elh-role-domain-qualifications rhs-subsumer) do
                     (when (member domain-role role-ancestors)
                       (process-subsumption-axioms lhs domains environment))))))))
+
+(defun process-role-range (lhs role rhs environment)
+  #+:debug 
+  (assert (or (and (atomic-concept-p lhs) (atomic-concept-p rhs))
+              (and (individual-p-internal lhs)
+                   (or (atomic-concept-p rhs) (individual-p-internal rhs)))))
+  (let ((range (role-range-restriction role)))
+    (when range
+      #+:debug (or (atomic-concept-p range) (and-concept-p range))
+      (process-subsumption-axioms rhs range environment)))
+  )
 
 (defun process-role-compositions (lhs role rhs environment)
   #+:debug 
