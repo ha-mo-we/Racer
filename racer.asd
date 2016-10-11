@@ -122,9 +122,9 @@
   :homepage "http://www.racer-systems.com"
   :pathname #P"racer:source;"
   :serial t
-  :depends-on (#-:abcl (:require "aserve") 
-               #-:allegro (:require "flexi-streams")
-               #-:allegro (:require "deflate")
+  :depends-on (#+:allegro (:require "aserve") 
+	       #+(and (not :allegro) (not :sbcl)) (:require "flexi-streams")
+               #+(and (not :allegro) (not :sbcl))  (:require "deflate")
                #+:allegro (:require "uri")
                #+:allegro (:require "inflate")
                #+:allegro (:require "streama"))
@@ -150,6 +150,12 @@
                                      (:file "owl-syntaxes-package")))
                (:file "racer-user-package")
                (:file "progress")
+
+	       ;; has to come before NOX!
+	       (:module "racer-macros"
+                        :pathname #P"racer:source;"
+			:components ((:file "racer-macros")))
+
                (:module "wilbur"
                         :pathname #P"racer:source;"
                         :components ((:file "nox-package")
@@ -176,7 +182,7 @@
                                      (:file "dl-language")
                                      (:file "dl-descriptor-persistence")
                                      (:file "set-structure")
-                                     (:file "structures-id")
+				     (:file "structures-id")
                                      (:file "concept-structures")
                                      (:file "role-structures")
                                      (:file "individual-structures")

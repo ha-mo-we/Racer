@@ -46,6 +46,10 @@
 	#+:ccl :ccl
 	#+:excl :excl
 	#+:sbcl :sb-sys)
+  (:import-from 
+   :racer
+   #:racer-without-interrupts 
+   #:racer-with-exclusive-lock)
   (:export #:xml-error                  ; from xml-util.lisp
 	   #:define-constant
 	   #:error-thing
