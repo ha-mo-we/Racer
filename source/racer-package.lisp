@@ -842,6 +842,12 @@
 
                         #:racer-toplevel
 
+			#:racer-without-interrupts
+			
+			#:*file-external-format*
+			#:*last-answer*
+
+
                         ))
               
               collect (if (stringp sym)

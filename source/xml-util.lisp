@@ -159,18 +159,6 @@
   #+:ccl
   (ccl:make-read-write-lock))
 
-
-#|
-#-(or :ccl :excl :sbcl (and :lispworks (not (or :lispworks6 :lispworks7))))
-(defmacro without-interrupts (&body body)
-  (warn "No working WITHOUT-INTERRUPTS in this implementation")
-  `(progn ,@body))
-
-#+(and :lispworks (not (or :lispworks6 :lispworks7)))
-(defmacro without-interrupts (&body forms)
-  `(lw:without-interrupts .,forms))
-|#
-
 #-:ccl
 (defmacro nox-atomic-push (thing place)
   #+(and :lispworks (or :lispworks6 :lispworks7))
