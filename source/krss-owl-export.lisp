@@ -358,7 +358,7 @@
              (format-as-datarange stream datatype (+ indent *indent* *indent*))
              (format stream "~%~V@T</rdfs:range>" (+ indent *indent*))))
       (when attribute
-        (format stream "~%~V@T<rdfs:range resource=\"" (+ indent *indent*))
+        (format stream "~%~V@T<rdfs:range rdf:resource=\"" (+ indent *indent*))
         (format-as-datatype stream attribute)
         (format stream "\"/>"))
       (when (and compositions (not inverse-printed-p))
@@ -1127,9 +1127,12 @@
     
     (loop for ind in (all-individuals abox) 
           unless (secret-individual-p ind) do
-          (print-owl-individual (abox-tbox abox)
-                                ind stream uri *indent* ind-hashtable class-hashtable property-hashtable
-                                tbox-ind-hashtable))
+      (when (string= uri "")
+        (error "Please specify :uri as a keyword parameter"))
+      
+      (print-owl-individual (abox-tbox abox)
+                            ind stream uri *indent* ind-hashtable class-hashtable property-hashtable
+                            tbox-ind-hashtable))
     
     (loop for assertion in (abox-individual-identity-disjointness-assertions abox) do
           ;;(break)
@@ -1156,7 +1159,37 @@
               (print-swrl-rule rule stream uri *indent* variable-ht))))
 
     (loop for constraint in (abox-constraints abox) do
-          (format t "~%Ignoring constraint ~A." constraint))
+      (case (first constraint)
+        (string= 
+         (let* ((assertions (abox-attribute-assertions abox))
+                (object-1 (second constraint))
+                (value (third constraint))
+                (datatype (convert-to-xsd-datatype 'string)))
+           (if (and (stringp value) (symbolp object-1))
+               
+               (multiple-value-bind (ind attribute)
+                                    (loop for ((ind object-2) attribute) in assertions 
+                                      until (eq object-1 object-2)
+                                      finally (return (values ind attribute)))
+                 (when (string= uri "")
+                   (error "Please specify :uri as a keyword parameter"))
+                 (format stream 
+                         "~%~V@T<rdf:Description ~A>" 
+                         *indent* 
+                         (entity-ref ind uri ind-hashtable))
+                 (format stream 
+                         "~%~V@T<~A rdf:datatype=\"~A\">~A</~A>"
+                         (+ *indent* *indent*)
+                         (insert-namespace-if-appropriate (owl-name attribute uri))
+                         datatype
+                         value
+                         (insert-namespace-if-appropriate (owl-name attribute uri)))
+                 (format stream 
+                         "~%~V@T</rdf:Description>"
+                         *indent*))
+               (format t "~%Ignoring constraint ~A." constraint))))
+        (otherwise
+          (format t "~%Ignoring constraint ~A." constraint))))
 
     (format stream "~%</rdf:RDF>~%")))
 
@@ -1190,8 +1223,9 @@
         (multiple-value-bind (class-name class-name-end-token)
             (if (member basic-concept '(top *top*))
                 "owl:Thing"
-              (insert-namespace-if-appropriate (symbol-name basic-concept)))
-          (if (and (null class-name-end-token) (find #\# class-name))
+              (insert-namespace-if-appropriate (owl-name basic-concept uri)))
+          (if (and (null class-name-end-token) ;;(find #\# class-name)
+                   )
 
               ;; If basic-concept contains http:// etc. or a sharp even after the namespace is prefixed, we have to use 
               ;; <rdf:Description rdf:about="ind">
