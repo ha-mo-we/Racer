@@ -40,4 +40,3 @@
 (without-package-locks 
  (defmacro defconstant (symbol value &optional docu)
    `(defvar ,symbol ,value ,@(and docu (list docu)))))
-

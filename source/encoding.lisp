@@ -4078,12 +4078,7 @@ flattened, duplicates are removed, and primitive clashes are detected."
          (list (first list-term) (second list-term) (third list-term)
                (make-nnf-term (fourth list-term)))))
       ((and or)
-       (list* (first list-term)
-              (mapcar #'(lambda (term)
-                          (if (symbolp (third list-term))
-                              term
-                            (make-nnf-term term)))
-                      (rest list-term))))
+       (list* (first list-term) (mapcar #'make-nnf-term (rest list-term))))
       (self-reference
        list-term))))
 

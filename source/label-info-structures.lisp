@@ -99,10 +99,11 @@
 
 (race-inline (copy-label-info))
 
+;;; Changed: rm
 (defun copy-label-info (label-info)
-  (if (basic-label-info-p label-info)
-    (copy-basic-label-info label-info)
-    (copy-inverse-label-info label-info)))
+  (if (inverse-label-info-p label-info)
+    (copy-inverse-label-info label-info)
+    (copy-basic-label-info label-info)))
 
 (defun label-info-equal-test (label-info-1 label-info-2)
   (and (eql (label-info-ind label-info-1) (label-info-ind label-info-2))

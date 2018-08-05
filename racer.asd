@@ -150,6 +150,7 @@
                                      (:file "owl-syntaxes-package")))
                (:file "racer-user-package")
                (:file "progress")
+	       (:file "processes")
                (:module "wilbur"
                         :pathname #P"racer:source;"
                         :components ((:file "nox-package")
