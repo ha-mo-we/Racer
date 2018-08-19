@@ -37,16 +37,16 @@
 (in-package :thematic-substrate)
 
 (defclass xml-nrql 
-    (nox:sax-consumer)
+    (nox-racer:sax-consumer)
   ((expr :accessor expr :initform nil)))
 
 (defparameter +end-tag+ (gensym))
 
-(defmethod nox:start-element ((self xml-nrql) (tag nox:open-tag) mode)
+(defmethod nox-racer:start-element ((self xml-nrql) (tag nox-racer:open-tag) mode)
   (declare (ignorable mode))
   
-  (let ((token-string (string-upcase (nox:token-string tag)))
-        (attributes (nox:tag-attributes tag)))
+  (let ((token-string (string-upcase (nox-racer:token-string tag)))
+        (attributes (nox-racer:tag-attributes tag)))
     
     (with-slots (expr) self
       
@@ -58,14 +58,14 @@
 			     (cdr value))
 		expr))))))
 
-(defmethod nox:end-element ((self xml-nrql) tag mode)
+(defmethod nox-racer:end-element ((self xml-nrql) tag mode)
   (declare (ignorable mode tag))
   
   (with-slots (expr) self
     
     (push +end-tag+ expr)))
 
-(defmethod nox:char-content ((self xml-nrql) char-content mode)
+(defmethod nox-racer:char-content ((self xml-nrql) char-content mode)
   (declare (ignorable mode))
 
   (with-slots (expr) self
@@ -147,8 +147,8 @@
 (defun xml-to-lisp (expr)
   (with-input-from-string (stream expr)
     (let ((consumer (make-instance 'xml-nrql)))
-      (nox:parse-from-stream stream nil
-			     'nox:xml-parser 
+      (nox-racer:parse-from-stream stream nil
+			     'nox-racer:xml-parser 
 			     :consumer consumer)
       
       (construct (reverse (expr consumer))))))

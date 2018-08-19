@@ -1,4 +1,4 @@
-;;; -*- package: WILBUR; Syntax: Common-lisp; Base: 10 -*-
+;;; -*- package: WILBUR-RACER; Syntax: Common-lisp; Base: 10 -*-
 
 ;;;
 ;;;;  rdf-data.lisp
@@ -24,14 +24,12 @@
 ;;; --------------------------------------------------------------------------------------
 ;;;
 ;;;
-;;;   Version: $Id: rdf-data.lisp,v 1.13.2.1 2004/11/30 17:11:29 ora Exp $
-;;;
 ;;;   Purpose: This file contains functionality for managing "RDF data", namely
 ;;;   nodes, triples, etc.
 ;;;
 
 
-(in-package :wilbur)
+(in-package :wilbur-racer)
 
 
 ;;; --------------------------------------------------------------------------------------
@@ -86,7 +84,7 @@
 ;;;     DATATYPE-PARSE-ERROR         concrete, continuable
 ;;;
 
-(define-condition rdf-error (nox::wilbur-error)
+(define-condition rdf-error (nox-racer::wilbur-error)
   ())
 
 (define-condition feature-not-supported (rdf-error)
@@ -240,7 +238,7 @@
 
 (defmethod dictionary-add-namespace ((dictionary dictionary) prefix uri)
   (setf (dictionary-namespaces dictionary)
-        (nox:string-dict-add (dictionary-namespaces dictionary) prefix uri))
+        (nox-racer:string-dict-add (dictionary-namespaces dictionary) prefix uri))
   (maphash #'(lambda (name node)
                (let ((uri (find-long-name dictionary name)))
                  (when uri
@@ -253,14 +251,14 @@
 
 (defmethod dictionary-remove-namespace ((dictionary dictionary) prefix)
   (setf (dictionary-namespaces dictionary)
-        (nox:string-dict-del (dictionary-namespaces dictionary) prefix))
+        (nox-racer:string-dict-del (dictionary-namespaces dictionary) prefix))
   prefix)
 
 (defmethod dictionary-rename-namespace ((dictionary dictionary)
                                         old-prefix new-prefix)
-  (if (nox:string-dict-get (dictionary-namespaces dictionary) new-prefix)
+  (if (nox-racer:string-dict-get (dictionary-namespaces dictionary) new-prefix)
     (error 'duplicate-namespace-prefix :thing new-prefix)
-    (let ((uri (nox:string-dict-get (dictionary-namespaces dictionary) old-prefix)))
+    (let ((uri (nox-racer:string-dict-get (dictionary-namespaces dictionary) old-prefix)))
       (dictionary-remove-namespace dictionary old-prefix)
       (dictionary-add-namespace dictionary new-prefix uri)
       new-prefix)))
@@ -277,10 +275,10 @@
     (setf (gethash uri (dictionary-nodes dictionary)) node)))
 
 (defun find-short-name (dictionary uri)
-  (nox:reverse-expand-name uri (dictionary-namespaces dictionary)))
+  (nox-racer:reverse-expand-name uri (dictionary-namespaces dictionary)))
 
 (defun find-long-name (dictionary name)
-  (nox:expand-name-with-namespace name (dictionary-namespaces dictionary)))
+  (nox-racer:expand-name-with-namespace name (dictionary-namespaces dictionary)))
 
 (defun unresolved-node (name)
   (let ((uri (find-long-name *nodes* name)))
@@ -329,7 +327,7 @@
     (declare (ignore char))
     (if (char= (peek-char nil stream t nil t) #\")
 	(node (read stream t nil t))
-      (unresolved-node (nox:read-using nox:*name-reader* stream t))))
+      (unresolved-node (nox-racer:read-using nox-racer:*name-reader* stream t))))
 
   (defun enable-node-shorthand ()
     (setf *readtable* (copy-readtable))
@@ -360,8 +358,8 @@
     :reader triple-source)
    (filepos 
     :initarg :filepos
-    :initform (when nox:*current-parser*
-                (nox::parser-filepos nox:*current-parser*))
+    :initform (when nox-racer:*current-parser*
+                (nox-racer::parser-filepos nox-racer:*current-parser*))
     :reader triple-filepos)))
 
 (defmethod print-object ((triple triple) stream)
@@ -552,7 +550,7 @@
                                             rdf-schema-pathname
                                        &allow-other-keys)
   (unless emptyp
-    (db-load self (nox:make-file-url rdf-schema-pathname)
+    (db-load self (nox-racer:make-file-url rdf-schema-pathname)
 	     :db self :merge-results-p nil)))
 
 (defmethod db-add-triple ((db indexed-db) (triple triple))

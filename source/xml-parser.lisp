@@ -1,8 +1,5 @@
-;;; -*- package: NOX; Syntax: Common-lisp; Base: 10 -*-
+;;; -*- package: NOX-RACER; Syntax: Common-lisp; Base: 10 -*-
 
-;;;
-;;;;  xml-parser.lisp
-;;;
 ;;;
 ;;; --------------------------------------------------------------------------------------
 ;;;
@@ -24,16 +21,13 @@
 ;;;
 ;;; --------------------------------------------------------------------------------------
 ;;;
-;;;
-;;;   Version: $Id: xml-parser.lisp,v 1.11 2004/11/28 23:14:53 ora Exp $
-;;;
 ;;;   Purpose: This file contains an implementation of an XML parser. This
 ;;;   parser was motivated by RDF, and consequently does not implement all the
 ;;;   features of XML 1.0. In fact, it needs a lot of work. Tough...
 ;;;
 
 
-(in-package :nox)
+(in-package :nox-racer)
 
 ;;; --------------------------------------------------------------------------------------
 ;;;

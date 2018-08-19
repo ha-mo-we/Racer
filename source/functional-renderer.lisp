@@ -36,10 +36,6 @@
 
 (in-package :owl-syntaxes)
 
-;;;
-;;;;  functional-renderer.lisp
-;;;
-;;;
 ;;; --------------------------------------------------------------------------------------
 ;;;
 ;;;   The Original Software is 
@@ -59,7 +55,7 @@
 #+:racer-server
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (enable-boolean-readers)
-  (wilbur:enable-node-shorthand))
+  (wilbur-racer:enable-node-shorthand))
 
 ;;;
 ;;; OWL2 Functional Syntax Renderer

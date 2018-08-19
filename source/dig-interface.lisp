@@ -38,7 +38,7 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (racer:enable-boolean-readers)
-  (wilbur:enable-node-shorthand))
+  (wilbur-racer:enable-node-shorthand))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defconstant +old-dig-url-prefix+ "http://dl.kr.org/dig/lang#")
@@ -98,7 +98,7 @@
     (coerce (reverse transformed-message-list) 'string)))
 
 (defclass dig-racer 
-  (nox:sax-consumer)
+  (nox-racer:sax-consumer)
   ((url :initarg :url :accessor parser-url)
    (stream :initarg :stream :accessor parser-stream)
    (output-stream :initarg :output-stream :accessor parser-output-stream)
@@ -122,7 +122,7 @@
               (and (consp new-value) (member (first new-value) +parser-states+)))
     (error "Internal error: unknown parser state ~S." new-value)))
 
-(defmethod nox:start-document ((self dig-racer) locator)
+(defmethod nox-racer:start-document ((self dig-racer) locator)
   (declare (ignore locator))
   (when (and (dig-racer-consumer-tbox-default-name self)
              (dig-racer-consumer-abox-default-name self))
@@ -524,11 +524,11 @@
 
 
 
-(defmethod nox:start-element ((self dig-racer) (tag nox:open-tag) mode)
+(defmethod nox-racer:start-element ((self dig-racer) (tag nox-racer:open-tag) mode)
     (declare (ignore mode))
     (with-error-handling 
-     (let ((token-string (nox:token-string tag))
-           (attributes (nox:tag-attributes tag)))
+     (let ((token-string (nox-racer:token-string tag))
+           (attributes (nox-racer:tag-attributes tag)))
       
          (cond ((or (eq (parser-state self) ':management)
                     (null (parser-state self)))
@@ -1218,10 +1218,10 @@
            (push `(rqatom ,var1 ,var2 ,role) *stack*)))
         (t (end-parse-concept-or-role self token-string))))
 
-(defmethod nox:end-element ((self dig-racer) tag mode)
+(defmethod nox-racer:end-element ((self dig-racer) tag mode)
   (declare (ignore mode))
   (with-error-handling
-   (let ((token-string (nox:token-string tag)))
+   (let ((token-string (nox-racer:token-string tag)))
         ;;(format t "~&END ~A ~S" token-string mode)
         
         (cond ((or (eq (parser-state self) ':management)
@@ -1241,19 +1241,19 @@
 
 
 
-(defmethod nox:char-content ((self dig-racer) char-content mode)
+(defmethod nox-racer:char-content ((self dig-racer) char-content mode)
   (declare (ignore mode))
   (push (string-trim '(#\Space #\Tab #\Newline) char-content) *stack*))
 
-(defmethod nox:end-document ((self dig-racer) mode)
+(defmethod nox-racer:end-document ((self dig-racer) mode)
   (declare (ignorable self mode))
   ;(format t "~&END DOCUMENT ~S" mode)
   )
 
-(defmethod nox:proc-instruction ((self dig-racer) (tag nox:proc-instruction) mode)
+(defmethod nox-racer:proc-instruction ((self dig-racer) (tag nox-racer:proc-instruction) mode)
   (declare (ignore mode))
-  ;(format t "~&Ignoring: PI ~S ~S" (nox:token-string tag) mode)
-  ;(format t "~&PI ~S ~S" (nox:token-string tag) mode)
+  ;(format t "~&Ignoring: PI ~S ~S" (nox-racer:token-string tag) mode)
+  ;(format t "~&PI ~S ~S" (nox-racer:token-string tag) mode)
   )
 
 
@@ -1323,8 +1323,8 @@
                        (terpri socket-stream)
                        (with-racer-critical-section
                          (handler-case
-                           (nox:parse-from-stream stream url 
-                                                  'nox:xml-parser 
+                           (nox-racer:parse-from-stream stream url 
+                                                  'nox-racer:xml-parser 
                                                   :consumer (setf dig-racer
                                                                   (make-instance parser-class 
                                                                     :url url
@@ -1422,9 +1422,9 @@
 		  (terpri socket-stream)
 		  (with-racer-critical-section
 		    (handler-case
-                      (nox:parse-from-stream 
+                      (nox-racer:parse-from-stream 
                        stream url 
-                       'nox:xml-parser 
+                       'nox-racer:xml-parser 
                        :consumer (make-instance parser-class
                                    :url url
                                    :stream socket-stream
@@ -1975,7 +1975,7 @@
       (init-tbox (or kb-name 'default)))
     (unless (probe-file filename)
       (error "File ~S does not exist." filename))
-    (nox:parse-from-file filename 'nox:xml-parser 
+    (nox-racer:parse-from-file filename 'nox-racer:xml-parser 
                          :consumer dig-racer)
     nil))
 
@@ -2024,10 +2024,10 @@
                (init-tbox kb-name)))
            (when init
              (init-tbox (or kb-name 'default)))
-           (nox:parse-from-stream
+           (nox-racer:parse-from-stream
             stream 
             (http::object url)
-            'nox:xml-parser
+            'nox-racer:xml-parser
             :consumer (apply #'make-instance parser-class
                              :stream *standard-output*
                              :tbox-default-name (or kb-name 
@@ -2100,10 +2100,10 @@
                         (init-tbox kb-name)))
                     (when init
                       (init-tbox (or kb-name 'default)))
-                    (nox:parse-from-stream
+                    (nox-racer:parse-from-stream
                      stream 
                      (net.uri:uri-path url)
-                     'nox:xml-parser
+                     'nox-racer:xml-parser
                      :consumer (apply #'make-instance parser-class
                                       :stream *standard-output*
                                       :tbox-default-name (or kb-name 

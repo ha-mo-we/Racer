@@ -38,7 +38,7 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (enable-boolean-readers)
-  (wilbur:enable-node-shorthand))
+  (wilbur-racer:enable-node-shorthand))
 
 ;;; ======================================================================
 
@@ -51,11 +51,11 @@
                 (first transformed-type)
               transformed-type))))
   (ecase datatype
-    (string (concatenate 'string nox:-xsd-uri- "string"))
-    (integer (concatenate 'string nox:-xsd-uri- "int"))
-    (real (concatenate 'string nox:-xsd-uri- "float"))
-    (cardinal (concatenate 'string nox:-xsd-uri- "nonNegativeInteger"))
-    ((racer-boolan boolean) (concatenate 'string nox:-xsd-uri- "boolean"))))
+    (string (concatenate 'string nox-racer:-xsd-uri- "string"))
+    (integer (concatenate 'string nox-racer:-xsd-uri- "int"))
+    (real (concatenate 'string nox-racer:-xsd-uri- "float"))
+    (cardinal (concatenate 'string nox-racer:-xsd-uri- "nonNegativeInteger"))
+    ((racer-boolan boolean) (concatenate 'string nox-racer:-xsd-uri- "boolean"))))
 
 (defun convert-to-owl2-facet-name (facet-name)
   (ecase (extract-face-name facet-name)
@@ -136,9 +136,9 @@
     (format stream "~%~V@Txmlns:rdf=\"~A\"~
                     ~%~V@Txmlns:rdfs=\"~A\"~
                     ~%~V@Txmlns:xsd=\"~A\""
-            *indent* nox:-rdf-uri-
-            *indent* nox:-rdfs-uri-
-            *indent* nox:-xsd-uri-)
+            *indent* nox-racer:-rdf-uri-
+            *indent* nox-racer:-rdfs-uri-
+            *indent* nox-racer:-xsd-uri-)
 
     (loop for spec in (tbox-namespaces tbox) 
           unless (or (null (car spec))
@@ -474,7 +474,7 @@
         ((and (null type-spec) value-specified)
          (convert-to-xsd-datatype (type-of value)))
         (t (racer-warn "Illegal type specification -- using xsd:string")
-           (concatenate 'string nox:-xsd-uri- "string"))))
+           (concatenate 'string nox-racer:-xsd-uri- "string"))))
 
 (defun get-literal-value (literal)
   (second literal))
@@ -1006,7 +1006,7 @@
 (defun format-datarange-list (stream indent datatype values)
   (if (null values)
       (format stream "~%~V@T<rdf:rest rdf:resource=\"~Anil\"/>"
-              indent nox:-rdf-uri-)
+              indent nox-racer:-rdf-uri-)
     (progn (format stream "~%~V@T<rdf:rest rdf:parseType=\"Resource\">"
                    indent)
       (format stream "~%~V@T<rdf:first rdf:datatype=\"~A\">" 
@@ -1069,9 +1069,9 @@
     (format stream "~%~V@Txmlns:rdf=\"~A\"~
                     ~%~V@Txmlns:rdfs=\"~A\"~
                     ~%~V@Txmlns:xsd=\"~A\""
-            *indent* nox:-rdf-uri- 
-            *indent* nox:-rdfs-uri- 
-            *indent* nox:-xsd-uri-)
+            *indent* nox-racer:-rdf-uri- 
+            *indent* nox-racer:-rdfs-uri- 
+            *indent* nox-racer:-xsd-uri-)
     
     (loop for spec in (tbox-namespaces (tbox abox)) 
           unless (or (null (car spec))
@@ -1449,7 +1449,7 @@
   (if (null clauses)
       (format stream
               "~%~V@T<rdf:rest rdf:resource=\"~Anil\"/>"
-              indent nox:-rdf-uri-)
+              indent nox-racer:-rdf-uri-)
     (progn
       (format stream "~%~V@T<rdf:rest>" indent)
       (print-atom-list clauses stream uri (+ indent *indent*) variable-ht)

@@ -38,7 +38,7 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (racer:enable-boolean-readers)
-  (wilbur:enable-node-shorthand))
+  (wilbur-racer:enable-node-shorthand))
 
 (defparameter *public-kbs* nil)
 (defparameter *kbs* (make-hash-table))
@@ -214,17 +214,17 @@
           (dig2-racer)
   ())
 
-(defmethod nox:start-document :before ((self owllink-parser) locator)
+(defmethod nox-racer:start-document :before ((self owllink-parser) locator)
   (declare (ignorable locator))
   ;;(setf *stack* nil)
   (owllink-start-response-generation (parser-stream self)))
 
-(defmethod nox:start-element ((self owllink-parser) (tag nox:open-tag) mode)
+(defmethod nox-racer:start-element ((self owllink-parser) (tag nox-racer:open-tag) mode)
   (declare (ignore mode))
     ;(print *stack*)
   (with-error-handling 
-   (let ((token-string (nox:token-string tag))
-         (attributes (nox:tag-attributes tag)))
+   (let ((token-string (nox-racer:token-string tag))
+         (attributes (nox-racer:tag-attributes tag)))
       
      (cond ((or (eq (parser-state self) ':normal)
                 (null (parser-state self)))
@@ -247,7 +247,7 @@
    (error (c) 
           (owllink-generate-error self c))))
 
-(defmethod nox:end-document :after ((self owllink-parser) locator)
+(defmethod nox-racer:end-document :after ((self owllink-parser) locator)
   (declare (ignorable locator))
   #+:debug
   (when *debug-dig*
@@ -256,11 +256,11 @@
       (error "Stack is not empty. Some elements have not been considered.")))
   (owllink-end-response-generation (parser-stream self)))
 
-(defmethod nox:end-element ((self owllink-parser) tag mode)
+(defmethod nox-racer:end-element ((self owllink-parser) tag mode)
   (declare (ignore mode))
   ;;(print *stack*)
   (with-error-handling
-   (let ((token-string (nox:token-string tag)))
+   (let ((token-string (nox-racer:token-string tag)))
      ;;(format t "~&END ~A ~S" token-string mode)
         
      (cond ((or (eq (parser-state self) ':normal)
@@ -2076,8 +2076,8 @@
                                 ;;(string= uri "http://protege.stanford.edu/plugins/owl/dc/protege-dc.owl")
                                 (string= uri +owl-version+)
                                 ;;(string= uri "http://www.w3.org/2002/07/owl#")
-                                (string= uri nox:-rdfs-uri-)
-                                (string= uri nox:-rdf-uri-)
+                                (string= uri nox-racer:-rdfs-uri-)
+                                (string= uri nox-racer:-rdf-uri-)
                                 (string= uri +swrl-version+)
                                 (string= uri +swrlx-version+)
                                 (string= uri +swrlb-version+)
@@ -2860,13 +2860,13 @@
          </List>
          <Literal>OWL-DL</Literal>
       </Property>"
-          nox:-xsd-uri-)
+          nox-racer:-xsd-uri-)
   (format stream "
       <Property key=\"ignoresDeclarations\">
          <Datatype URI=\"~Aboolean\"/>
          <Literal>true</Literal>
       </Property>"
-          nox:-xsd-uri-))
+          nox-racer:-xsd-uri-))
 
 (defun format-settings (stream kb)
   (format stream "
@@ -2874,7 +2874,7 @@
          <Datatype URI=\"~Aboolean\"/>
          <Literal>~A</Literal>
       </Setting>"
-          nox:-xsd-uri-
+          nox-racer:-xsd-uri-
           (cond (kb 
                  (if (kb-descriptor-unique-name-assumption (find-kb-descriptor kb))
                      "true"
@@ -2887,7 +2887,7 @@
          <Datatype URI=\"~Aboolean\"/>
          <Literal>~A</Literal>
       </Setting>"
-          nox:-xsd-uri-
+          nox-racer:-xsd-uri-
           (cond (kb 
                  (if (kb-descriptor-ignore-annotations (find-kb-descriptor kb))
                      "true"
@@ -2900,7 +2900,7 @@
          <Datatype URI=\"~Aboolean\"/>
          <Literal>~A</Literal>
       </Setting>"
-          nox:-xsd-uri-
+          nox-racer:-xsd-uri-
           (cond (*owllink-lean-mode*
                  "true")
                 (t "false")))
@@ -2909,7 +2909,7 @@
          <Datatype URI=\"~Aboolean\"/>
          <Literal>~A</Literal>
       </Setting>"
-          nox:-xsd-uri-
+          nox-racer:-xsd-uri-
           (cond (*release-kb-deletes-kb* 
                  "true")
                 (t "false")))
@@ -2918,7 +2918,7 @@
          <Datatype URI=\"~Aboolean\"/>
          <Literal>~A</Literal>
       </Setting>"
-          nox:-xsd-uri-
+          nox-racer:-xsd-uri-
           (cond (kb 
                  (if (kb-descriptor-verbose (find-kb-descriptor kb))
                      "true"
@@ -3072,12 +3072,12 @@
           (dig2-racer)
   ())
 
-(defmethod nox:start-element ((self syntax-analyzer) (tag nox:open-tag) mode)
+(defmethod nox-racer:start-element ((self syntax-analyzer) (tag nox-racer:open-tag) mode)
   (declare (ignore mode))
   ;;(print tag)
   (with-error-handling 
-   (let ((token-string (nox:token-string tag))
-         (oname (nox:tag-original-name tag)))
+   (let ((token-string (nox-racer:token-string tag))
+         (oname (nox-racer:tag-original-name tag)))
      (cond ((string= +rdf-tag+ token-string)
             (throw 'language :rdf-xml))
            #+:ignore
@@ -3120,8 +3120,8 @@
                             (setf found (http:show-url url :stream stream)))
              (if (eq found :not-found)
                  (error "HTTP request for ~A returned code 404" url-spec)
-               (nox:parse-from-stream stream url 
-                                      'nox:xml-parser 
+               (nox-racer:parse-from-stream stream url 
+                                      'nox-racer:xml-parser 
                                       :consumer (make-instance 'syntax-analyzer 
                                                                :url url
                                                                :stream stream))))))))))
@@ -3195,8 +3195,8 @@
 			   
 		    (with-input-from-string (stream body)
 		  
-		      (nox:parse-from-stream stream url 
-					     'nox:xml-parser 
+		      (nox-racer:parse-from-stream stream url 
+					     'nox-racer:xml-parser 
 					     :consumer (make-instance 'syntax-analyzer 
 							 :url url
 							 :stream stream))))))))))))
@@ -3205,7 +3205,7 @@
   (let ((*silent* t)
         (*response-end-tag* nil))
     (catch 'language
-      (nox:parse-from-file filename 
-                           'nox:xml-parser 
+      (nox-racer:parse-from-file filename 
+                           'nox-racer:xml-parser 
                            :consumer (make-instance 'syntax-analyzer
                                                     :stream *standard-output*)))))

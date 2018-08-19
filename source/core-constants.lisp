@@ -1,4 +1,4 @@
-;;; -*- Mode: Lisp; Syntax: Ansi-Common-Lisp; Package: NOX; Base: 10 -*-
+;;; -*- Mode: Lisp; Syntax: Ansi-Common-Lisp; Package: NOX-RACER; Base: 10 -*-
 ;;;
 ;;;;  rdf-constants.lisp
 ;;;
@@ -28,14 +28,14 @@
 ;;;   Purpose: This file contains definitions for various constants used by the
 ;;;   RDF parser (mostly URIs). Given that the XML parser has to deal with the
 ;;;   issue of RDF M+S vagueness on the namespaces of RDF attributes (such as
-;;;   "about"), the definitions in this file are in the NOX package.
+;;;   "about"), the definitions in this file are in the NOX-RACER package.
 ;;;
 ;;;   Generally, I hate this stuff since I never seem to get the constant
 ;;;   definitions right vis-a-vis compile time vs. load-time. :-(
 ;;;
 
 
-(in-package "NOX")
+(in-package :nox-racer)
 
 (defmacro define-constant (name value &optional doc)
   `(defconstant ,name (if (boundp ',name) (symbol-value ',name) ,value)

@@ -38,7 +38,7 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (racer:enable-boolean-readers)
-  (wilbur:enable-node-shorthand))
+  (wilbur-racer:enable-node-shorthand))
 
 ;;;
 ;;;

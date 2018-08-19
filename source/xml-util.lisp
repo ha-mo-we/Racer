@@ -1,8 +1,5 @@
-;;; -*- package: NOX; Syntax: Common-lisp; Base: 10 -*-
+;;; -*- package: NOX-RACER; Syntax: Common-lisp; Base: 10 -*-
 
-;;;
-;;;;  xml-util.lisp
-;;;
 ;;;
 ;;; --------------------------------------------------------------------------------------
 ;;;
@@ -23,9 +20,6 @@
 ;;;
 ;;; --------------------------------------------------------------------------------------
 ;;;
-;;;
-;;;   Version: $Id: xml-util.lisp,v 1.13 2004/11/28 23:15:00 ora Exp $
-;;;
 ;;;   Purpose: This file contains useful functions and other definitions for
 ;;;   implementing an XML parser (or some other stuff, for that matter). These
 ;;;   are separated from the actual parser so that one could replace the actual
@@ -33,7 +27,7 @@
 ;;;
 
 
-(in-package :nox)
+(in-package :nox-racer)
 
 
 ;;; ----------------------------------------------------------------------------
@@ -153,9 +147,9 @@
 
 (defvar *resource-pool-lock* 
   #+(and :lispworks (or :lispworks6 :lispworks7))
-  (mp:make-lock :name "NOX Resource Pool")
+  (mp:make-lock :name "NOX-RACER Resource Pool")
   #+(and :allegro :smp-macros)
-  (mp:make-sharable-lock :name "NOX Resource Pool")
+  (mp:make-sharable-lock :name "NOX-RACER Resource Pool")
   #+:ccl
   (ccl:make-read-write-lock))
 
@@ -172,7 +166,7 @@
 |#
 
 #-:ccl
-(defmacro nox-atomic-push (thing place)
+(defmacro nox-racer-atomic-push (thing place)
   #+(and :lispworks (or :lispworks6 :lispworks7))
   `(mp:with-lock (*resource-pool-lock*)
      (push ,thing ,place))
@@ -188,7 +182,7 @@
     (push ,thing ,place)))
 
 #-:ccl
-(defmacro nox-atomic-pop (place)
+(defmacro nox-racer-atomic-pop (place)
   #+(and :lispworks (or :lispworks6 :lispworks7))
   `(mp:with-lock (*resource-pool-lock*)
      (pop ,place))
@@ -210,7 +204,7 @@
   #+:ccl
   (ccl::allocate-resource pool)
   #-:ccl
-  (let ((res (or (nox-atomic-pop (pool-data pool))
+  (let ((res (or (nox-racer-atomic-pop (pool-data pool))
                  (apply (pool-constructor pool) args)))
         (init (pool-initializer pool)))
     (when init
@@ -224,7 +218,7 @@
   (let ((des (pool-destructor pool)))
     (when des
       (funcall des resource))
-    (nox-atomic-push resource (pool-data pool))))
+    (nox-racer-atomic-push resource (pool-data pool))))
 
 (defmacro define-resource-pool (name constructor &optional initializer destructor)
   #+:ccl

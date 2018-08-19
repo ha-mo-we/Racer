@@ -1,9 +1,6 @@
 ;;; -*- package: CL-USER; Syntax: Common-lisp; Base: 10 -*-
 
 ;;;
-;;;;  wilbur-package.lisp
-;;;
-;;;
 ;;; --------------------------------------------------------------------------------------
 ;;;
 ;;;   The contents of this file are subject to the NOKOS License Version 1.0a (the
@@ -23,9 +20,6 @@
 ;;;
 ;;; --------------------------------------------------------------------------------------
 ;;;
-;;;
-;;;   Version: $Id: wilbur2-file-header.lisp,v 1.1 2004/08/10 16:24:46 ora Exp $
-;;;
 ;;;   Purpose: Definition of the package #:wilbur.
 ;;;
 
@@ -38,18 +32,18 @@
 ;;;   PACKAGE WILBUR
 ;;;
 
-(defpackage :wilbur
-  (:nicknames :nokia-rdf-cl
-	      :wilbur-rdf
-	      ;; :w                    removed because this causes problem in Lispworks 4.5
-              #+:allegro "WILBUR")
+(defpackage :wilbur-racer
+  ;;(:nicknames ;:nokia-rdf-cl
+  ;;	      ;:wilbu-rdf
+  ;;	      ;; :w                    removed because this causes problem in Lispworks 4.5
+  ;;            #+:allegro "WILBUR-RACER")
   (:use #:common-lisp
 	#+:ccl :ccl
 	#+:excl :excl
 	#+:excl :socket
 	#+:excl :mop
 	#+:sbcl :sb-sys)
-  (:import-from #:nokia-xml-cl
+  (:import-from #:nox-racer
 		#:-rdf-uri-             ; from rdf-constants.lisp
 		#:-rdfs-uri-
 		#:-xsd-uri-
@@ -144,7 +138,7 @@
 	   #:namespaces
 	   #:rdf-error
 	   #:*db*
-	   #:feature-not-supported      ; this is not the one from NOX!
+	   #:feature-not-supported      ; this is not the one from NOX-RACER!
 	   #:about-and-id-both-present
 	   #:unknown-parsetype
 	   #:illegal-character-content

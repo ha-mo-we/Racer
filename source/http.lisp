@@ -1,4 +1,4 @@
-;;; -*- package: WILBUR; Syntax: Common-lisp; Base: 10 -*-
+;;; -*- package: WILBUR-RACER; Syntax: Common-lisp; Base: 10 -*-
 
 ;;;
 ;;;;  http-client.lisp
@@ -25,15 +25,13 @@
 ;;; --------------------------------------------------------------------------------------
 ;;;
 ;;;
-;;;   Version: $Id: http-client.lisp,v 1.11 2004/11/28 23:12:49 ora Exp $
-;;;
 ;;;   Purpose: This is a simple implementation of an HTTP client, conditionalized for
 ;;;   several platforms and environments. OK, so it is somewhat braindead, but at least
 ;;;   it works.
 ;;;
 
 
-(in-package :wilbur)
+(in-package :wilbur-racer)
 
 
 ;;; --------------------------------------------------------------------------------------
@@ -83,7 +81,7 @@
 
 (defun make-url (string)
   (multiple-value-bind (scheme args)
-                       (nox:parse-url string)
+                       (nox-racer:parse-url string)
     (apply #'make-instance (ecase scheme (:http 'http-url) (:file 'file-url))
            :string string args)))
 
@@ -93,7 +91,7 @@
 ;;;   HTTP CONDITIONS
 ;;;
 
-(define-condition http-error (nox::wilbur-error)
+(define-condition http-error (nox-racer::wilbur-error)
   ((thing
     :initarg :thing
     :reader http-error-thing))
@@ -205,10 +203,10 @@
   (get-header (http-headers message) header))
 
 (defmethod get-header ((headers list) (header string))
-  (nox:string-dict-get headers header))
+  (nox-racer:string-dict-get headers header))
 
 (defmethod add-header ((headers list) (header string) value)
-  (nox:string-dict-add headers header value))
+  (nox-racer:string-dict-add headers header value))
 
 (defun infer-character-count (headers)
   (parse-integer (get-header headers "Content-Length") :junk-allowed t))
@@ -276,13 +274,13 @@
 			       :output :stream :wait nil))
 	 (input (external-process-output-stream process)))
     (multiple-value-bind (status version headers)
-	                 (nox::with-resource-from-pool (parse-buffer *http-parse-buffers*)
+	                 (nox-racer::with-resource-from-pool (parse-buffer *http-parse-buffers*)
 			   (read-headers-into-pb parse-buffer input)
 			   (compute-response parse-buffer))
       (values status version headers input))))
 
 #-:openmcl
-(nox:define-constant -new-line-string- (concatenate 'string (list #\Return #\Linefeed)))
+(nox-racer:define-constant -new-line-string- (concatenate 'string (list #\Return #\Linefeed)))
 
 #-:openmcl
 (defun make-http-request (method url-path url-host accept)
@@ -299,7 +297,7 @@
   (write-sequence (make-http-request operation (url-path url) (url-host url) accept)
 		  input)
   (force-output input)
-  (nox:with-resource-from-pool (parse-buffer *http-parse-buffers*)
+  (nox-racer:with-resource-from-pool (parse-buffer *http-parse-buffers*)
     (read-headers-into-pb parse-buffer input)
     (compute-response parse-buffer)))
 
@@ -375,7 +373,7 @@
 (defun clear-pb (pb)
   (setf (pb-seen-headers pb) 0))
 
-(nox:define-resource-pool *http-parse-buffers* 
+(nox-racer:define-resource-pool *http-parse-buffers* 
   #'make-http-response-parse-buffer #'clear-pb)
 
 (defun stretch-pb-buf (pb delta)

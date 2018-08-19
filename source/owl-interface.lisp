@@ -41,7 +41,7 @@
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (racer:enable-boolean-readers)
-  (wilbur:enable-node-shorthand))
+  (wilbur-racer:enable-node-shorthand))
 
 (defvar *current-ontology*)
 (defvar *current-reasoner*)
@@ -55,11 +55,11 @@
 (defparameter *role-range* nil)  ; Used for parsing facets in the context of onProperty.
 
 (defun register-namespace (namespace url)
-  (wilbur:add-namespace namespace url))
+  (wilbur-racer:add-namespace namespace url))
 
-(register-namespace "rdf" nox:-rdf-uri-)
-(register-namespace "rdfs" nox:-rdfs-uri-)
-(register-namespace "xsd" nox:-xsd-uri-)
+(register-namespace "rdf" nox-racer:-rdf-uri-)
+(register-namespace "rdfs" nox-racer:-rdfs-uri-)
+(register-namespace "xsd" nox-racer:-xsd-uri-)
 (register-namespace "owl2" +owl-version+)
 (register-namespace "owl" +owl-version+)   ; Eval this after owl2 s.t. owl is used for printing.
 (register-namespace "swrl" +swrl-version+)
@@ -108,12 +108,12 @@
   (dolist (tbox (all-tboxes))
     (clear-tbox-namespaces tbox))
   
-  (mapcar #'wilbur:del-namespace   
-          (mapcar #'car (wilbur:dictionary-namespaces wilbur:*nodes*)))
+  (mapcar #'wilbur-racer:del-namespace   
+          (mapcar #'car (wilbur-racer:dictionary-namespaces wilbur-racer:*nodes*)))
 
-  (register-namespace "rdf" nox:-rdf-uri-)
-  (register-namespace "rdfs" nox:-rdfs-uri-)
-  (register-namespace "xsd" nox:-xsd-uri-)
+  (register-namespace "rdf" nox-racer:-rdf-uri-)
+  (register-namespace "rdfs" nox-racer:-rdfs-uri-)
+  (register-namespace "xsd" nox-racer:-xsd-uri-)
   (register-namespace "owl2" +owl-version+)
   (register-namespace "owl" +owl-version+)
   (register-namespace "swrl" +swrl-version+)
@@ -158,7 +158,7 @@
                                                  (cons (first x)
                                                        (cdr x)))
                                              (tbox-namespaces (find-tbox tbox)))
-                                     (wilbur:dictionary-namespaces wilbur:*nodes*))
+                                     (wilbur-racer:dictionary-namespaces wilbur-racer:*nodes*))
                              :test #'(lambda (x y)
                                        (and (string-equal (car x) (car y))
                                             (string-equal (cdr x) (cdr y)))))))))
@@ -410,7 +410,7 @@
 ;;; This class is used by Wilbur.
 
 (defclass racer-owl-parser
-          (wilbur::owl-parser)
+          (wilbur-racer::owl-parser)
   ())
 
 
@@ -484,18 +484,18 @@
           name)
       name)))
 
-(defconstant +rdf-tag+ (concatenate 'string nox:-rdf-uri- "RDF"))
+(defconstant +rdf-tag+ (concatenate 'string nox-racer:-rdf-uri- "RDF"))
 
-(defmethod nox:start-element :before ((self wilbur:rdf-syntax-normalizer) (tag nox:open-tag) mode)
+(defmethod nox-racer:start-element :before ((self wilbur-racer:rdf-syntax-normalizer) (tag nox-racer:open-tag) mode)
   (declare (ignore mode))
 
-  (when (string= +rdf-tag+ (nox:token-string tag))
+  (when (string= +rdf-tag+ (nox-racer:token-string tag))
 
-    (let* ((parser (nox:sax-producer-consumer self))
-           (namespaces (nox:tag-namespaces tag))
-           (base (nox:tag-base tag))
+    (let* ((parser (nox-racer:sax-producer-consumer self))
+           (namespaces (nox-racer:tag-namespaces tag))
+           (base (nox-racer:tag-base tag))
            (default-namespace (cdr (assoc 'nil namespaces)))
-           (default-uri-prefix (if (string= base (first (wilbur:parser-base parser)))
+           (default-uri-prefix (if (string= base (first (wilbur-racer:parser-base parser)))
                                    default-namespace
                                  (or base default-namespace)))
            (length-prefix (and default-uri-prefix
@@ -506,21 +506,21 @@
                  (char= (char default-uri-prefix (- length-prefix 1)) #\#))
         (setf default-uri-prefix (subseq default-uri-prefix 0 (- length-prefix 1))))
 
-      (unless (or (first (wilbur:parser-base parser))
+      (unless (or (first (wilbur-racer:parser-base parser))
                   default-uri-prefix)
         (error "Cannot determine default namespace. Use xmlns=\"....\" as an attribute to the RDF tag."))
 
       (when default-uri-prefix
-        (setf (first (wilbur:parser-base parser)) default-uri-prefix))
+        (setf (first (wilbur-racer:parser-base parser)) default-uri-prefix))
 
-      (setf (nox:tag-base tag) default-uri-prefix)
+      (setf (nox-racer:tag-base tag) default-uri-prefix)
       
-      ;; (print (wilbur:parser-base parser))
+      ;; (print (wilbur-racer:parser-base parser))
       ;; (print default-uri-prefix)
       ;; (break)
 
       (let ((namespace (or default-uri-prefix 
-                           (first (wilbur:parser-base parser)))))
+                           (first (wilbur-racer:parser-base parser)))))
         (add-to-tbox-namespaces *current-tbox*
                                 (acons nil 
                                        (ensure-namespace-ends-with-sharp namespace)
@@ -559,23 +559,23 @@
           ;;; gzipped?
           (util.zip::skip-gzip-header stream)
           (setq stream2 (make-instance 'util.zip:inflate-stream :input-handle stream))
-          (apply #'wilbur:parse-db-from-stream stream2 locator options)))
+          (apply #'wilbur-racer:parse-db-from-stream stream2 locator options)))
     (error ()
       (with-open-file (stream filename :element-type 'character :external-format *file-external-format*)	    
         ;;; nicht gezipped
-        (apply #'wilbur:parse-db-from-stream stream locator options)))))
+        (apply #'wilbur-racer:parse-db-from-stream stream locator options)))))
 
 
 #-:allegro 
 (defun parse-db-from-file (filename locator &rest options)
   (declare (dynamic-extent options))
   (with-open-file (stream filename :element-type 'character :external-format *file-external-format*)
-    (apply #'wilbur:parse-db-from-stream stream locator options)))
+    (apply #'wilbur-racer:parse-db-from-stream stream locator options)))
 
 
 (defun parse-db-from-stream (stream locator &rest options)
   (declare (dynamic-extent options))
-  (apply #'wilbur:parse-db-from-stream stream locator options))
+  (apply #'wilbur-racer:parse-db-from-stream stream locator options))
 
 
 ;;; ======================================================================
@@ -696,7 +696,7 @@
                    :type (url:extension url))))
 
 #+:cl-http
-(defmethod nox::read-external-dtd :around ((consumer racer-owl-parser) stream dtd-stuff namespaces)
+(defmethod nox-racer::read-external-dtd :around ((consumer racer-owl-parser) stream dtd-stuff namespaces)
   (declare (ignore stream))
   (let* ((url-spec (second dtd-stuff))
          (base (first *visited-urls*)))
@@ -727,7 +727,7 @@
    #-:allegro (net.uri:uri-path uri)))
 
 #+:aserve
-(defmethod nox::read-external-dtd :around ((consumer racer-owl-parser) stream dtd-stuff namespaces)
+(defmethod nox-racer::read-external-dtd :around ((consumer racer-owl-parser) stream dtd-stuff namespaces)
   (declare (ignore stream))
   (let* ((url-spec (second dtd-stuff))
          (base (first *visited-urls*)))
@@ -1029,25 +1029,25 @@
 (defun retrieve-triples (spec type locator)
   (let ((current-parser nil))
     (sort-triples
-     (wilbur:db-triples 
+     (wilbur-racer:db-triples 
       (ecase type
         (:file 
          (handler-case
-             (handler-bind ((nox:wilbur-error #'(lambda (c)
+             (handler-bind ((nox-racer:wilbur-error #'(lambda (c)
                                                   (declare (ignore c))
                                                   (setf current-parser
-                                                        nox:*current-parser*))))
+                                                        nox-racer:*current-parser*))))
                
                (parse-db-from-file 
                 spec 
-                (or locator (nox:make-file-url 
+                (or locator (nox-racer:make-file-url 
                              (translate-logical-pathname spec)))
                 :parser-class 'racer-owl-parser))
            (error (error)
                   (if current-parser
                     (error "~A @ stream position ~A" 
                            error
-                           (nox:parser-filepos current-parser))
+                           (nox-racer:parser-filepos current-parser))
                     (error "~A" error)))))
         (:stream
          (parse-db-from-stream 
@@ -1112,8 +1112,8 @@
 		    (*annotation-properties* (or *annotation-properties* (make-hash-table)))
 		    (*datatype-properties* (or *datatype-properties* (make-hash-table)))
 		    (*object-properties* (or *object-properties* (make-hash-table)))
-		    (wilbur:*user-defined-nodes* (or wilbur:*user-defined-nodes*
-						     (make-instance 'wilbur::dictionary))))
+		    (wilbur-racer:*user-defined-nodes* (or wilbur-racer:*user-defined-nodes*
+						     (make-instance 'wilbur-racer::dictionary))))
 
 	       (setf (tbox-ontologies tbox) (append (tbox-ontologies tbox) (list *ontology*)))
 	       (setf (abox-ontologies abox) (append (abox-ontologies abox) (list *ontology*)))
@@ -1139,14 +1139,14 @@
 
 		   (loop for triple in triples do
 		      
-			 (let ((subject (wilbur:triple-subject triple))
-			       (predicate (wilbur:triple-predicate triple))
-			       (object (wilbur:triple-object triple)))
+			 (let ((subject (wilbur-racer:triple-subject triple))
+			       (predicate (wilbur-racer:triple-predicate triple))
+			       (object (wilbur-racer:triple-object triple)))
                     
 			   (racer:set-progress-value (incf triple-counter))
 
 			   (cond ((or (null (node-uri subject))
-				      (eq (wilbur:node-name-resolved-p subject) :node-id)
+				      (eq (wilbur-racer:node-name-resolved-p subject) :node-id)
 				      (node-eq predicate !rdfs:range)
                              
 				      (and (node-eq predicate !rdf:type)
@@ -1155,7 +1155,7 @@
 				      (node-eq predicate !rdf:first)
 				      (node-eq predicate !rdf:rest))
                         
-				  (push (list predicate object) (wilbur:triple-attributes subject)))
+				  (push (list predicate object) (wilbur-racer:triple-attributes subject)))
                         
 				 ((and (node-uri subject)
 				       (node-eq predicate !rdf:type))
@@ -1178,7 +1178,7 @@
 					      (node-eq object !owl:AnnotationProperty))
 					 (setf (gethash (owl-as-role subject node-ht) *annotation-properties*)
 					   t)))
-				  (push (list predicate object) (wilbur:triple-attributes subject))))))
+				  (push (list predicate object) (wilbur-racer:triple-attributes subject))))))
 		
 		   ;; (format *trace-output* "~%Phase 2~%")
 
@@ -1188,14 +1188,14 @@
 		   (loop for triple in triples do
 			 ;;(print triple)
 
-			 (let ((subject (wilbur:triple-subject triple))
-			       (predicate (wilbur:triple-predicate triple))
-			       (object (wilbur:triple-object triple)))
+			 (let ((subject (wilbur-racer:triple-subject triple))
+			       (predicate (wilbur-racer:triple-predicate triple))
+			       (object (wilbur-racer:triple-object triple)))
 
 			   (racer:set-progress-value (incf triple-counter))
                   
 			   (cond ((datarange-node-p subject node-ht)
-				  (push (list predicate object) (wilbur:triple-attributes subject)))
+				  (push (list predicate object) (wilbur-racer:triple-attributes subject)))
 				 ;;((and (not (literal-p object)) (ontology-node-p object node-ht)
 				 ;;      (node-eq predicate !owl:imports))
 				 ;; (break))
@@ -1287,9 +1287,9 @@
 		   ;; Third pass: deal with owl:imports
 		   (loop for triple in triples do
 			 ;;(print triple)
-			 (let ((subject (wilbur:triple-subject triple))
-			       (predicate (wilbur:triple-predicate triple))
-			       (object (wilbur:triple-object triple)))
+			 (let ((subject (wilbur-racer:triple-subject triple))
+			       (predicate (wilbur-racer:triple-predicate triple))
+			       (object (wilbur-racer:triple-object triple)))
 
 			   (racer:set-progress-value (incf triple-counter))
 			
@@ -1305,8 +1305,8 @@
 				  (if (or import-meta-ontologies
 					  (not (or (string=1 uri +protege-url+)
 						   (string=1 uri +owl-version+)
-						   (string=1 uri nox:-rdfs-uri-)
-						   (string=1 uri nox:-rdf-uri-)
+						   (string=1 uri nox-racer:-rdfs-uri-)
+						   (string=1 uri nox-racer:-rdf-uri-)
 						   (member uri +ignored-meta-ontologies+
 							   :test #'string=1))))
 
@@ -1387,16 +1387,16 @@
 
 			 (without-progress
 		      
-			  (unless (and (node-eq (wilbur:triple-predicate triple) !rdf:type)
-				       (node-eq (wilbur:triple-object triple) !owl2:Axiom))
+			  (unless (and (node-eq (wilbur-racer:triple-predicate triple) !rdf:type)
+				       (node-eq (wilbur-racer:triple-object triple) !owl2:Axiom))
                   
 			    (flet ((doit ()
 				     (let ((*triple-position*
-					    (wilbur:triple-filepos triple)))
+					    (wilbur-racer:triple-filepos triple)))
 
-				       (process-owl-triple (wilbur:triple-subject triple)
-							   (wilbur:triple-predicate triple)
-							   (wilbur:triple-object triple)
+				       (process-owl-triple (wilbur-racer:triple-subject triple)
+							   (wilbur-racer:triple-predicate triple)
+							   (wilbur-racer:triple-object triple)
 							   tbox
 							   abox
 							   node-ht
@@ -1410,7 +1410,7 @@
 				  (error (error)
 				    (error (format nil "~A @ stream position: ~A" 
 						   error
-						   (wilbur:triple-filepos triple))))))))))
+						   (wilbur-racer:triple-filepos triple))))))))))
 		
 		   ;; (format *trace-output* "~%Phase 5 starts~%")
             
@@ -1420,22 +1420,22 @@
 		     (loop for triple in triples
 			 do
 			   ;;(print triple)
-			   #| (process-axiom (wilbur:triple-subject triple)
-                                 (wilbur:triple-predicate triple)
-                                 (wilbur:triple-object triple)
+			   #| (process-axiom (wilbur-racer:triple-subject triple)
+                                 (wilbur-racer:triple-predicate triple)
+                                 (wilbur-racer:triple-object triple)
                                  node-ht
                                  axiom-ht) |# 
 
 			   (racer:set-progress-value (incf triple-counter))
 
 			   (without-progress
-			    (when (and (node-eq (wilbur:triple-predicate triple) !rdf:type)
-				       (node-eq (wilbur:triple-object triple) !owl2:Axiom))
+			    (when (and (node-eq (wilbur-racer:triple-predicate triple) !rdf:type)
+				       (node-eq (wilbur-racer:triple-object triple) !owl2:Axiom))
                     
-			      (let ((*triple-position* (wilbur:triple-filepos triple)))
-				(process-axiom1 (wilbur:triple-subject triple)
-						(wilbur:triple-predicate triple)
-						(wilbur:triple-object triple)
+			      (let ((*triple-position* (wilbur-racer:triple-filepos triple)))
+				(process-axiom1 (wilbur-racer:triple-subject triple)
+						(wilbur-racer:triple-predicate triple)
+						(wilbur-racer:triple-object triple)
 						tbox
 						abox
 						node-ht
@@ -1525,7 +1525,7 @@
 ;;; triples are represented as Wilbur nodes during the parsing process of a triple store.
 
 (defun node-p (object)
-  (typep object 'wilbur:node))
+  (typep object 'wilbur-racer:node))
 
 (defun without-# (string)
   (if (stringp string)
@@ -1537,7 +1537,7 @@
 
 (defun node-uri (node)
   (let ((uri 
-         (wilbur:node-uri node)))
+         (wilbur-racer:node-uri node)))
     (when uri
       (if (char= #\# (elt uri 0))
 	  (let ((ns 
@@ -1550,21 +1550,21 @@
 (defun get-attributes (node node-ht) 
   (declare (ignore node-ht))
   (progn 
-    (if (typep node 'wilbur::literal)
+    (if (typep node 'wilbur-racer::literal)
         nil
-      (wilbur:triple-attributes node))))
+      (wilbur-racer:triple-attributes node))))
 
 (defun get-attribute-value (attribute attributes)
   (second (assoc attribute attributes :test #'node-eq)))
 
 (defun literal-p (node)
-  (typep node 'wilbur::literal))
+  (typep node 'wilbur-racer::literal))
 
 (defun literal-datatype (spec)
-  (wilbur:literal-datatype spec))
+  (wilbur-racer:literal-datatype spec))
 
 (defun literal-string (spec)
-  (wilbur:literal-string spec))
+  (wilbur-racer:literal-string spec))
 
 
 ;;; **********************************************************************
@@ -1577,7 +1577,7 @@
         (t 
 	 (let ((node-uri (node-uri node)))
 
-           (if (and (or (eq (wilbur:node-name-resolved-p node) :node-id)
+           (if (and (or (eq (wilbur-racer:node-name-resolved-p node) :node-id)
                         (null node-uri))
 
                     ;;; (MW, 26.2.2010) 
@@ -1813,7 +1813,7 @@
       (node-eq node !xsd:gMonthDay)
       (node-eq node !xsd:gDay)
       (node-eq node !xsd:duration)
-      (let ((name (wilbur:node-uri node)))
+      (let ((name (wilbur-racer:node-uri node)))
         (when name
           (member (intern name) *user-defined-datatypes*)))))
 
@@ -3277,7 +3277,7 @@
 ;;; ======================================================================
 
 (defun rdfs-read-tbox-file (filename)
-  (let ((db (parse-db-from-file filename (nox:make-file-url 
+  (let ((db (parse-db-from-file filename (nox-racer:make-file-url 
                                           (translate-logical-pathname filename))))
         (tbox (find-tbox 
                (in-tbox-internal (intern (string-upcase (pathname-name filename)))
@@ -3285,19 +3285,19 @@
                                  nil
                                  *default-tbox-concept-size* 
                                  *default-tbox-role-size*))))
-    (loop for triple in (reverse (wilbur:db-triples db)) do
-          (let ((subject (wilbur:node-uri (wilbur:triple-subject triple)))
-                (property (wilbur:triple-predicate triple))
-                (object (if (stringp (wilbur:triple-object triple))
-                            (wilbur:triple-object triple)
-                          (wilbur:node-uri (wilbur:triple-object triple)))))
+    (loop for triple in (reverse (wilbur-racer:db-triples db)) do
+          (let ((subject (wilbur-racer:node-uri (wilbur-racer:triple-subject triple)))
+                (property (wilbur-racer:triple-predicate triple))
+                (object (if (stringp (wilbur-racer:triple-object triple))
+                            (wilbur-racer:triple-object triple)
+                          (wilbur-racer:node-uri (wilbur-racer:triple-object triple)))))
             (cond ((eq property !rdf:type)
-                   (cond ((eq (wilbur:triple-object triple) !rdfs:Class)
+                   (cond ((eq (wilbur-racer:triple-object triple) !rdfs:Class)
                           (xml-define-concept (intern subject) tbox))
-                         ((eq (wilbur:triple-object triple) !rdf:Property)
+                         ((eq (wilbur-racer:triple-object triple) !rdf:Property)
                           (ensure-role (intern subject) tbox))
                          (*tbox-verbose* (racer-warn "Ignoring triple (~A, ~A, ~A)" 
-                                                     subject (wilbur:node-uri property) object))))
+                                                     subject (wilbur-racer:node-uri property) object))))
                   ((eq property !rdfs:subClassOf)
                    (xml-add-implication (intern subject)
                                         (intern object) tbox))
@@ -3311,7 +3311,7 @@
                                                top)
                                         (intern object)
                                         tbox))
-                  (*tbox-verbose* (racer-warn "Ignoring triple (~A, ~A, ~A)" subject (wilbur:node-uri property) object)))))
+                  (*tbox-verbose* (racer-warn "Ignoring triple (~A, ~A, ~A)" subject (wilbur-racer:node-uri property) object)))))
     (tbox-name tbox)))
 
 ;;;

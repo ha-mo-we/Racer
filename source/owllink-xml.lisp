@@ -128,7 +128,7 @@
 ;;; 
 
 (defclass owllink2-parser 
-  (nox:sax-consumer)
+  (nox-racer:sax-consumer)
   ((url :initarg :url :accessor parser-url)
    (stream :initarg :stream :accessor parser-stream)
    (output-stream :initarg :output-stream :accessor parser-output-stream)
@@ -294,9 +294,9 @@
                (ecase *owllink2-input-syntax*
                  (:owllink-xml
                                     
-                  (nox:parse-from-stream 
+                  (nox-racer:parse-from-stream 
                    stream url 
-                   'nox:xml-parser 
+                   'nox-racer:xml-parser 
                    :consumer 
                    (setf *my-owllink2-parser*
                          (make-instance parser-class 
@@ -549,7 +549,7 @@
           *last-request-rendering-options* nil)
 
     (with-open-file (stream file)
-      (let ((url (nox:make-file-url file))
+      (let ((url (nox-racer:make-file-url file))
             (socket-stream *standard-output*)
             (parser-class 'owllink2-parser))
         (process-owllink-request)))))
@@ -805,17 +805,17 @@
 ;;;
 ;;;
 
-(defmethod nox:start-document ((self owllink2-parser) locator)
+(defmethod nox-racer:start-document ((self owllink2-parser) locator)
   (declare (ignorable locator))
   (setf (raw-input self) nil))
 
-(defmethod nox:end-document ((self owllink2-parser) locator)
+(defmethod nox-racer:end-document ((self owllink2-parser) locator)
   (declare (ignorable locator))
   (setf (result self) 
         (list 
          (transform-xml (reverse (raw-input self))))))
 
-(defmethod nox:char-content ((self owllink2-parser) (content string) mode)
+(defmethod nox-racer:char-content ((self owllink2-parser) (content string) mode)
   (declare (ignore mode))
   (with-slots (raw-input) self
     (push :content raw-input)
@@ -823,50 +823,50 @@
     ;;;(push content raw-input)
     ))
 
-(defmethod nox:start-element ((self owllink2-parser) (tag nox:open-tag) mode)
+(defmethod nox-racer:start-element ((self owllink2-parser) (tag nox-racer:open-tag) mode)
   (declare (ignore mode))
   (with-slots (raw-input) self
     (push :open raw-input)  
 
-    (when (or (string-equal (nox:token-string tag) 
+    (when (or (string-equal (nox-racer:token-string tag) 
                             "http://www.owllink.org/owllink-xml#Tell")
-              (string-equal (nox:token-string tag) 
+              (string-equal (nox-racer:token-string tag) 
                             "http://www.owllink.org/owllink#Tell"))
       (setf *telling-active* t))
 
-    (when (or (string-equal (nox:token-string tag) 
+    (when (or (string-equal (nox-racer:token-string tag) 
                             "http://www.owllink.org/owllink-xml#RequestMessage")
-              (string-equal (nox:token-string tag) 
+              (string-equal (nox-racer:token-string tag) 
                             "http://www.owllink.org/owllink#RequestMessage")
-              (string-equal (nox:token-string tag) 
+              (string-equal (nox-racer:token-string tag) 
                             "http://www.w3.org/2002/07/owl#Ontology"))
 
       (setf *last-request-xml-and-functional-namespaces*
-            (nox:tag-namespaces tag))
+            (nox-racer:tag-namespaces tag))
 
       (let ((xml-base
              (assoc "http://www.w3.org/XML/1998/namespace#base"
-                    (nox:tag-attributes tag)
+                    (nox-racer:tag-attributes tag)
                     :test #'string=)))
         (when xml-base
           (setf *last-request-xml-base* (cdr xml-base)))
 
-        (when (and (stringp (nox::tag-base tag)) (not xml-base))
+        (when (and (stringp (nox-racer::tag-base tag)) (not xml-base))
           (setf *last-request-xml-base*
-                (nox::tag-base tag)))))
+                (nox-racer::tag-base tag)))))
 
-    (push (simplify-tag (nox:token-string tag)) raw-input)
-    (push (reverse (nox:tag-attributes tag)) raw-input)))
+    (push (simplify-tag (nox-racer:token-string tag)) raw-input)
+    (push (reverse (nox-racer:tag-attributes tag)) raw-input)))
 
-(defmethod nox:end-element ((self owllink2-parser) tag mode)
+(defmethod nox-racer:end-element ((self owllink2-parser) tag mode)
   (declare (ignorable mode))
   
   (with-slots (raw-input) self
     (push :close raw-input))
 
-  (when (or (string-equal (nox:token-string tag) 
+  (when (or (string-equal (nox-racer:token-string tag) 
                           "http://www.owllink.org/owllink-xml#Tell")
-            (string-equal (nox:token-string tag) 
+            (string-equal (nox-racer:token-string tag) 
                           "http://www.owllink.org/owllink#Tell"))
     (setf *telling-active* nil)))
 
@@ -1367,10 +1367,10 @@
 #|
 
 (defun trace-owllink2 ()
-  (trace nox:start-element 
-         nox:end-element 
-         nox:start-document 
-         nox:end-document 
+  (trace nox-racer:start-element 
+         nox-racer:end-element 
+         nox-racer:start-document 
+         nox-racer:end-document 
          owllink2-eval-request
          owllink2-eval-request1))
 
@@ -1503,9 +1503,9 @@
                                       &key ontology-name reasoner-name kb-name &allow-other-keys)
   
         (with-input-from-url (stream uri)
-          (nox:parse-from-stream stream 
+          (nox-racer:parse-from-stream stream 
                                  uri
-                                 'nox:xml-parser 
+                                 'nox-racer:xml-parser 
                                  :consumer 
                                  (setf *my-owllink2-parser*
                                        (make-instance 'owllink2-parser

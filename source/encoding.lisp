@@ -2567,50 +2567,50 @@ as a list of symbols"
                             (first transformed-type))))
 
                (ecase facet-op
-                 (#.(intern (concatenate 'string nox:-xsd-uri- "maxExclusive") :racer)
+                 (#.(intern (concatenate 'string nox-racer:-xsd-uri- "maxExclusive") :racer)
                   (ecase type
                     (integer `(max ,+has-integer-value+ ,(- (get-literal literal) 1)))
                     (boolean (progn (racer-warn "Facet ~A ignored." spec) +datatype-top-symbol+))
                     (string (progn (racer-warn "Facet ~A ignored." spec) +datatype-top-symbol+))
                     (real `(< ,+has-real-value+ ,(read-from-string (second literal))))
                     (#.+datatype-top-symbol+ (progn (racer-warn "Facet ~A ignored." spec) +datatype-top-symbol+))))
-                 (#.(intern (concatenate 'string nox:-xsd-uri- "maxInclusive") :racer)
+                 (#.(intern (concatenate 'string nox-racer:-xsd-uri- "maxInclusive") :racer)
                   (ecase type
                     (integer `(max ,+has-integer-value+ ,(get-literal literal)))
                     (boolean (progn (racer-warn "Facet ~A ignored." spec) +datatype-top-symbol+))
                     (string (progn (racer-warn "Facet ~A ignored." spec) +datatype-top-symbol+))
                     (real `(<= ,+has-real-value+ ,(read-from-string (second literal))))
                     (#.+datatype-top-symbol+ (progn (racer-warn "Facet ~A ignored." spec) +datatype-top-symbol+))))
-                 (#.(intern (concatenate 'string nox:-xsd-uri- "minExclusive") :racer)
+                 (#.(intern (concatenate 'string nox-racer:-xsd-uri- "minExclusive") :racer)
                   (ecase type
                     (integer `(min ,+has-integer-value+ ,(+ (get-literal literal) 1)))
                     (boolean (progn (racer-warn "Facet ~A ignored." spec) +datatype-top-symbol+))
                     (string (progn (racer-warn "Facet ~A ignored." spec) +datatype-top-symbol+))
                     (real `(> ,+has-real-value+ ,(read-from-string (second literal))))
                     (#.+datatype-top-symbol+ (progn (racer-warn "Facet ~A ignored." spec) +datatype-top-symbol+))))
-                 (#.(intern (concatenate 'string nox:-xsd-uri- "minInclusive") :racer)
+                 (#.(intern (concatenate 'string nox-racer:-xsd-uri- "minInclusive") :racer)
                   (ecase type
                     (integer `(min ,+has-integer-value+ ,(get-literal literal)))
                     (boolean (progn (racer-warn "Facet ~A ignored." spec) +datatype-top-symbol+))
                     (string (progn (racer-warn "Facet ~A ignored." spec) +datatype-top-symbol+))
                     (real `(>= ,+has-real-value+ ,(read-from-string (second literal))))
                     (#.+datatype-top-symbol+ (progn (racer-warn "Facet ~A ignored." spec) +datatype-top-symbol+))))
-                 (#.(intern (concatenate 'string nox:-xsd-uri- "minLength") :racer)
+                 (#.(intern (concatenate 'string nox-racer:-xsd-uri- "minLength") :racer)
                   (racer-warn "Facet ~A ignored." spec)
                   +datatype-top-symbol+)
-                 (#.(intern (concatenate 'string nox:-xsd-uri- "maxLength") :racer)
+                 (#.(intern (concatenate 'string nox-racer:-xsd-uri- "maxLength") :racer)
                   (racer-warn "Facet ~A ignored." spec)
                   +datatype-top-symbol+)
-                 (#.(intern (concatenate 'string nox:-xsd-uri- "length") :racer)
+                 (#.(intern (concatenate 'string nox-racer:-xsd-uri- "length") :racer)
                   (racer-warn "Facet ~A ignored." spec) 
                   +datatype-top-symbol+)
-                 (#.(intern (concatenate 'string nox:-xsd-uri- "pattern") :racer)
+                 (#.(intern (concatenate 'string nox-racer:-xsd-uri- "pattern") :racer)
                   (racer-warn "Facet ~A ignored." spec) 
                   +datatype-top-symbol+)
-                 (#.(intern (concatenate 'string nox:-xsd-uri- "totalDigits") :racer)
+                 (#.(intern (concatenate 'string nox-racer:-xsd-uri- "totalDigits") :racer)
                   (racer-warn "Facet ~A ignored." spec) 
                   +datatype-top-symbol+)
-                 (#.(intern (concatenate 'string nox:-xsd-uri- "fractionDigits") :racer)
+                 (#.(intern (concatenate 'string nox-racer:-xsd-uri- "fractionDigits") :racer)
                   (racer-warn "Facet ~A ignored." spec) 
                   +datatype-top-symbol+))))
             (and
@@ -2652,13 +2652,13 @@ as a list of symbols"
 (defun map-facet-op (op)
   (case op
     (>=
-     '#.(intern (concatenate 'string nox:-xsd-uri- "minInclusive") :racer))
+     '#.(intern (concatenate 'string nox-racer:-xsd-uri- "minInclusive") :racer))
     (>
-     '#.(intern (concatenate 'string nox:-xsd-uri- "minExclusive") :racer))
+     '#.(intern (concatenate 'string nox-racer:-xsd-uri- "minExclusive") :racer))
     (<=
-     '#.(intern (concatenate 'string nox:-xsd-uri- "maxInclusive") :racer))
+     '#.(intern (concatenate 'string nox-racer:-xsd-uri- "maxInclusive") :racer))
     (<
-     '#.(intern (concatenate 'string nox:-xsd-uri- "maxExclusive") :racer))
+     '#.(intern (concatenate 'string nox-racer:-xsd-uri- "maxExclusive") :racer))
     (otherwise op)))
 
 (defun get-literal (data-spec)

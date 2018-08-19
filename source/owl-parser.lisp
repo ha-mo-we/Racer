@@ -1,8 +1,5 @@
-;;; -*- package: WILBUR; Syntax: Common-lisp; Base: 10 -*-
+;;; -*- package: WILBUR-RACER; Syntax: Common-lisp; Base: 10 -*-
 
-;;;
-;;;;  owl.lisp
-;;;
 ;;;
 ;;; ----------------------------------------------------------------------------
 ;;;
@@ -25,14 +22,11 @@
 ;;;
 ;;; ----------------------------------------------------------------------------
 ;;;
-;;;
-;;;   Version: $Id: owl-parser.lisp,v 1.3 2001/07/17 22:25:07 theran Exp $
-;;;
 ;;;   Purpose: This file contains an implementation of a owl parser.
 ;;;
 
 
-(in-package :wilbur)
+(in-package :wilbur-racer)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
    (enable-node-shorthand)
@@ -79,10 +73,10 @@
         (t (call-next-method))))
 
 
-(defmethod nox:start-element ((parser owl-parser)
-                              (tag nox:open-tag)
+(defmethod nox-racer:start-element ((parser owl-parser)
+                              (tag nox-racer:open-tag)
                               (mode (eql :owl-collection)))
-  (nox:start-element parser tag :description))
+  (nox-racer:start-element parser tag :description))
 
 (defmethod attach-to-parent ((parser owl-parser)
                              (parent node)
@@ -102,8 +96,8 @@
              (setf (state-node state) node)))
           (t (call-next-method)))))
 
-(defmethod nox:end-element :before ((parser owl-parser)
-                                    (tag nox:open-tag)
+(defmethod nox-racer:end-element :before ((parser owl-parser)
+                                    (tag nox-racer:open-tag)
                                     (mode (eql :owl-collection)))
   (let* ((node (state-node (first (parser-states parser))))
          ;;(db (parser-db parser))
@@ -142,12 +136,12 @@
 ;;; ======================================================================
 
 #|
-(defmethod nox:char-content ((parser owl-parser)
+(defmethod nox-racer:char-content ((parser owl-parser)
                              (content string)
                              (mode (eql :property)))
   (break)
   |#
 
-(defmethod nox:char-content ((self owl-parser) char-content (mode (eql :property)))
+(defmethod nox-racer:char-content ((self owl-parser) char-content (mode (eql :property)))
   (racer:racer-warn "Is this character content correct? ~S" char-content)
   char-content)

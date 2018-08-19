@@ -1,8 +1,5 @@
-;;; -*- package: WILBUR; Syntax: Common-lisp; Base: 10 -*-
+;;; -*- package: WILBUR-RACER; Syntax: Common-lisp; Base: 10 -*-
 
-;;;
-;;;;  rdf-literal.lisp
-;;;
 ;;;
 ;;; --------------------------------------------------------------------------------------
 ;;;
@@ -30,7 +27,7 @@
 ;;;
 
 
-(in-package "WILBUR")
+(in-package :wilbur-racer)
 
 
 (eval-when (:compile-toplevel :load-toplevel :execute)

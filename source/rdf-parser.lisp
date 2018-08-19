@@ -1,8 +1,5 @@
-;;; -*- package: WILBUR; Syntax: Common-lisp; Base: 10 -*-
+;;; -*- package: WILBUR-RACER; Syntax: Common-lisp; Base: 10 -*-
 
-;;;
-;;;;  rdf-parser.lisp
-;;;
 ;;;
 ;;; --------------------------------------------------------------------------------------
 ;;;
@@ -24,9 +21,6 @@
 ;;;
 ;;; --------------------------------------------------------------------------------------
 ;;;
-;;;
-;;;   Version: $Id: rdf-parser.lisp,v 1.11 2004/11/28 23:14:10 ora Exp $
-;;;
 ;;;   Purpose: This file contains an implementation of an RDF parser, using a
 ;;;   "near streaming" algorithm based on a simple state machine. The parser
 ;;;   implements all of RDF M+S excluding "aboutEachPrefix" (what, are you
@@ -34,7 +28,7 @@
 ;;;
 
 
-(in-package :wilbur)
+(in-package :wilbur-racer)
 
 
 ;;; --------------------------------------------------------------------------------------
@@ -42,46 +36,46 @@
 ;;;   CLASS RDF-SYNTAX-NORMALIZER
 ;;;
 
-(defclass rdf-syntax-normalizer (nox:sax-filter)
+(defclass rdf-syntax-normalizer (nox-racer:sax-filter)
   ())
 
-(defmethod nox:sax-consumer-mode ((self rdf-syntax-normalizer))
-  (nox:sax-consumer-mode (nox:sax-producer-consumer self)))
+(defmethod nox-racer:sax-consumer-mode ((self rdf-syntax-normalizer))
+  (nox-racer:sax-consumer-mode (nox-racer:sax-producer-consumer self)))
 
-(defmethod nox:start-element ((self rdf-syntax-normalizer)
-                              (tag nox:open-tag)
+(defmethod nox-racer:start-element ((self rdf-syntax-normalizer)
+                              (tag nox-racer:open-tag)
                               mode)
-  (let ((attributes (nox:tag-attributes tag))
+  (let ((attributes (nox-racer:tag-attributes tag))
         (properties nil)
-        (consumer (nox:sax-producer-consumer self))
-        (namespaces (nox:tag-namespaces tag)))
-    (nox:do-string-dict (key value attributes)
+        (consumer (nox-racer:sax-producer-consumer self))
+        (namespaces (nox-racer:tag-namespaces tag)))
+    (nox-racer:do-string-dict (key value attributes)
       (cond ((null (find key -rdf-attrs- :test #'string=))
-             (setf properties (nox:string-dict-add properties key value)
-                   attributes (nox:string-dict-del attributes key)))
+             (setf properties (nox-racer:string-dict-add properties key value)
+                   attributes (nox-racer:string-dict-del attributes key)))
             ((string= key -rdf-abouteachprefix-uri-)
              (cerror "Ignore" 'feature-not-supported :thing "aboutEachPrefix")
-             (setf attributes (nox:string-dict-del attributes key)))))
-    (setf (nox:tag-attributes tag) attributes)
-    (nox:start-element consumer tag mode)
-    (nox:do-string-dict (key value properties)
+             (setf attributes (nox-racer:string-dict-del attributes key)))))
+    (setf (nox-racer:tag-attributes tag) attributes)
+    (nox-racer:start-element consumer tag mode)
+    (nox-racer:do-string-dict (key value properties)
       (unless (or (string-equal key -xml-lang-attr-)
                   (string-equal key "xml:space")
                   (string-equal key "xml:base"))
-        (let ((new-tag (make-instance 'nox:open-tag
+        (let ((new-tag (make-instance 'nox-racer:open-tag
                          :string key
-                         :base (nox::tag-base tag)
+                         :base (nox-racer::tag-base tag)
                          :namespaces namespaces))
-              (close-tag (make-instance 'nox:close-tag
+              (close-tag (make-instance 'nox-racer:close-tag
                            :string key)))
-          (setf (nox:tag-counterpart new-tag) close-tag)
-          (setf (nox:tag-counterpart close-tag) new-tag)
-          (nox:start-element consumer new-tag (nox:sax-consumer-mode self))
-          (nox:char-content consumer value (nox:sax-consumer-mode self))
-          (nox:end-element consumer new-tag (nox:sax-consumer-mode self)))))))
+          (setf (nox-racer:tag-counterpart new-tag) close-tag)
+          (setf (nox-racer:tag-counterpart close-tag) new-tag)
+          (nox-racer:start-element consumer new-tag (nox-racer:sax-consumer-mode self))
+          (nox-racer:char-content consumer value (nox-racer:sax-consumer-mode self))
+          (nox-racer:end-element consumer new-tag (nox-racer:sax-consumer-mode self)))))))
 
-(defmethod nox:maybe-use-namespace ((self rdf-syntax-normalizer) prefix uri)
-  (nox:maybe-use-namespace (nox:sax-producer-consumer self) prefix uri))
+(defmethod nox-racer:maybe-use-namespace ((self rdf-syntax-normalizer) prefix uri)
+  (nox-racer:maybe-use-namespace (nox-racer:sax-producer-consumer self) prefix uri))
 
 
 ;;; --------------------------------------------------------------------------------------
@@ -89,7 +83,7 @@
 ;;;   CLASS RDF-PARSER
 ;;;
 
-(defclass rdf-parser (nox:sax-consumer)
+(defclass rdf-parser (nox-racer:sax-consumer)
   ((base
     :initform nil
     :accessor parser-base)
@@ -115,7 +109,7 @@
     :initform :scan
     :reader parser-initial-state))
   (:default-initargs
-    :producer (make-instance 'nox:xml-parser
+    :producer (make-instance 'nox-racer:xml-parser
 			     :consumer (make-instance 'rdf-syntax-normalizer))))
 
 (define-condition close-rdf-element (condition)
@@ -156,7 +150,7 @@
 (defmethod parser-task-state ((parser rdf-parser))
   (find :description (parser-states parser) :key #'state-mode))
 
-(defmethod nox:sax-consumer-mode ((parser rdf-parser))
+(defmethod nox-racer:sax-consumer-mode ((parser rdf-parser))
   (state-mode (first (parser-states parser))))
 
 (defstruct (task (:constructor make-task (type node &rest parameters)))
@@ -189,8 +183,8 @@
     node))
 
 (defmethod initialize-instance :after ((parser rdf-parser) &key &allow-other-keys)
-  (let ((normalizer (nox:sax-producer-consumer (nox:sax-consumer-producer parser))))
-    (setf (nox:sax-producer-consumer normalizer) parser)))
+  (let ((normalizer (nox-racer:sax-producer-consumer (nox-racer:sax-consumer-producer parser))))
+    (setf (nox-racer:sax-producer-consumer normalizer) parser)))
 
 (defmethod uri ((parser rdf-parser) uri should-exist-p)
   (let ((base (first (parser-base parser))))
@@ -242,9 +236,9 @@
     (node (first (parser-base parser))) ; should it be something that does not change?
     (node (uri parser uri should-exist-p))))
 
-(defmethod nox:parse ((parser rdf-parser) stream locator)
+(defmethod nox-racer:parse ((parser rdf-parser) stream locator)
   (catch :terminate-rdf-parser
-    (nox:parse (nox:find-first-producer parser) stream locator))
+    (nox-racer:parse (nox-racer:find-first-producer parser) stream locator))
   (node (first (parser-base parser))))
 
 (defmethod add-as-triple ((parser rdf-parser)
@@ -285,13 +279,13 @@
   (declare (dynamic-extent options))
   (remf options :parser-class)
   (multiple-value-bind (source-node parser)
-        (apply #'nox:parse-from-stream
+        (apply #'nox-racer:parse-from-stream
                stream locator parser-class options)
       (values (parser-db parser) source-node)))
 
-(defmethod nox:maybe-use-namespace ((self rdf-parser) prefix uri)
+(defmethod nox-racer:maybe-use-namespace ((self rdf-parser) prefix uri)
   (when (and (parser-harvest-namespaces-p self)
-             (not (nox:string-dict-get (dictionary-namespaces *nodes*) prefix)))
+             (not (nox-racer:string-dict-get (dictionary-namespaces *nodes*) prefix)))
     (add-namespace prefix uri)))
 
 
@@ -300,47 +294,47 @@
 ;;;   RDF PARSER STATE MACHINE TRANSITIONS
 ;;;
 
-(defmethod nox:start-document ((parser rdf-parser)
+(defmethod nox-racer:start-document ((parser rdf-parser)
                                locator)
   (setf (parser-base parser) (list locator))
   (add-state parser (parser-initial-state parser)))
 
-(defmethod nox:end-document ((parser rdf-parser)
+(defmethod nox-racer:end-document ((parser rdf-parser)
                              mode)
   (declare (ignore mode))
   nil)
 
-(defmethod nox:start-element :before ((parser rdf-parser)
-                                      (tag nox:open-tag)
+(defmethod nox-racer:start-element :before ((parser rdf-parser)
+                                      (tag nox-racer:open-tag)
                                       mode)
   (declare (ignore mode))
-  (when (nox::tag-base tag)
-    (push (nox::tag-base tag) (parser-base parser))))
+  (when (nox-racer::tag-base tag)
+    (push (nox-racer::tag-base tag) (parser-base parser))))
 
-(defmethod nox:end-element :after ((parser rdf-parser)
-                                   (tag nox:open-tag)
+(defmethod nox-racer:end-element :after ((parser rdf-parser)
+                                   (tag nox-racer:open-tag)
                                    mode)
   (declare (ignore mode))
-  (when (nox::tag-base tag)
+  (when (nox-racer::tag-base tag)
     (pop (parser-base parser))))
 
-(defmethod nox:start-element ((parser rdf-parser)
-                              (tag nox:open-tag)
+(defmethod nox-racer:start-element ((parser rdf-parser)
+                              (tag nox-racer:open-tag)
                               (mode (eql :scan)))
-  (cond ((string= (nox:token-string tag) -rdf-rdf-uri-)
+  (cond ((string= (nox-racer:token-string tag) -rdf-rdf-uri-)
          (add-state parser :description))
-        ((string= (nox:token-string tag) -rdf-description-uri-)
-         (nox:start-element parser tag :description))))
+        ((string= (nox-racer:token-string tag) -rdf-description-uri-)
+         (nox-racer:start-element parser tag :description))))
 
-(defmethod nox:start-element ((parser rdf-parser)
-                              (tag nox:open-tag)
+(defmethod nox-racer:start-element ((parser rdf-parser)
+                              (tag nox-racer:open-tag)
                               (mode (eql :description)))
-  (let* ((each  (nox:tag-attribute tag -rdf-abouteach-uri-))
-         (about (nox:tag-attribute tag -rdf-about-uri-))
-         (id    (nox:tag-attribute tag -rdf-id-uri-))
-         (node-id (nox:tag-attribute tag -rdf-nodeid-uri-))
-         (type-uri (nox:tag-attribute tag -rdf-type-uri-))  ; added, rm: see below
-         (type  (nox:token-string tag))
+  (let* ((each  (nox-racer:tag-attribute tag -rdf-abouteach-uri-))
+         (about (nox-racer:tag-attribute tag -rdf-about-uri-))
+         (id    (nox-racer:tag-attribute tag -rdf-id-uri-))
+         (node-id (nox-racer:tag-attribute tag -rdf-nodeid-uri-))
+         (type-uri (nox-racer:tag-attribute tag -rdf-type-uri-))  ; added, rm: see below
+         (type  (nox-racer:token-string tag))
          (node  (ensure-node parser
                              (and (null each) (or about id node-id))
                              (and (null each) (null id)))))
@@ -358,7 +352,7 @@
       (if (parser-rdfcore-p parser)
         (cerror "Ignore \"aboutEach\"" 'feature-disabled :feature "aboutEach")
         (defer-task parser :abouteach node :target (ensure-node parser each t)))
-      (let* ((bagid (nox:tag-attribute tag -rdf-bagid-uri-))
+      (let* ((bagid (nox-racer:tag-attribute tag -rdf-bagid-uri-))
              (state (first (parser-states parser)))
              (parent (state-node state)))
         (when bagid
@@ -384,12 +378,12 @@
            (add-as-triple parser parent -rdf-rest-uri-
                           (setf (state-node state) (ensure-node parser nil t)))))))
     
-(defmethod nox:start-element ((parser rdf-parser)
-                              (tag nox:open-tag)
+(defmethod nox-racer:start-element ((parser rdf-parser)
+                              (tag nox-racer:open-tag)
                               (mode (eql :property)))
   (let* ((state (first (parser-states parser)))
          (node (state-node state))
-         (property-uri (nox:token-string tag))
+         (property-uri (nox-racer:token-string tag))
          (property (ensure-node parser
                                 (cond ((string= property-uri -rdf-li-uri-)
                                        ;; (defer-task parser :container node)
@@ -397,9 +391,9 @@
                                       (t
                                        property-uri))
                                 t))
-         (resource-uri (nox:tag-attribute tag -rdf-resource-uri-))
-         (node-id (nox:tag-attribute tag -rdf-nodeid-uri-))
-         (statement-id (nox:tag-attribute tag -rdf-id-uri-)))
+         (resource-uri (nox-racer:tag-attribute tag -rdf-resource-uri-))
+         (node-id (nox-racer:tag-attribute tag -rdf-nodeid-uri-))
+         (statement-id (nox-racer:tag-attribute tag -rdf-id-uri-)))
     ;;(when node-id
     ;;  (error "Racer cannot handle rdf:nodeID."))
     (if (or resource-uri node-id)
@@ -408,10 +402,10 @@
         (attach-to-parent parser node value statement-id)
         (add-state parser :property value))
       (parse-using-parsetype parser node property
-                             (nox:tag-attribute tag -rdf-parsetype-uri-)
+                             (nox-racer:tag-attribute tag -rdf-parsetype-uri-)
                              statement-id
-                             (nox:tag-attribute tag -xml-lang-attr-)
-                             (nox:tag-attribute tag -rdf-datatype-uri-)))))
+                             (nox-racer:tag-attribute tag -xml-lang-attr-)
+                             (nox-racer:tag-attribute tag -rdf-datatype-uri-)))))
 
 (defmethod parse-using-parsetype ((parser rdf-parser) node property parsetype
                                   &optional statement-id language datatype)
@@ -441,40 +435,40 @@
          (add-state parser :literal node property)
         )))
   
-(defmethod nox:start-element ((parser rdf-parser)
-                              (tag nox:open-tag)
+(defmethod nox-racer:start-element ((parser rdf-parser)
+                              (tag nox-racer:open-tag)
                               (mode (eql :literal)))
   (add-state parser :literal)
   (push tag (parser-literal parser)))
 
 (declaim (special *db*))
 
-(defmethod nox:end-element ((parser rdf-parser)
-                            (tag nox:open-tag)
+(defmethod nox-racer:end-element ((parser rdf-parser)
+                            (tag nox-racer:open-tag)
                             (mode (eql :literal)))
   (let ((state (first (parser-states parser))))
     (call-next-method)
     (cond ((not (null (state-node state)))
 	   (let ((string (with-output-to-string (s)
-			   (nox:replay (make-instance 'nox:xml-formatter :stream s)
+			   (nox-racer:replay (make-instance 'nox-racer:xml-formatter :stream s)
 				       (nreverse (parser-literal parser))))))
 	     (add-as-triple parser
 			    (state-node state)
 			    (state-property state)
 			    (db-make-literal (or ;*db*
                                               (parser-db parser)) string))))
-	  ((not (nox:tag-empty-p tag))
-           (if (nox:tag-counterpart tag)
-             (push (nox:tag-counterpart tag) (parser-literal parser))
+	  ((not (nox-racer:tag-empty-p tag))
+           (if (nox-racer:tag-counterpart tag)
+             (push (nox-racer:tag-counterpart tag) (parser-literal parser))
 	     (break "No tag counterpart found."))))))
 
-(defmethod nox:end-element ((parser rdf-parser)
-                            (tag nox:open-tag)
+(defmethod nox-racer:end-element ((parser rdf-parser)
+                            (tag nox-racer:open-tag)
                             (mode (eql :scan)))
   nil)
 
-(defmethod nox:end-element :after ((parser rdf-parser)
-                                   (tag nox:open-tag)
+(defmethod nox-racer:end-element :after ((parser rdf-parser)
+                                   (tag nox-racer:open-tag)
                                    (mode (eql :property)))
   (let ((state (parser-task-state parser)))
     (when state
@@ -519,20 +513,20 @@
 
 ;;; Wilbur should not emit arbitrary signals because this causes trouble with handlers
 #|
-(defmethod nox:end-element :after ((parser rdf-parser)
-                                   (tag nox:open-tag)
+(defmethod nox-racer:end-element :after ((parser rdf-parser)
+                                   (tag nox-racer:open-tag)
                                    (mode (eql :description)))
-  (when (string= (nox:token-string tag) -rdf-rdf-uri-)
+  (when (string= (nox-racer:token-string tag) -rdf-rdf-uri-)
     (signal 'close-rdf-element)))
 |#
 
-(defmethod nox:end-element ((parser rdf-parser)
-                            (tag nox:open-tag)
+(defmethod nox-racer:end-element ((parser rdf-parser)
+                            (tag nox-racer:open-tag)
                             mode)
   (declare (ignore mode))
   (pop (parser-states parser)))
 
-(defmethod nox:char-content ((parser rdf-parser)
+(defmethod nox-racer:char-content ((parser rdf-parser)
                              (content string)
                              (mode (eql :description)))
   (let* ((state (first (parser-states parser)))
@@ -547,30 +541,30 @@
 				    :datatype (and datatype (node datatype)))
                    (state-statement-id state))))
 
-(defmethod nox:char-content ((parser rdf-parser)
+(defmethod nox-racer:char-content ((parser rdf-parser)
                              (content string)
                              (mode (eql :literal)))
   (push content (parser-literal parser)))
 
-(defmethod nox:char-content ((parser rdf-parser)
+(defmethod nox-racer:char-content ((parser rdf-parser)
                              (content string)
                              (mode (eql :scan)))
   ;; ignore character content in :scan mode
   nil)
 
-(defmethod nox:char-content ((parser rdf-parser)
+(defmethod nox-racer:char-content ((parser rdf-parser)
                              (content string)
                              mode)
   (declare (ignore mode))
   (cerror "Ignore" 'illegal-character-content :thing content))
 
-(defmethod nox:start-element ((parser rdf-parser)
-                              (tag nox:open-tag)
+(defmethod nox-racer:start-element ((parser rdf-parser)
+                              (tag nox-racer:open-tag)
                               (mode (eql :collection)))
-  (nox:start-element parser tag :description))
+  (nox-racer:start-element parser tag :description))
 
-(defmethod nox:end-element :before ((parser rdf-parser)
-                                    (tag nox:open-tag)
+(defmethod nox-racer:end-element :before ((parser rdf-parser)
+                                    (tag nox-racer:open-tag)
                                     (mode (eql :collection)))
   (let* ((db (parser-db parser))
          (node (state-node (first (parser-states parser))))

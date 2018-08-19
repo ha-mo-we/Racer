@@ -1,8 +1,6 @@
 ;;; -*- package: CL-USER; Syntax: Common-lisp; Base: 10 -*-
 
 ;;;
-;;;;  nox-package.lisp
-;;;
 ;;;
 ;;; --------------------------------------------------------------------------------------
 ;;;
@@ -24,10 +22,6 @@
 ;;; --------------------------------------------------------------------------------------
 ;;;
 ;;;
-;;;   Version: $Id: wilbur2-file-header.lisp,v 1.1 2004/08/10 16:24:46 ora Exp $
-;;;
-;;;   Purpose: Definition for the package NOX
-;;;
 
 
 (in-package :cl-user)
@@ -35,13 +29,13 @@
 
 ;;; --------------------------------------------------------------------------------------
 ;;;
-;;;   PACKAGE NOX
+;;;   PACKAGE NOX-RACER
 ;;;
 
-(defpackage :nox
-  (:nicknames :nokia-xml-cl
-	      :wilbur-xml
-              #+:allegro "NOX")
+(defpackage :nox-racer
+  ;;(:nicknames ;:nokia-xml-cl
+  ;;	      ;:wilbur-xml
+  ;;            #+:allegro "NOX-RACER")
   (:use :common-lisp
 	#+:ccl :ccl
 	#+:excl :excl

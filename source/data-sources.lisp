@@ -1,8 +1,5 @@
-;;; -*- package: WILBUR; Syntax: Common-lisp; Base: 10 -*-
+;;; -*- package: WILBUR-RACER; Syntax: Common-lisp; Base: 10 -*-
 
-;;;
-;;;;  data-sources.lisp
-;;;
 ;;;
 ;;; --------------------------------------------------------------------------------------
 ;;;
@@ -24,13 +21,8 @@
 ;;; --------------------------------------------------------------------------------------
 ;;;
 ;;;
-;;;   Version: $Id: wilbur2-file-header.lisp,v 1.1 2004/08/10 16:24:46 ora Exp $
-;;;
-;;;   Purpose: 
-;;;
 
-
-(in-package :wilbur)
+(in-package :wilbur-racer)
 
 
 ;;; --------------------------------------------------------------------------------------
@@ -56,7 +48,7 @@
     (remf options :merge-results-p)
     (multiple-value-bind (temporary-db source-node)
 			 (handler-case (apply #'db-load-using-source db source options)
-			   (nox::wilbur-error (e)
+			   (nox-racer::wilbur-error (e)
 			     (ecase error-handling
 			       (:signal  (cerror "Keep going" e))
 			       (:collect (push e errors)

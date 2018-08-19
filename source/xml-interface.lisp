@@ -65,7 +65,7 @@
 
 
 (defclass xml-racer 
-  (nox:sax-consumer)
+  (nox-racer:sax-consumer)
   ((tbox :initform nil :accessor xml-racer-tbox)
    (tbox-default-name :initarg :tbox-default-name :initform nil :accessor xml-racer-tbox-default-name)))
 
@@ -81,9 +81,9 @@
       (intern value)
       value)))
 
-(defmethod nox:start-element ((self xml-racer) (tag nox:open-tag) mode)
-  (let ((token-string (nox:token-string tag))
-        (attributes (nox:tag-attributes tag)))
+(defmethod nox-racer:start-element ((self xml-racer) (tag nox-racer:open-tag) mode)
+  (let ((token-string (nox-racer:token-string tag))
+        (attributes (nox-racer:tag-attributes tag)))
     ;;(format t "~&START ~A ~S ~S" token-string attributes mode)
     (cond ((string-equal token-string "knowledgebase") 
            (setf (xml-racer-tbox self)
@@ -127,8 +127,8 @@
            (push (find-attribute 'num attributes nil) *stack*))
           (t (format t "~&Ignoring START ~A ~S ~S" token-string attributes mode)))))
 
-(defmethod nox:end-element ((self xml-racer) tag mode)
-  (let ((token-string (nox:token-string tag)))
+(defmethod nox-racer:end-element ((self xml-racer) tag mode)
+  (let ((token-string (nox-racer:token-string tag)))
     ;;(format t "~&END ~A ~S" token-string mode)
     (cond ((string-equal token-string "knowledgebase"))
           ((string-equal token-string "defrole"))
@@ -211,7 +211,7 @@
              (push `(at-least ,num ,role ,concept) *stack*)))
           (t (format t "~&Ignoring END ~A ~S" token-string mode)))))
 
-(defmethod nox:char-content ((self xml-racer) char-content mode)
+(defmethod nox-racer:char-content ((self xml-racer) char-content mode)
   (declare (ignore mode))
   (string-trim '(#\Space #\Tab #\Newline) char-content))
 
@@ -220,20 +220,20 @@
   ;(format t "~&END DOCUMENT ~S" mode)
   )
 
-(defmethod proc-instruction ((self xml-racer) (tag nox:proc-instruction) mode)
-  (format t "~&Ignoring: PI ~S ~S" (nox:token-string tag) mode)
-  ;(format t "~&PI ~S ~S" (nox:token-string tag) mode)
+(defmethod proc-instruction ((self xml-racer) (tag nox-racer:proc-instruction) mode)
+  (format t "~&Ignoring: PI ~S ~S" (nox-racer:token-string tag) mode)
+  ;(format t "~&PI ~S ~S" (nox-racer:token-string tag) mode)
   )
 
 ;;; ======================================================================
 
 (defun xml-read-tbox-file (filename)
   (let ((result
-         (nox:parse-from-file filename 'nox:xml-parser 
+         (nox-racer:parse-from-file filename 'nox-racer:xml-parser 
                               :consumer (make-instance 'xml-racer 
                                           :tbox-default-name 
                                           (intern (string-upcase (pathname-name filename)))))))
-    (tbox-name (xml-racer-tbox (nox:sax-producer-consumer result)))))
+    (tbox-name (xml-racer-tbox (nox-racer:sax-producer-consumer result)))))
 
 ;;; ======================================================================
 

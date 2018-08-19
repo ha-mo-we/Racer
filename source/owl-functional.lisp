@@ -66,7 +66,7 @@
 
 (define-constant +xsd-uri+
   #+:racer-server
-  nox:-xsd-uri-
+  nox-racer:-xsd-uri-
   #-:racer-server
   "http://www.w3.org/2001/XMLSchema#")
 
