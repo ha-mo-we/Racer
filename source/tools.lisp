@@ -479,7 +479,7 @@
   #+(and :allegro (or :allegro-v9.0 :allegro-v10.0))
   (excl::whitespace-char-p char)
   #+:sbcl
-  (find char SB-FORMAT::*FORMAT-WHITESPACE-CHARS*)
+  (find char #(#\  #\Newline #\Tab))
   #+:ccl (ccl:whitespacep char)
   #+(and (not :allegro) (not :lispworks) (not :sbcl) (not :ccl))
   (to-be-implemented 'whitespace-char-p))
