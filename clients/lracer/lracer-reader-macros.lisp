@@ -62,7 +62,8 @@
   #+:allegro
   (stream::whitespace-char-p char)
   #+:sbcl
-  (find char SB-FORMAT::*FORMAT-WHITESPACE-CHARS*)
+  ;; (find char SB-FORMAT::*FORMAT-WHITESPACE-CHARS*)
+  (sb-unicode:whitespace-p char)
   #+(and (not :allegro) (not :lispworks) (not :sbcl) (not :clisp))
   (to-be-implemented 'whitespace-char-p))
 
