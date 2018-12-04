@@ -586,6 +586,7 @@
 		(unintern cl-user-sym 'cl-user)))
 	    (import sym 'cl-user)))))
 
+#-:racer
 (eval-when (:load-toplevel :execute)
   (use-racer-in-cl-user))
 
