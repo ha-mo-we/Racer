@@ -1,7 +1,7 @@
 ;;; -*- Mode: Lisp; Syntax: Ansi-Common-Lisp; Package: OWLAPI; Base: 10 -*-
 
-;;; Copyright (c) 1998-2014, 
-;;; Volker Haarslev, Ralf Moeller, Michael Wessel.  
+;;; Copyright (c) 1998-2014,
+;;; Volker Haarslev, Ralf Moeller, Michael Wessel.
 ;;; All rights reserved.
 
 ;;; Racer is distributed under the following BSD 3-clause license
@@ -42,19 +42,19 @@
 ;;;
 ;;; --------------------------------------------------------------------------------------
 ;;;
-;;;   The Original Software is 
+;;;   The Original Software is
 ;;;   OntoLisp (NOSA): A Semantic Web Framework for OWL 2 and OWLlink in Common Lisp
 ;;;
-;;;   Copyright (c) 2007-2010 Michael Wessel and Racer Systems GmbH & Co. KG 
+;;;   Copyright (c) 2007-2010 Michael Wessel and Racer Systems GmbH & Co. KG
 ;;;   All Rights Reserved.
 ;;;
 ;;;   Contributor(s): Michael Wessel  (mailto:michael_wessel@gmx.de
-;;;                                    mailto:wessel@racer-systems.com) 
+;;;                                    mailto:wessel@racer-systems.com)
 ;;;
 ;;; --------------------------------------------------------------------------------------
 ;;;
-;;;   Purpose: Some auxiliary functions for the OWLAPI 
-;;; 
+;;;   Purpose: Some auxiliary functions for the OWLAPI
+;;;
 
 (defvar *sym-count* 0)
 
@@ -75,7 +75,7 @@
       arg
     (list arg)))
 
-(defun ensure-string (string) 
+(defun ensure-string (string)
   (if (stringp string)
       string
     (if (symbolp string)
@@ -89,17 +89,17 @@
 (defun ends-with-#-p (prefix)
   (let ((string
          (ensure-string prefix)))
-    (unless (zerop (length string)) 
-      (char= #\# 
-             (elt string 
+    (unless (zerop (length string))
+      (char= #\#
+             (elt string
                   (1- (length string)))))))
-  
+
 (defun starts-with-#-p (prefix)
   (let ((string
          (ensure-string prefix)))
-    (unless (zerop (length string)) 
-      (char= #\# 
-             (elt string 
+    (unless (zerop (length string))
+      (char= #\#
+             (elt string
                   0)))))
 
 (defun without-# (string)
@@ -122,21 +122,21 @@
 
 ;;;
 ;;;
-;;; 
+;;;
 
 
 (defun ends-with-colon-p (prefix)
   (let ((string
          (ensure-string prefix)))
-    (unless (zerop (length string)) 
-      (char= #\: 
-             (elt string 
+    (unless (zerop (length string))
+      (char= #\:
+             (elt string
                   (1- (length string)))))))
-  
+
 (defun ensure-ends-with-colon (prefix)
   (if (ends-with-colon-p prefix)
       prefix
-    (let ((res 
+    (let ((res
            (concatenate 'string (ensure-string prefix) ":")))
       (etypecase prefix
         (keyword (to-keyword res))
@@ -150,7 +150,7 @@
         (subseq prefix 0 (1- (length prefix)))
       prefix)))
 
-(defun get-prefix-postfix (symbol) 
+(defun get-prefix-postfix (symbol)
   (let* ((name (ensure-string symbol))
          (pos (position #\: name)))
     (if pos
@@ -171,8 +171,8 @@
   (make-hash-table :size size :rehash-size 2.0 :test test))
 
 (defun create-marker (&optional sym (new-p t))
-  (if sym       
-      (if new-p 
+  (if sym
+      (if new-p
           (intern (format nil "~A-~A-~A" +secret-prefix+ sym (incf *sym-count*)) :cl-user)
         (intern (format nil "~A-~A" +secret-prefix+ sym)  :cl-user))
     (intern (format nil "~A-~A" +secret-prefix+ (incf *sym-count*))  :cl-user)))
@@ -181,7 +181,7 @@
 #+:racer-server
 (defun owlapi-warning (string &rest args)
   (apply #'ts::nrql-warning
-         (concatenate 'string "~%~%OWLAPI Warning: " 
+         (concatenate 'string "~%~%OWLAPI Warning: "
 		      (ensure-string string))
          args))
 
@@ -189,16 +189,16 @@
 (defun owlapi-warning (string &rest args)
   (apply #'format
          t
-         (concatenate 'string "~%~%OWLAPI Warning: " 
+         (concatenate 'string "~%~%OWLAPI Warning: "
 		      (ensure-string string))
          args))
 
 (defun owlapi-runtime-error (string &rest args)
   (apply #+:racer-server
-         #'ts::nrql-error 
+         #'ts::nrql-error
          #-:racer-server
          #'error
-         (concatenate 'string "OWLAPI Runtime Error: " 
+         (concatenate 'string "OWLAPI Runtime Error: "
 		      (ensure-string string))
          args))
 
@@ -207,7 +207,7 @@
          #'ts::nrql-error
          #-:racer-server
          #'error
-         (concatenate 'string "OWLAPI Parser Error: " 
+         (concatenate 'string "OWLAPI Parser Error: "
 		      (ensure-string string))
          args))
 
@@ -231,7 +231,7 @@
 #+(or :racer-server (and :dlmaps (not :midelora)))
 (defmacro defpersistentclass (&rest rest)
   `(progn ,@(let ((name (first rest)))
-	      (list 
+	      (list
 	       `(persistence-manager:defclass ,@rest)
                `(defun ,(intern (format nil "~A-~A-~A"
                                         (string-transform "is") name (string-transform "p")))
@@ -249,7 +249,7 @@
 #+(or :racer-server (and :dlmaps (not :midelora)))
 (defmacro defpersistentstruct (name &rest args)
   `(persistence-manager::defstruct ,name ,@args))
-  
+
 #-(or :racer-server (and :dlmaps (not :midelora)))
 (defmacro defpersistentstruct (name &rest args)
   (let ((name
@@ -267,7 +267,7 @@
 ;;;
 
 (defmacro owlapi-defun ((name &key doc dont-export)
-                        lambda-list 
+                        lambda-list
                         &body body)
   #-:racer-server
   (declare (ignorable doc dont-export))
@@ -277,7 +277,7 @@
   `(defun ,name ,lambda-list ,@body))
 
 (defmacro owlapi-defmethod ((name &key doc dont-export)
-                        lambda-list 
+                        lambda-list
                         &body body)
   #-:racer-server
   (declare (ignorable doc dont-export))
@@ -294,23 +294,23 @@
   (let ((name (if (symbolp x)
                   (symbol-name x)
                 x)))
-    (or 
+    (or
      (and (> (length name) 6)
-          (or (string-equal "http://" 
+          (or (string-equal "http://"
                             (subseq name 0 7))
-              (string-equal "file://" 
+              (string-equal "file://"
                             (subseq name 0 7))))
      (and (> (length name) 7)
-          (or (string-equal "https://" 
+          (or (string-equal "https://"
                             (subseq name 0 8)))))))
-     
+
 (defun is-file-url-p (x)
   (let ((name (if (symbolp x)
                   (symbol-name x)
                 x)))
     (and (is-url-p x)
          (> (length name) 6)
-         (string-equal "file://" 
+         (string-equal "file://"
                        (subseq name 0 7)))))
 
 (defun is-http-url-p (x)
@@ -319,10 +319,10 @@
                 x)))
     (and (is-url-p x)
          (or (and (> (length name) 6)
-                  (string-equal "http://" 
+                  (string-equal "http://"
                                 (subseq name 0 7)))
              (and (> (length name) 7)
-                  (string-equal "https://" 
+                  (string-equal "https://"
                                 (subseq name 0 8)))))))
 
 
@@ -368,14 +368,14 @@
 			         &key add-spaces)
   (labels ((do-it (string akku)
              (cond ((blank-line-p string) akku)
-                   (t 
+                   (t
                     (let ((min-pos nil)
                           (min-from-to))
                       (dolist (from-to rules)
                         (let* ((from (first from-to))
                                (pos (search from string)))
                           (when pos
-                            (if (or (not min-pos) 
+                            (if (or (not min-pos)
                                     (< pos min-pos))
                                 (setf min-from-to from-to
                                       min-pos pos)))))
@@ -384,24 +384,24 @@
                             (replaced-as-new-input-p (third min-from-to)))
                         (if min-pos
                             (if replaced-as-new-input-p
-                                (do-it 
-                                 (concatenate 'string 
+                                (do-it
+                                 (concatenate 'string
 					      to
 					      (subseq string (+ min-pos (length from))))
-                                 (append akku 
+                                 (append akku
                                          (list (subseq string 0 min-pos))))
-                              (do-it 
+                              (do-it
                                (subseq string (+ min-pos (length from)))
-                               (append akku 
+                               (append akku
                                        (list (subseq string 0 min-pos))
                                        (list to))))
                           (append akku (list string)))))))))
-      
-    (let ((res (do-it (if add-spaces 
+
+    (let ((res (do-it (if add-spaces
                           (concatenate 'string " " string " ")
                         string)
 		      nil)))
-      (if res 	  
+      (if res
           (reduce #'(lambda (x y)
                       (concatenate 'string x y))
                   res)
@@ -458,7 +458,7 @@
     string))
 
 (defun clean-url (url)
-  (if url 
+  (if url
       (let ((pos (position #\space url)))
 	(if pos
 	    (concatenate 'string
@@ -470,7 +470,7 @@
 
 
 (defun decode-month (m)
-  (case m 
+  (case m
     (1 "January")
     (2 "February")
     (3 "March")
@@ -489,7 +489,7 @@
   (multiple-value-bind (s mi h d mo year)
       (decode-universal-time (get-universal-time))
     (declare (ignorable s))
-    (format nil "~2,'0D ~2,'0D ~2,'0D, ~2,'0D:~2,'0D" (decode-month mo) d year 
+    (format nil "~2,'0D ~2,'0D ~2,'0D, ~2,'0D:~2,'0D" (decode-month mo) d year
             h mi)))
 
 ;;;
@@ -499,5 +499,3 @@
 (defmacro define-constant (name value &optional doc)
   `(defconstant ,name (if (boundp ',name) (symbol-value ',name) ,value)
      ,@(when doc (list doc))))
-
-

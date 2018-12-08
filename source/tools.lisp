@@ -1,7 +1,7 @@
 ;;; -*- Mode: Lisp; Syntax: Ansi-Common-Lisp; Package: THEMATIC-SUBSTRATE; Base: 10 -*-
 
-;;; Copyright (c) 1998-2014, 
-;;; Volker Haarslev, Ralf Moeller, Michael Wessel.  
+;;; Copyright (c) 1998-2014,
+;;; Volker Haarslev, Ralf Moeller, Michael Wessel.
 ;;; All rights reserved.
 
 ;;; Racer is distributed under the following BSD 3-clause license
@@ -37,11 +37,11 @@
 (in-package :thematic-substrate)
 
 ;;;
-;;; Diese Datei wird nun geladen, wenn #-dlmaps gilt 
+;;; Diese Datei wird nun geladen, wenn #-dlmaps gilt
 ;;;
 
 (defmacro with-new-marking-context (&body body)
-  `(progn 
+  `(progn
      ,@body))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -56,21 +56,21 @@
 #+(and :lracer (not :dlmaps))
 (defmacro defpersistentclass (&rest rest)
   `(progn ,@(let ((name (first rest)))
-	      (list 
+	      (list
 	       `(defclass ,(first rest)
                           ,(second rest)
                           ,(mapcar #'(lambda (x)
                                        (remove :not-persistent x))
                                    (third rest)))
-               `(defun ,(intern (format nil "~A-~A-~A" 
-                                        (string-transform "is") name (string-transform "p"))) 
+               `(defun ,(intern (format nil "~A-~A-~A"
+                                        (string-transform "is") name (string-transform "p")))
                        (obj)
                   (typep obj ',name))))))
 
 #+(or :racer-server (and :dlmaps (not :midelora))) ;If #+:racer-server does not hold, Racer cannot be compiled! RM April 2014
 (defmacro defpersistentclass (&rest rest)
   `(progn ,@(let ((name (first rest)))
-	      (list 
+	      (list
 	       `(persistence-manager:defclass ,@rest)
                `(defun ,(intern (format nil "~A-~A-~A"
                                         (string-transform "is") name (string-transform "p")))
@@ -111,10 +111,10 @@
 
 (defun unlist-if-one (a)
   (if (listp a)
-      (if (not (cdr a)) 
+      (if (not (cdr a))
           (first a)
         (let ((a (remove-duplicates a)))
-          (if (not (cdr a)) 
+          (if (not (cdr a))
               (first a)
             a)))
     a))
@@ -124,7 +124,7 @@
 ;;;
 
 (defun tree-map (fn tree &rest args)
-  (mapcar #'(lambda (item) 
+  (mapcar #'(lambda (item)
               (if (consp item)
                   (apply #'tree-map fn item args)
                 (apply fn item args)))
@@ -169,34 +169,34 @@
                 (if (equal x old)
                     new
                   x))
-            tree))            
+            tree))
 
 ;;;
 ;;;
 ;;;
 
-;;; Kopie aus dlmaps:tools! 
+;;; Kopie aus dlmaps:tools!
 
 
 (defun change-package-of-description (description &optional (package :cl-user) change-keyword-p (keep-racer-symbols-p t))
-  (when description 
+  (when description
     (typecase description
       (list
-       (mapcar #'(lambda (x) 
+       (mapcar #'(lambda (x)
                    (change-package-of-description x package change-keyword-p keep-racer-symbols-p))
                description))
-      (symbol 
+      (symbol
        (if (and (keywordp description)
                 (not change-keyword-p))
-           description           
+           description
          (if (and (eq (symbol-package description)
                       (find-package :racer))
                   keep-racer-symbols-p
                   ;;; Racer "interne" Symbole werden beibehalten!!!
                   )
              description
-           (let ((*package* 
-                  (if package (find-package package) 
+           (let ((*package*
+                  (if package (find-package package)
                     *package*)))
              (intern (symbol-name description))))))
       (otherwise description))))
@@ -206,7 +206,7 @@
 ;;;
 
 (defun simplify-boolean-expression (expr &optional recursively-p)
-  ;;; (OP (OP c d)) -> (OP c d) etc.   
+  ;;; (OP (OP c d)) -> (OP c d) etc.
   (if (consp expr)
       (let ((op (intern (format nil "~A" (first expr))
                         :keyword)))
@@ -214,8 +214,8 @@
           ((:project-to :pi)
              (if recursively-p
                  `(:project-to
-                   ,(second expr) 
-                   ,@(mapcar #'(lambda (x) 
+                   ,(second expr)
+                   ,@(mapcar #'(lambda (x)
                                  (simplify-boolean-expression x t))
                              (cddr expr)))
                expr))
@@ -224,9 +224,9 @@
                `(:not ,(simplify-boolean-expression (second expr) t))
              expr))
           ((:and :or :intersection :union :cap :cup)
-           (let ((args 
-                  (remove-duplicates 
-                   (if recursively-p 
+           (let ((args
+                  (remove-duplicates
+                   (if recursively-p
                        (mapcar #'(lambda (x)
                                    (simplify-boolean-expression x t))
                                (rest expr))
@@ -234,16 +234,16 @@
                    :test #'equal)))
              (if (not args)
                  (ecase op
-                   ((:and :intersection :cap) 
+                   ((:and :intersection :cap)
                     (parser-error "Bad query term ~A" expr))
-                   ((:or :union :cup) 
+                   ((:or :union :cup)
                     (parser-error "Bad query term ~A" expr)))
                (if (not (cdr args))
                    (first args)
-                 `(,(case op 
+                 `(,(case op
                       ((:and :intersection :cap) :and)
                       ((:or :union :cup) :or))
-                   ,@(reduce #'append 
+                   ,@(reduce #'append
                              (mapcar #'(lambda (arg)
                                          (if (consp arg)
                                              (if (eq (first arg) op)
@@ -254,7 +254,7 @@
           (otherwise expr)))
     expr))
 
-                       
+
 (defun get-boolean-dnf (expr)
   ;;;
   ;;; (AND (OR C (NOT D)) (OR E F)) (muss in NNF sein!) ->
@@ -269,10 +269,10 @@
                        `(:not ,(second expr))
                      (let ((args (remove-duplicates (rest expr) :test #'equal)))
                        (cond ((member op '(:or :union :cup))
-                              (simplify-boolean-expression 
+                              (simplify-boolean-expression
                                (cons :or (mapcar #'dnf args))))
                              ((member op '(:and :intersection :cap))
-                              (let* ((args (mapcar #'(lambda (x) 
+                              (let* ((args (mapcar #'(lambda (x)
                                                        (let ((x (dnf x)))
                                                          (if (or (member (first x) '(:neg :not))
                                                                  (not (member (first x)
@@ -288,33 +288,33 @@
                                                                   (member (first x) '(:or :union :cup)))
                                                               args)))
                                 (simplify-boolean-expression
-                                 (if or-terms 
-                                     (let ((crosprod (newprod 
+                                 (if or-terms
+                                     (let ((crosprod (newprod
                                                       (mapcar #'rest or-terms))))
-                                       (cons :or 
+                                       (cons :or
                                              (mapcar #'(lambda (or-term)
-                                                         (simplify-boolean-expression 
-                                                          (cons :and (append non-or-terms 
+                                                         (simplify-boolean-expression
+                                                          (cons :and (append non-or-terms
                                                                              or-term))))
                                                      crosprod)))
                                    (cons :and args)))))
                              (t expr)))))
                expr)))
-    
+
     (dnf expr)))
 
 
 ;;;
 ;;;
 
-(defun permutations (list &optional (n (length list)) (i 0)) 
+(defun permutations (list &optional (n (length list)) (i 0))
   (perm list n i))
 
 (defun perm (list &optional (n (length list)) (i 0))
-  ;;; choose "k" out of "n" 
-  (if (= i n) 
+  ;;; choose "k" out of "n"
+  (if (= i n)
       '(nil)
-    (remove-duplicates 
+    (remove-duplicates
      (mapcan #'(lambda (a)
                  (let ((rest (remove a list :count 1)))
                    (mapcar #'(lambda (rest)
@@ -339,21 +339,21 @@
 (defun to-keyword-big (x)
   (if (symbolp x)
       (intern (string-upcase (format nil "~A" x)) :keyword)
-    (mapcar #'(lambda (x) 
+    (mapcar #'(lambda (x)
 		(intern (string-upcase (format nil "~A" x)) :keyword))
 	    x)))
-	   
-(defun to-keyword-small (x) 
+
+(defun to-keyword-small (x)
   (if (symbolp x)
       (intern (string-downcase (format nil "~A" x)) :keyword)
-    (mapcar #'(lambda (x) 
+    (mapcar #'(lambda (x)
 		(intern (string-downcase (format nil "~A" x)) :keyword))
 	    x)))
 
 
 ;;;
 ;;;
-;;; 
+;;;
 
 (defun smallest (list &optional (fn #'identity))
   (when list
@@ -414,20 +414,20 @@
     ("<" "&lt;" nil)
     (">" "&gt;" nil)
     ("\\@" "&#64;" nil)))
-  
+
 
 (defun string-substitute (string &optional (rules *replacements*)
 			         &key add-spaces)
   (labels ((do-it (string akku)
              (cond ((blank-line-p string) akku)
-                   (t 
+                   (t
                     (let ((min-pos nil)
                           (min-from-to))
                       (dolist (from-to rules)
                         (let* ((from (first from-to))
                                (pos (search from string)))
                           (when pos
-                            (if (or (not min-pos) 
+                            (if (or (not min-pos)
                                     (< pos min-pos))
                                 (setf min-from-to from-to
                                       min-pos pos)))))
@@ -436,24 +436,24 @@
                             (replaced-as-new-input-p (third min-from-to)))
                         (if min-pos
                             (if replaced-as-new-input-p
-                                (do-it 
-                                 (concatenate 'string 
+                                (do-it
+                                 (concatenate 'string
 					      to
 					      (subseq string (+ min-pos (length from))))
-                                 (append akku 
+                                 (append akku
                                          (list (subseq string 0 min-pos))))
-                              (do-it 
+                              (do-it
                                (subseq string (+ min-pos (length from)))
-                               (append akku 
+                               (append akku
                                        (list (subseq string 0 min-pos))
                                        (list to))))
                           (append akku (list string)))))))))
-      
-    (let ((res (do-it (if add-spaces 
+
+    (let ((res (do-it (if add-spaces
                           (concatenate 'string " " string " ")
                         string)
 		      nil)))
-      (if res 	  
+      (if res
           (reduce #'(lambda (x y)
                       (concatenate 'string x y))
                   res)
@@ -486,7 +486,7 @@
   (to-be-implemented 'whitespace-char-p))
 
 (defun clean-url (url)
-  (if url 
+  (if url
       (let ((pos (position #\space url)))
 	(if pos
 	    (concatenate 'string
@@ -495,4 +495,3 @@
 	      (clean-url (subseq url (1+ pos))))
 	  url))
     ""))
-
